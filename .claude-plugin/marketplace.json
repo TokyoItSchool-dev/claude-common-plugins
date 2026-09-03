@@ -1,0 +1,29 @@
+{
+  "name": "mori-claude-tools",
+  "description": "Shared Claude Code plugins for development, Java, .NET and documentation workflows (mori-claude-tools)",
+  "owner": {
+    "name": "Mori"
+  },
+  "plugins": [
+    {
+      "name": "core-dev",
+      "source": "./plugins/core-dev",
+      "description": "Language-agnostic development workflows: coding standards, code review, TDD, security check, git and PR conventions, API design, test-run discipline"
+    },
+    {
+      "name": "java-dev",
+      "source": "./plugins/java-dev",
+      "description": "Java and Spring Boot conventions: coding style, patterns, security, testing (JUnit 5, Mockito, Testcontainers), verification loop"
+    },
+    {
+      "name": "dotnet-dev",
+      "source": "./plugins/dotnet-dev",
+      "description": "C# and .NET conventions: coding style, ASP.NET Core and EF Core patterns, security, testing (xUnit/NUnit)"
+    },
+    {
+      "name": "docs",
+      "source": "./plugins/docs",
+      "description": "Technical writing and documentation workflows: Japanese tech writing, Markdown conventions, HTML design docs, Office document tooling, HTML slides"
+    }
+  ]
+}

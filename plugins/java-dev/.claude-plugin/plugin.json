@@ -1,0 +1,7 @@
+{
+  "name": "java-dev",
+  "version": "0.1.0",
+  "displayName": "Java Development",
+  "description": "Java, Spring Boot, Maven/Gradle and JUnit development conventions and reviewer agent",
+  "author": { "name": "Mori" }
+}

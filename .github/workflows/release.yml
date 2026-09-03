@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # 動的正規表現で `[` `]` をエスケープすると awk 実装によっては
+          # バックスラッシュが無視され誤マッチするため、見出し行の判定は
+          # 静的正規表現 + 文字列比較で行う。
+          awk -v ver="$VERSION" '
+            /^## \[/ {
+              v = $0
+              sub(/^## \[/, "", v)
+              sub(/\].*/, "", v)
+              found = (v == ver)
+              next
+            }
+            found { print }
+          ' docs/CHANGELOG.md > notes.md
+
+          # 前後の空行を削って中身の有無を判定する
+          if [ -z "$(tr -d '[:space:]' < notes.md)" ]; then
+            echo "(CHANGELOGに該当エントリなし)" > notes.md
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md; then
+            gh release edit "$GITHUB_REF_NAME" --notes-file notes.md
+          fi
+
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "::warning::SLACK_WEBHOOK_URL が未設定のため Slack 通知をスキップします"
+            exit 0
+          fi
+
+          RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
+          BODY_PREVIEW="$(head -n 10 notes.md)"
+          TEXT="$(printf '🚀 claude-common-plugins %s リリース\n%s\n\n%s' "$GITHUB_REF_NAME" "$RELEASE_URL" "$BODY_PREVIEW")"
+
+          PAYLOAD="$(jq -n --arg text "$TEXT" '{text: $text}')"
+
+          curl --fail-with-body -X POST -H 'Content-Type: application/json' \
+            -d "$PAYLOAD" "$SLACK_WEBHOOK_URL"

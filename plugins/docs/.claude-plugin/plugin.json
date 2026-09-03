@@ -1,0 +1,7 @@
+{
+  "name": "docs",
+  "version": "0.1.0",
+  "displayName": "Documentation",
+  "description": "Technical documentation, Japanese technical writing, Markdown and Office document workflows",
+  "author": { "name": "Mori" }
+}

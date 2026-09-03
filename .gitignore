@@ -1,0 +1,4 @@
+# binaries are supplied per machine, not committed
+*.jar
+.DS_Store
+Thumbs.db

@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>サンプル設計書</title>
+  <style>
+/* ============================================================
+   html-design-doc — standalone document stylesheet
+   Light mode only. No external fonts, no @import, no url().
+   ============================================================ */
+
+/* --- Design tokens ---------------------------------------- */
+:root {
+  /* Color: text */
+  --fg: #1f2328;
+  --fg-muted: #5a6472;
+  /* WCAG AA on white at small sizes (5.48:1) */
+  --fg-faint: #5f6a7a;
+
+  /* Color: surface */
+  --bg: #ffffff;
+  --surface: #f6f8fa;
+  --surface-2: #eef2f6;
+  --border: #d5dbe3;
+  --border-strong: #b8c1cc;
+
+  /* Color: accent */
+  --accent: #1b6ac9;
+  --accent-dark: #14508f;
+  --accent-soft: #e8f1fb;
+
+  /* Color: callouts */
+  --note-fg: #14508f;
+  --note-bg: #eef5fd;
+  --note-border: #3b82c4;
+  --warn-fg: #8a5300;
+  --warn-bg: #fff7e6;
+  --warn-border: #e0a02a;
+  --tip-fg: #1e6b46;
+  --tip-bg: #edf8f1;
+  --tip-border: #34a06a;
+
+  /* Color: code */
+  --code-bg: #f4f6f8;
+  --code-fg: #24292f;
+  --code-border: #e0e5eb;
+
+  /* Typography */
+  --font-body: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
+  --font-mono: Consolas, "Cascadia Mono", "SFMono-Regular", "Courier New", monospace;
+  --fs-base: 15.5px;
+  --fs-h1: 2.0rem;
+  --fs-h2: 1.45rem;
+  --fs-h3: 1.18rem;
+  --fs-h4: 1.02rem;
+  --fs-small: 0.87rem;
+  --lh-body: 1.85;
+  --lh-heading: 1.45;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.85rem;
+  --space-4: 1.3rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+
+  /* Layout */
+  --sidebar-width: 280px;
+  --content-width: 860px;
+  --radius: 6px;
+  --toc-anim: 0.25s ease;
+}
+
+/* --- Base ------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: var(--fs-base);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: var(--lh-body);
+  color: var(--fg);
+  background: var(--bg);
+  text-rendering: optimizeLegibility;
+}
+
+/* --- Layout: sidebar TOC + main column -------------------- */
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  max-width: calc(var(--sidebar-width) + var(--content-width) + 8rem);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+#TOC {
+  flex: 0 0 var(--sidebar-width);
+  width: var(--sidebar-width);
+  position: sticky;
+  top: 0;
+  /* height constraint is required for the independent scroll below */
+  height: 100vh;
+  overflow-y: auto;
+  /* extra top padding clears the fixed toggle button */
+  padding: var(--space-6) var(--space-3) var(--space-5) 0;
+  border-right: 1px solid var(--border);
+  font-size: var(--fs-small);
+  line-height: 1.6;
+  /* visibility is transitioned so it flips only at the end of the
+     fade-out (and immediately on fade-in), instead of snapping */
+  transition: width var(--toc-anim), flex-basis var(--toc-anim),
+              max-height var(--toc-anim), opacity var(--toc-anim),
+              padding var(--toc-anim), visibility var(--toc-anim);
+}
+
+.main {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--content-width);
+  padding: var(--space-5) 0 var(--space-6);
+  transition: max-width var(--toc-anim);
+}
+
+/* --- TOC toggle button ------------------------------------ */
+/* The button is hidden in markup and revealed by the inline
+   script, so with JavaScript disabled the sidebar stays open. */
+.toc-toggle {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0.75em;
+  font-family: inherit;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--fg-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.toc-toggle[hidden] {
+  display: none;
+}
+
+.toc-toggle:hover {
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.toc-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --- Collapsed state -------------------------------------- */
+body.toc-collapsed #TOC {
+  flex-basis: 0;
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-right-color: transparent;
+  opacity: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+/* the main column takes up part of the freed width */
+body.toc-collapsed .main {
+  max-width: calc(var(--content-width) + 200px);
+}
+
+/* --- TOC links -------------------------------------------- */
+#TOC .toc-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--fg-faint);
+}
+
+#TOC ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#TOC ul ul {
+  /* hierarchy indent */
+  padding-left: var(--space-3);
+}
+
+#TOC li {
+  margin: 1px 0;
+}
+
+#TOC a {
+  display: block;
+  padding: 0.3em 0.6em;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--fg-muted);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+#TOC a:hover {
+  background: var(--surface);
+  border-left-color: var(--border-strong);
+  color: var(--fg);
+}
+
+#TOC a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* active-look while the link is being followed */
+#TOC a:active {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+/* top-level TOC entries read as headings */
+#TOC > ul > li > a {
+  font-weight: 700;
+  color: var(--fg);
+}
+
+/* --- Headings --------------------------------------------- */
+h1, h2, h3, h4 {
+  line-height: var(--lh-heading);
+}
+
+/* anchor jumps land below the top edge; TOC links target the
+   <section> wrappers, so the offset must sit on them too */
+section[id],
+h1[id], h2[id], h3[id], h4[id] {
+  scroll-margin-top: var(--space-4);
+}
+
+h1 {
+  margin: 0 0 var(--space-5);
+  padding-bottom: var(--space-3);
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  border-bottom: 4px solid var(--accent);
+}
+
+h2 {
+  margin: var(--space-6) 0 var(--space-4);
+  padding: 0.4em 0.7em;
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  color: var(--accent-dark);
+  background: var(--surface);
+  border-left: 6px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+h3 {
+  margin: var(--space-5) 0 var(--space-3);
+  padding-bottom: 0.25em;
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+}
+
+h4 {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: var(--fs-h4);
+  font-weight: 700;
+  color: var(--fg-muted);
+}
+
+/* --- Text ------------------------------------------------- */
+p {
+  margin: 0 0 var(--space-4);
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--accent-dark);
+}
+
+strong {
+  font-weight: 700;
+}
+
+hr {
+  margin: var(--space-6) 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: var(--space-4) auto;
+}
+
+/* --- Lists ------------------------------------------------ */
+ul, ol {
+  margin: 0 0 var(--space-4);
+  padding-left: 1.6em;
+}
+
+li {
+  margin: 0.4em 0;
+}
+
+/* nested lists sit closer to their parent item */
+li > ul,
+li > ol {
+  margin: 0.4em 0 0.2em;
+}
+
+dl {
+  margin: 0 0 var(--space-4);
+}
+
+dt {
+  font-weight: 700;
+}
+
+dd {
+  margin: 0 0 var(--space-3) 1.5em;
+}
+
+/* --- Code ------------------------------------------------- */
+code {
+  padding: 0.12em 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--surface-2);
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+}
+
+pre {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--code-fg);
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  tab-size: 2;
+}
+
+pre code {
+  padding: 0;
+  font-size: inherit;
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+/* Mermaid source blocks render as diagrams; keep them frameless */
+pre.mermaid {
+  background: none;
+  border: none;
+  text-align: center;
+}
+
+/* --- Tables ----------------------------------------------- */
+table {
+  width: 100%;
+  margin: 0 0 var(--space-4);
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+caption {
+  margin-bottom: var(--space-2);
+  color: var(--fg-muted);
+  font-size: var(--fs-small);
+  text-align: left;
+}
+
+th, td {
+  padding: 0.55em 0.85em;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+thead th {
+  color: var(--accent-dark);
+  background: var(--surface-2);
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-strong);
+}
+
+/* zebra striping */
+tbody tr:nth-child(even) {
+  background: var(--surface);
+}
+
+/* --- Callouts --------------------------------------------- */
+.callout {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--border-strong);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+}
+
+.callout > :last-child {
+  margin-bottom: 0;
+}
+
+.callout .callout-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.callout.note {
+  background: var(--note-bg);
+  border-color: var(--note-border);
+  border-left-color: var(--note-border);
+}
+
+.callout.note .callout-label {
+  color: var(--note-fg);
+}
+
+.callout.warn {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+  border-left-color: var(--warn-border);
+}
+
+.callout.warn .callout-label {
+  color: var(--warn-fg);
+}
+
+.callout.tip {
+  background: var(--tip-bg);
+  border-color: var(--tip-border);
+  border-left-color: var(--tip-border);
+}
+
+.callout.tip .callout-label {
+  color: var(--tip-fg);
+}
+
+/* --- Utilities -------------------------------------------- */
+.file {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.doc-meta {
+  margin: calc(-1 * var(--space-4)) 0 var(--space-5);
+  color: var(--fg-muted);
+  font-size: var(--fs-small);
+}
+
+/* --- Appendix --------------------------------------------- */
+.appendix {
+  margin-top: var(--space-6);
+  color: var(--fg-muted);
+}
+
+.appendix h2 {
+  color: var(--fg-muted);
+  border-left-color: var(--border-strong);
+}
+
+.appendix h3 {
+  color: var(--fg-muted);
+}
+
+/* --- Print ------------------------------------------------ */
+@media print {
+  html {
+    font-size: 10.5pt;
+    scroll-behavior: auto;
+  }
+
+  /* single column: drop the sidebar, the toggle and the layout offsets */
+  #TOC,
+  .toc-toggle {
+    display: none !important;
+  }
+
+  .layout {
+    display: block;
+    max-width: none;
+    padding: 0;
+    gap: 0;
+  }
+
+  /* the collapsed-state selector is more specific, so match it here */
+  .main,
+  body.toc-collapsed .main {
+    max-width: none;
+    width: 100%;
+    padding: 0;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  @page {
+    margin: 15mm;
+  }
+
+  /* keep headings attached to the text that follows */
+  h1, h2, h3, h4 {
+    break-after: avoid;
+    page-break-after: avoid;
+    break-inside: avoid;
+  }
+
+  /* each top-level section after the first starts on a new page */
+  section.level1 + section.level1 {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  pre, table, figure, img, .callout {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* preserve heading, table header and callout tinting on paper */
+  h1, h2, h3, h4,
+  thead th,
+  tbody tr:nth-child(even),
+  pre,
+  .callout {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/* --- Reduced motion --------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  #TOC,
+  .main,
+  .toc-toggle {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* --- Narrow screens --------------------------------------- */
+@media screen and (max-width: 1100px) {
+  .layout {
+    display: block;
+    padding: 0 var(--space-4);
+  }
+
+  #TOC {
+    position: static;
+    width: auto;
+    height: auto;
+    max-height: 40vh;
+    padding: var(--space-6) 0 var(--space-4);
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* collapse vertically instead of horizontally */
+  body.toc-collapsed #TOC {
+    width: auto;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-bottom-color: transparent;
+  }
+
+  /* the collapsed-state selector is more specific, so match it here */
+  .main,
+  body.toc-collapsed .main {
+    max-width: none;
+  }
+}
+  </style>
+</head>
+<body>
+<!-- hidden by default; the inline script below reveals it, so with JS
+     disabled the sidebar simply stays open -->
+<button type="button" class="toc-toggle" id="toc-toggle" hidden aria-controls="TOC" aria-expanded="true">☰ 目次</button>
+<div class="layout">
+
+<nav id="TOC" role="doc-toc" aria-label="目次">
+<p class="toc-title">目次</p>
+<ul>
+<li><a href="#サンプル設計書">サンプル設計書</a>
+<ul>
+<li><a href="#概要">1. 概要</a></li>
+<li><a href="#全体構成">2. 全体構成</a>
+<ul>
+<li><a href="#処理フロー">2.1 処理フロー</a></li>
+<li><a href="#構成要素">2.2 構成要素</a></li>
+</ul></li>
+<li><a href="#実装メモ">3. 実装メモ</a>
+<ul>
+<li><a href="#設定例">3.1 設定例</a></li>
+<li><a href="#注意事項">3.2 注意事項</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#付録">付録</a>
+<ul>
+<li><a href="#用語集">A. 用語集</a></li>
+</ul></li>
+</ul>
+</nav>
+
+<main class="main">
+
+<section id="サンプル設計書" class="level1">
+<h1>サンプル設計書</h1>
+<p class="doc-meta">最終更新: 2026-07-31 ／ 作成: html-design-doc スキル</p>
+
+<section id="概要" class="level2">
+<h2>1. 概要</h2>
+<p>本ドキュメントは <span class="file">html-design-doc</span> スキルが生成するスタンドアロンHTMLの見本である。左側の目次は画面に固定され、本文は読みやすい幅に収まる。見出し・表・コード・注釈・図の書き方をこのファイル1つで確認できる。</p>
+
+<div class="callout note">
+<span class="callout-label">NOTE</span>
+<p>このテンプレートは単一ファイルで完結する。外部参照は Mermaid の CDN スクリプト1本のみで、外部CSSやフォントは読み込まない。</p>
+</div>
+
+<ul>
+<li>対象は設計書・説明書・俯瞰資料などの読み物ドキュメント</li>
+<li>作図は既定で Mermaid、明示指示があるときのみ PlantUML
+<ul>
+<li>Mermaid はソースをそのままHTMLに書く</li>
+<li>PlantUML は PNG を base64 で埋め込む</li>
+</ul></li>
+<li>印刷時は目次が消え、1カラムに切り替わる</li>
+</ul>
+</section>
+
+<section id="全体構成" class="level2">
+<h2>2. 全体構成</h2>
+
+<section id="処理フロー" class="level3">
+<h3>2.1 処理フロー</h3>
+<p>図は <code>&lt;pre class="mermaid"&gt;</code> として本文中に直接記述する。</p>
+<pre class="mermaid">
+flowchart TD
+    A[入力: 素材ドキュメント] --> B[構成の設計]
+    B --> C[HTML本文の記述]
+    C --> D[検証: リンク・外部参照]
+    D --> E[出力: 単一HTMLファイル]
+</pre>
+</section>
+
+<section id="構成要素" class="level3">
+<h3>2.2 構成要素</h3>
+<table>
+<thead>
+<tr><th>要素</th><th>マークアップ</th><th>役割</th></tr>
+</thead>
+<tbody>
+<tr><td>レイアウト</td><td><code>div.layout</code></td><td>目次と本文の2カラムを作る</td></tr>
+<tr><td>目次</td><td><code>nav#TOC</code></td><td>固定表示。長い場合は単独でスクロールする</td></tr>
+<tr><td>本文</td><td><code>main.main</code></td><td>約860pxの読みやすい幅に制限する</td></tr>
+<tr><td>節</td><td><code>section.levelN</code></td><td>見出し階層に合わせて入れ子にする</td></tr>
+</tbody>
+</table>
+</section>
+</section>
+
+<section id="実装メモ" class="level2">
+<h2>3. 実装メモ</h2>
+
+<section id="設定例" class="level3">
+<h3>3.1 設定例</h3>
+<p>コードブロックは横スクロールし、等幅フォントで表示される。</p>
+<pre><code>{
+  "output": "design-doc.html",
+  "diagram": "mermaid",
+  "embedImages": false
+}</code></pre>
+
+<h4>補足: インラインコード</h4>
+<p>ファイル名やクラス名は <code>references/style.css</code> のようにインラインコードで示す。</p>
+</section>
+
+<section id="注意事項" class="level3">
+<h3>3.2 注意事項</h3>
+
+<div class="callout warn">
+<span class="callout-label">WARN</span>
+<p>Mermaid の CDN スクリプト以外の JavaScript を追加してはならない。外部CSS・外部フォントの読み込みも禁止する。</p>
+</div>
+
+<div class="callout tip">
+<span class="callout-label">TIP</span>
+<p>目次のリンク先は必ず本文の <code>id</code> と対応させる。ジャンプ先の位置は <code>scroll-margin-top</code> で調整済みなので、見出しが画面上端に貼り付くことはない。</p>
+</div>
+</section>
+</section>
+</section>
+
+<section id="付録" class="level1 appendix">
+<h1>付録</h1>
+
+<section id="用語集" class="level2">
+<h2>A. 用語集</h2>
+<table>
+<thead>
+<tr><th>用語</th><th>意味</th></tr>
+</thead>
+<tbody>
+<tr><td>デザイントークン</td><td><code>:root</code> に定義したCSSカスタムプロパティ</td></tr>
+<tr><td>コールアウト</td><td><code>note</code> / <code>warn</code> / <code>tip</code> の3種類の注釈ブロック</td></tr>
+</tbody>
+</table>
+</section>
+</section>
+
+</main>
+</div>
+<script>
+var tocBtn = document.getElementById('toc-toggle');
+tocBtn.hidden = false;
+tocBtn.addEventListener('click', function () {
+  var collapsed = document.body.classList.toggle('toc-collapsed');
+  tocBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+});
+</script>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  themeVariables: {
+    primaryColor: '#f6f8fa',
+    primaryBorderColor: '#1b6ac9',
+    primaryTextColor: '#1f2328',
+    lineColor: '#5a6472',
+    fontFamily: '"Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif',
+    fontSize: '14px'
+  }
+});
+</script>
+</body>
+</html>
