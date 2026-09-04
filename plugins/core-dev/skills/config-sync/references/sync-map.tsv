@@ -1,0 +1,23 @@
+home	tps	ccp	class_tps	class_ccp	notes
+CLAUDE.md	claude-codex/CLAUDE.md	templates/CLAUDE.md	mirror	variant	CCP はチーム配布向けにサニタイズした変種（約190行差分）。意味変更のみ手作業で反映し、全文コピーは禁止
+rules/common/	claude-codex/rules/common/	-	mirror	-	9ファイル
+skills/orchestration-core/	claude-codex/skills/orchestration-core/	-	mirror	-	SKILL.md と references/ 4ファイル。委譲の固定句を変更したら CCP の plugins/*/agents/*.md の `## Output format` にも同等の行を手作業で入れる
+skills/japanese-tech-writing/SKILL.md	skills/japanese-tech-writing/SKILL.md	plugins/docs/skills/japanese-tech-writing/SKILL.md	mirror	variant	CCP は末尾に `## Origin` 節を追加
+skills/cognitive-rhythm-writing/SKILL.md	skills/cognitive-rhythm-writing/SKILL.md	plugins/docs/skills/cognitive-rhythm-writing/SKILL.md	mirror	variant	CCP は `## Origin` 節の追加と、相互参照を `docs:japanese-tech-writing` に書き換え
+skills/test-run-discipline/	skills/test-run-discipline/	plugins/core-dev/skills/test-run-discipline/	mirror	variant	CCP は SKILL.md のパスを ${CLAUDE_PLUGIN_ROOT} に置換し description を調整、scripts/run-tests.sh の shebang が `#!/usr/bin/env bash`（HOME/TPS は `#!/bin/sh`）
+skills/html-design-doc/SKILL.md	skills/html-design-doc/SKILL.md	plugins/docs/skills/html-design-doc/SKILL.md	mirror	variant	CCP は `## Origin` 節、参照を `docs:` 形式に、PlantUML jar の解決手順を追記
+skills/html-design-doc/references/plantuml-conventions.md	skills/html-design-doc/references/plantuml-conventions.md	plugins/docs/skills/html-design-doc/references/plantuml-conventions.md	mirror	variant	CCP は jar 非同梱前提の解決順（PLANTUML_JAR→plantuml コマンド→同梱パス）と原典パス記載の削除
+skills/html-design-doc/references/mermaid-conventions.md	skills/html-design-doc/references/mermaid-conventions.md	plugins/docs/skills/html-design-doc/references/mermaid-conventions.md	mirror	mirror	HOME/TPS/CCP すべて一致
+skills/html-design-doc/references/style.css	skills/html-design-doc/references/style.css	plugins/docs/skills/html-design-doc/references/style.css	mirror	mirror	HOME/TPS/CCP すべて一致
+skills/html-design-doc/references/template.html	skills/html-design-doc/references/template.html	plugins/docs/skills/html-design-doc/references/template.html	mirror	mirror	HOME/TPS/CCP すべて一致
+skills/html-design-doc/scripts/embed_images.py	skills/html-design-doc/scripts/embed_images.py	plugins/docs/skills/html-design-doc/scripts/embed_images.py	mirror	mirror	HOME/TPS/CCP すべて一致
+skills/markdown-conventions/SKILL.md	-	plugins/docs/skills/markdown-conventions/SKILL.md	-	variant	TPS に対応物なし。CCP は `## Origin` 節を追加
+skills/config-sync/	claude-codex/skills/config-sync/	plugins/core-dev/skills/config-sync/	mirror	variant	本スキル。CCP は `## Origin` 節を追加、スクリプトパスを ${CLAUDE_PLUGIN_ROOT} に置換
+commands/changelog-commit.md	commands/changelog-commit.md	plugins/core-dev/skills/changelog-commit/SKILL.md	variant	variant	3拠点とも分岐済み。TPS は CHANGELOG 記述ルールの例が簡略。CCP は description/argument-hint を拡張、コマンド名を `/core-dev:changelog-commit` に、SlideGen 固有の記述を一般化
+commands/generate-design-doc/	commands/generate-design-doc/	-	mirror	-	4ファイル
+commands/MajorLectureMaterials/	commands/MajorLectureMaterials/	-	mirror	-	7ファイル
+# exclude: skills/coding-standards, skills/api-design, skills/officecli, skills/frontend-slides — CCP に同名スキルがあるが系統が別。同期しない
+# exclude: skills/codex-brief-review — HOME 専用
+# exclude: skills/html-design-doc/scripts/plantuml.jar — マシンごとに用意するバイナリ（HOME は /skills/**/*.jar、CCP は *.jar で gitignore 済み）
+# exclude: CCP plugins/*/agents/*.md — HOME に対応物なし。CCP 単独で保守する
+# exclude: 上記以外の HOME の skills/ 配下すべて（ECC 等から取り込んだ外部由来スキル）
