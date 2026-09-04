@@ -89,26 +89,36 @@
 導入方法は、プロジェクトのルートに `CLAUDE.md` としてコピーするか、個人設定として `~/.claude/CLAUDE.md` にマージするかのいずれか。すでに `CLAUDE.md` がある場合は上書きせず、既存のルールと内容をマージすること。
 
 ```
-claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins
-claude plugin install core-dev@mori-claude-tools
+claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins --scope project
+claude plugin install core-dev@mori-claude-tools --scope project
 cp templates/CLAUDE.md ./CLAUDE.md
 ```
 
 ## Installation
 
-マーケットプレイスを登録し、必要なプラグインを個別にインストールする。
+マーケットプレイスを登録し、必要なプラグインを個別にインストールする。既定は `--scope project` である。これにより、マーケットプレイスとプラグインがリポジトリの `.claude/settings.json` に記録され、git 経由でチームメンバーと共有される。
 
 ```
-claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins
-claude plugin install core-dev@mori-claude-tools
-claude plugin install java-dev@mori-claude-tools
-claude plugin install dotnet-dev@mori-claude-tools
-claude plugin install docs@mori-claude-tools
+claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins --scope project
+claude plugin install core-dev@mori-claude-tools --scope project
+claude plugin install java-dev@mori-claude-tools --scope project
+claude plugin install dotnet-dev@mori-claude-tools --scope project
+claude plugin install docs@mori-claude-tools --scope project
+```
+
+### 個人環境へのインストール（オプション）
+
+プロジェクト単位ではなく、個人環境として全プロジェクト共通でインストールしたい場合は、CLI の既定値である `--scope user` を使う。
+
+```
+claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins --scope user
+claude plugin install core-dev@mori-claude-tools --scope user
+cp ~/.claude/plugins/marketplaces/mori-claude-tools/templates/CLAUDE.md ./CLAUDE.md
 ```
 
 ### プロジェクト単位での自動登録
 
-リポジトリの `.claude/settings.json` に以下を置くと、そのリポジトリで作業するメンバーに対してマーケットプレイスが自動登録され、指定したプラグインが有効になる。Java を使わないリポジトリで `java-dev` を有効にする必要はないので、`enabledPlugins` はプロジェクトごとに取捨選択する。
+上記の `--scope project` コマンドは、以下と同じ設定をリポジトリの `.claude/settings.json` に自動で書き込む。手動で書きたい場合のために JSON を示す。Java を使わないリポジトリで `java-dev` を有効にする必要はないので、`enabledPlugins` はプロジェクトごとに取捨選択する。
 
 ```json
 {
