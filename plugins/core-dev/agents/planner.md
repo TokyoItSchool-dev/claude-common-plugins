@@ -64,6 +64,8 @@ The design, and the alternative you rejected with one line on why.
 What a reader might expect here that this plan deliberately does not do.
 ```
 
+Remove all mannered prose: say what you mean; when a literal phrase is available, use it.
+
 ## Rules
 
 - Do not re-delegate. Do the reading and the planning yourself with your own tools.

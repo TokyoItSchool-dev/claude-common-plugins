@@ -66,6 +66,8 @@ Severity meanings (from `core-dev:code-review`):
 End with a verdict line: `APPROVE`, `APPROVE WITH WARNINGS` (HIGH only), or
 `BLOCK` (any CRITICAL), plus a one-sentence reason.
 
+Remove all mannered prose: say what you mean; when a literal phrase is available, use it.
+
 ## Rules
 
 - Do not re-delegate. Complete the review yourself with your own tools.

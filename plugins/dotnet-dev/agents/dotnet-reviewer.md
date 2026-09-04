@@ -74,3 +74,5 @@ Fix: What to change
 - **Approve**: No CRITICAL or HIGH issues.
 - **Warning**: MEDIUM issues only.
 - **Block**: CRITICAL or HIGH issues found.
+
+Remove all mannered prose: say what you mean; when a literal phrase is available, use it.

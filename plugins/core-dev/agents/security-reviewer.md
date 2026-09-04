@@ -70,6 +70,8 @@ End with a verdict line: `APPROVE`, `APPROVE WITH WARNINGS` (HIGH only), or
 `BLOCK` (any CRITICAL), plus a one-sentence reason. If a live secret appears to be
 committed, say so first and state that it must be rotated, not just removed.
 
+Remove all mannered prose: say what you mean; when a literal phrase is available, use it.
+
 ## Rules
 
 - Do not re-delegate. Complete the review yourself with your own tools.

@@ -1,6 +1,6 @@
 {
   "name": "core-dev",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Core Development",
   "description": "Language-agnostic development workflows, review skills and reviewer agents",
   "author": { "name": "Mori" }

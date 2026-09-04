@@ -50,6 +50,8 @@ Issue: what's wrong, citing the specific convention violated
 Fix: the specific change needed
 ```
 
+Remove all mannered prose: say what you mean; when a literal phrase is available, use it.
+
 ## Approval Criteria
 
 - **Approve**: no CRITICAL or HIGH issues.

@@ -52,6 +52,8 @@ LOW:      <file>:<line> - <issue> -> <fix>
 
 If no issues are found at a severity, omit that section. End with one line: `APPROVE` (no CRITICAL/HIGH) or `BLOCK` (CRITICAL present).
 
+Remove all mannered prose: say what you mean; when a literal phrase is available, use it.
+
 ## Rules
 
 - Do not modify files. If a fix is trivial, describe it; do not apply it.
