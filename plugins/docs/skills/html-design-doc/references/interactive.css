@@ -1,0 +1,747 @@
+/* ============================================================
+   html-design-doc — 手順D interactive/visual layer
+   Append AFTER style.css inside the same <style> element.
+   Light mode only. No external fonts, no @import, no url().
+   Every direction-dependent value lives in the :root block
+   below; swapping that block re-skins the whole document.
+   ============================================================ */
+
+:root {
+  /* Color: inherited from style.css unless a direction overrides */
+  --iv-accent: var(--accent);
+  --iv-accent-dark: var(--accent-dark);
+  --iv-accent-soft: var(--accent-soft);
+  --iv-fg: var(--fg);
+  --iv-fg-muted: var(--fg-muted);
+  --iv-fg-faint: var(--fg-faint);
+  --iv-border: var(--border);
+  --iv-border-strong: var(--border-strong);
+  --iv-panel: var(--bg);
+  --iv-panel-alt: var(--surface);
+  --iv-panel-alt-2: var(--surface-2);
+  /* page ground behind panels; no style.css equivalent */
+  --iv-canvas: #fbfcfd;
+
+  /* Color: conditional / hedged content (amber family) */
+  --iv-hedge-fg: var(--warn-fg);
+  --iv-hedge-bg: var(--warn-bg);
+  --iv-hedge-border: var(--warn-border);
+
+  /* Typography */
+  --iv-font-figure: var(--font-body);
+  --iv-fs-kpi: 2rem;
+  --iv-fs-kpi-sm: 1.35rem;
+  --iv-fs-band-num: 2.4rem;
+  --iv-fs-label: 0.84rem;
+  --iv-fs-meta: 0.79rem;
+  --iv-lh-tight: 1.2;
+
+  /* Spacing */
+  --iv-gap-tight: var(--space-2);
+  --iv-gap: var(--space-3);
+  --iv-gap-lg: var(--space-5);
+  --iv-pad: var(--space-4);
+  --iv-pad-band: var(--space-5);
+
+  /* Shape and layout */
+  --iv-radius: var(--radius);
+  --iv-tile-min: 200px;
+  --iv-rail-width: 300px;
+  --iv-nav-height: 46px;
+  --iv-hit: 44px;
+  --iv-tab-border: 3px;
+  --iv-tile-accent: 3px;
+}
+
+/* --- Progressive enhancement gates ------------------------- */
+/* The interaction script adds `js` immediately and `iv-ready`
+   after wiring the controls (in a finally block, so a thrown
+   error still returns the static state). Between the two,
+   non-default panels are hidden by CSS so the page does not
+   flash the stacked state. Every [data-tabs] therefore needs
+   exactly one panel with `data-default`; omit it and the whole
+   group disappears for that interval. Without JavaScript
+   neither class appears and every panel stays in the flow. */
+body.js:not(.iv-ready) .iv-tabs > .iv-tabpanel:not([data-default]) {
+  display: none;
+}
+
+/* `hidden` must beat the layout display values set further down */
+.iv-tabpanel[hidden],
+.iv-tablist[hidden] {
+  display: none;
+}
+
+body:not(.js) .iv-tablist {
+  display: none;
+}
+
+/* stacked reading order without JavaScript */
+body:not(.js) .iv-tabs > .iv-tabpanel + .iv-tabpanel {
+  margin-top: var(--iv-gap-lg);
+  padding-top: var(--iv-gap);
+  border-top: 1px solid var(--iv-border);
+}
+
+/* panel titles duplicate the tab label, so they are dropped
+   once the tabs themselves provide the label */
+body.js .iv-tabpanel-title {
+  display: none;
+}
+
+/* --- Tab set ---------------------------------------------- */
+.iv-tabs {
+  margin: 0 0 var(--iv-pad);
+}
+
+.iv-tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: 1px solid var(--iv-border);
+}
+
+.iv-tab {
+  min-height: var(--iv-hit);
+  padding: 0.5em 1.1em;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--iv-fg-muted);
+  background: none;
+  border: 0;
+  border-bottom: var(--iv-tab-border) solid transparent;
+  cursor: pointer;
+}
+
+.iv-tab:hover {
+  color: var(--iv-accent-dark);
+  background: var(--iv-panel-alt);
+}
+
+.iv-tab[aria-selected="true"] {
+  color: var(--iv-accent-dark);
+  border-bottom-color: var(--iv-accent);
+}
+
+.iv-tab:focus-visible {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: 2px;
+}
+
+.iv-tabpanel {
+  padding-top: var(--iv-pad);
+}
+
+/* --- KPI tiles -------------------------------------------- */
+.iv-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--iv-tile-min), 1fr));
+  gap: var(--iv-gap);
+  margin: 0 0 var(--iv-pad);
+}
+
+.iv-kpi {
+  padding: var(--iv-gap) var(--iv-pad);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-top: var(--iv-tile-accent) solid var(--iv-accent);
+  border-radius: 0 0 var(--iv-radius) var(--iv-radius);
+}
+
+.iv-kpi > p {
+  margin: 0 0 var(--iv-gap-tight);
+}
+
+.iv-kpi > :last-child {
+  margin-bottom: 0;
+}
+
+.iv-kpi-label {
+  font-size: var(--iv-fs-label);
+  font-weight: 500;
+  color: var(--iv-fg-muted);
+}
+
+.iv-kpi-value {
+  font-family: var(--iv-font-figure);
+  font-size: var(--iv-fs-kpi);
+  font-weight: 700;
+  line-height: var(--iv-lh-tight);
+}
+
+.iv-kpi-value.is-long {
+  font-size: var(--iv-fs-kpi-sm);
+}
+
+/* required on every tile: the qualifier the number depends on */
+.iv-kpi-hedge {
+  font-size: var(--iv-fs-meta);
+  line-height: 1.7;
+  color: var(--iv-fg-faint);
+}
+
+.iv-kpi.is-conditional {
+  background: var(--iv-hedge-bg);
+  border-color: var(--iv-hedge-border);
+}
+
+.iv-kpi.is-conditional .iv-kpi-hedge {
+  color: var(--iv-hedge-fg);
+}
+
+/* --- Detail-link chip ------------------------------------- */
+.ref-chip {
+  display: inline-block;
+  padding: 0.05em 0.5em;
+  font-size: var(--iv-fs-meta);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--iv-accent-dark);
+  background: var(--iv-accent-soft);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  text-decoration: none;
+}
+
+.ref-chip:hover {
+  background: var(--iv-panel-alt-2);
+  border-color: var(--iv-accent);
+}
+
+.ref-chip:focus-visible {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: 1px;
+}
+
+/* --- Scenario / node switch (radios + :has) ---------------- */
+/* Shared by .iv-scenario and .iv-flow. Slots are addressed by
+   the radio `value` (a..f), never by id, so the same block can
+   be repeated in another view without colliding. Do not nest
+   one .iv-switch inside another. */
+.iv-switch > fieldset {
+  margin: 0 0 var(--iv-pad);
+  padding: var(--iv-gap-tight);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  min-width: 0;
+  background: var(--iv-panel-alt);
+}
+
+.iv-switch legend {
+  padding: 0 var(--iv-gap-tight);
+  font-size: var(--iv-fs-meta);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--iv-fg-faint);
+}
+
+.iv-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iv-gap-tight);
+}
+
+.iv-radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.iv-choice {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--iv-hit);
+  padding: 0.4em 1.1em;
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+  color: var(--iv-fg-muted);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  cursor: pointer;
+}
+
+.iv-choice:hover {
+  color: var(--iv-accent-dark);
+  border-color: var(--iv-border-strong);
+}
+
+.iv-radio:checked + .iv-choice {
+  color: var(--iv-panel);
+  background: var(--iv-accent);
+  border-color: var(--iv-accent-dark);
+}
+
+.iv-radio:focus-visible + .iv-choice {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: 2px;
+}
+
+.iv-set-title {
+  margin: 0 0 var(--iv-gap-tight);
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+  color: var(--iv-fg-muted);
+}
+
+.iv-switch:has(.iv-radio[value="a"]:checked) [data-set]:not([data-set="a"]),
+.iv-switch:has(.iv-radio[value="b"]:checked) [data-set]:not([data-set="b"]),
+.iv-switch:has(.iv-radio[value="c"]:checked) [data-set]:not([data-set="c"]),
+.iv-switch:has(.iv-radio[value="d"]:checked) [data-set]:not([data-set="d"]),
+.iv-switch:has(.iv-radio[value="e"]:checked) [data-set]:not([data-set="e"]),
+.iv-switch:has(.iv-radio[value="f"]:checked) [data-set]:not([data-set="f"]) {
+  display: none;
+}
+
+/* Without :has() the picker cannot filter anything, so it is
+   removed and every set stays visible with its own title. */
+@supports not selector(:has(*)) {
+  .iv-switch > fieldset {
+    display: none;
+  }
+}
+
+/* --- Comparison table (extends the base table) ------------- */
+.iv-table-scroll {
+  margin: 0 0 var(--iv-pad);
+  overflow-x: auto;
+}
+
+.iv-compare {
+  font-size: 0.9rem;
+}
+
+.iv-compare th[scope="row"] {
+  font-weight: 700;
+  background: var(--iv-panel-alt);
+}
+
+.iv-compare .iv-col-self {
+  background: var(--iv-accent-soft);
+}
+
+.iv-compare thead .iv-col-self {
+  color: var(--iv-accent-dark);
+  border-bottom-color: var(--iv-accent);
+}
+
+/* --- Roadmap timeline ------------------------------------- */
+.iv-timeline {
+  counter-reset: iv-step;
+  margin: 0 0 var(--iv-pad);
+  padding: 0;
+  list-style: none;
+  border-left: 2px solid var(--iv-border);
+}
+
+.iv-timeline > li {
+  counter-increment: iv-step;
+  position: relative;
+  margin: 0 0 var(--iv-gap);
+  padding: 0 0 var(--iv-gap-tight) var(--iv-pad-band);
+}
+
+.iv-timeline > li::before {
+  content: counter(iv-step, decimal-leading-zero);
+  position: absolute;
+  left: calc(-1 * var(--iv-pad));
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(2 * var(--iv-pad));
+  height: 1.9em;
+  font-family: var(--iv-font-figure);
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+  color: var(--iv-panel);
+  background: var(--iv-accent);
+  border-radius: var(--iv-radius);
+}
+
+.iv-timeline-title {
+  margin: 0 0 var(--iv-gap-tight);
+  font-weight: 700;
+}
+
+.iv-timeline-meta {
+  margin: 0;
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-faint);
+}
+
+/* --- Resource stack (FDE day allocation) ------------------- */
+.iv-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0 0 var(--iv-gap-tight);
+  padding: 0;
+  list-style: none;
+}
+
+.iv-stack-seg {
+  flex: var(--iv-days, 1) 1 8rem;
+  margin: 0;
+  padding: var(--iv-gap-tight) var(--iv-gap);
+  background: var(--iv-accent-soft);
+  border: 1px solid var(--iv-accent);
+}
+
+.iv-stack-seg.is-internal {
+  background: var(--iv-panel-alt);
+  border-color: var(--iv-border-strong);
+}
+
+.iv-stack-name {
+  display: block;
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+}
+
+.iv-stack-note {
+  display: block;
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-faint);
+}
+
+.iv-stack-caption {
+  margin: 0 0 var(--iv-pad);
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-muted);
+}
+
+/* --- SVG figure ------------------------------------------- */
+.iv-figure {
+  margin: 0 0 var(--iv-pad);
+  padding: var(--iv-gap);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  overflow-x: auto;
+}
+
+/* The floor keeps the drawing legible while .iv-figure scrolls.
+   Rendered text px = font-size attribute x displayed width / viewBox
+   width, so a figure whose viewBox is wider than the floor shrinks its
+   labels below 11px. Raise the floor per figure with an inline
+   style="--iv-svg-min: <viewBox width>px"; print resets it below. */
+.iv-svg {
+  display: block;
+  width: 100%;
+  min-width: var(--iv-svg-min, 32rem);
+  height: auto;
+}
+
+.iv-figure figcaption {
+  margin-top: var(--iv-gap-tight);
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-muted);
+}
+
+/* --- Layout pattern 1: dashboard -------------------------- */
+.iv-dashboard {
+  display: grid;
+  gap: var(--iv-gap);
+}
+
+.iv-dashboard .iv-panel {
+  padding: var(--iv-pad);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+}
+
+/* wide screens get 2 columns; below this and in print, 1 column (default above) */
+@media screen and (min-width: 60rem) {
+  .iv-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .iv-panel--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+/* --- Layout pattern 2: scroll narrative ------------------- */
+.iv-secnav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: var(--iv-gap-tight);
+  min-height: var(--iv-nav-height);
+  margin: 0 0 var(--iv-gap);
+  padding: 0;
+  background: var(--iv-panel);
+  border-bottom: 1px solid var(--iv-border);
+  overflow-x: auto;
+}
+
+.iv-secnav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--iv-hit);
+  padding: 0 0.9em;
+  font-size: var(--iv-fs-meta);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--iv-fg-muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--iv-radius);
+}
+
+.iv-secnav a:hover {
+  color: var(--iv-accent-dark);
+  background: var(--iv-panel-alt);
+  border-color: var(--iv-border);
+}
+
+.iv-secnav a:focus-visible {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: -2px;
+}
+
+.iv-band {
+  padding: var(--iv-pad-band) var(--iv-pad);
+  border-top: var(--iv-tile-accent) solid var(--iv-accent);
+  background: var(--iv-panel);
+}
+
+.iv-band:nth-of-type(even) {
+  background: var(--iv-canvas);
+}
+
+/* the sticky nav would otherwise cover an anchored band */
+.iv-narrative section[id] {
+  scroll-margin-top: calc(var(--iv-nav-height) + var(--space-4));
+}
+
+.iv-band-num {
+  margin: 0;
+  font-family: var(--iv-font-figure);
+  font-size: var(--iv-fs-band-num);
+  font-weight: 700;
+  line-height: var(--iv-lh-tight);
+  /* the artboards use a pale grey here; it fails AA as text, so the
+     faint text token is used instead */
+  color: var(--iv-fg-faint);
+}
+
+/* --- Layout pattern 3: flow-centric ----------------------- */
+.iv-flow-grid {
+  display: grid;
+  gap: var(--iv-gap);
+  align-items: start;
+}
+
+@media screen and (min-width: 60rem) {
+  .iv-flow-grid {
+    grid-template-columns: minmax(0, 1fr) var(--iv-rail-width);
+  }
+}
+
+.iv-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iv-gap-tight);
+}
+
+.iv-node {
+  display: flex;
+  flex: 1 1 10rem;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--iv-hit);
+  padding: var(--iv-gap-tight) var(--iv-gap);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  cursor: pointer;
+}
+
+.iv-node:hover {
+  border-color: var(--iv-border-strong);
+}
+
+.iv-radio:checked + .iv-node {
+  background: var(--iv-accent-soft);
+  border-color: var(--iv-accent);
+  box-shadow: inset 0 calc(-1 * var(--iv-tile-accent)) 0 var(--iv-accent);
+}
+
+.iv-radio:focus-visible + .iv-node {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: 2px;
+}
+
+.iv-node-title {
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+  color: var(--iv-accent-dark);
+}
+
+.iv-node-meta {
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-muted);
+}
+
+.iv-flow-detail {
+  padding: var(--iv-pad);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border-strong);
+  border-top: var(--iv-tile-accent) solid var(--iv-accent);
+}
+
+.iv-rail {
+  display: grid;
+  gap: var(--iv-gap);
+}
+
+.iv-rail-card {
+  padding: var(--iv-gap) var(--iv-pad);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+}
+
+.iv-rail-card.is-conditional {
+  background: var(--iv-hedge-bg);
+  border-color: var(--iv-hedge-border);
+  color: var(--iv-hedge-fg);
+}
+
+.iv-rail-title {
+  margin: 0 0 var(--iv-gap-tight);
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+}
+
+/* --- Accordion (details, open by default) ----------------- */
+.iv-accordion {
+  margin: 0 0 var(--iv-gap);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+}
+
+.iv-accordion > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--iv-hit);
+  padding: var(--iv-gap-tight) var(--iv-pad);
+  font-weight: 700;
+  color: var(--iv-accent-dark);
+  background: var(--iv-panel-alt);
+  border-radius: var(--iv-radius);
+  cursor: pointer;
+}
+
+.iv-accordion[open] > summary {
+  border-bottom: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius) var(--iv-radius) 0 0;
+}
+
+.iv-accordion > summary:focus-visible {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: -2px;
+}
+
+.iv-accordion-body {
+  padding: var(--iv-pad);
+}
+
+.iv-accordion-body > :last-child {
+  margin-bottom: 0;
+}
+
+/* --- Print ------------------------------------------------ */
+@media print {
+  /* controls carry no information on paper */
+  .iv-tablist,
+  .iv-secnav,
+  .iv-switch > fieldset,
+  .iv-nodes {
+    display: none !important;
+  }
+
+  /* everything the controls could hide is expanded */
+  .iv-tabs > .iv-tabpanel,
+  .iv-switch [data-set],
+  .iv-tabpanel-title {
+    display: block !important;
+  }
+
+  .iv-flow-grid,
+  .iv-dashboard,
+  .iv-rail,
+  .iv-kpis {
+    display: block;
+  }
+
+  .iv-kpi,
+  .iv-rail-card,
+  .iv-panel,
+  .iv-band,
+  .iv-figure,
+  .iv-accordion,
+  .iv-flow-detail {
+    margin-bottom: var(--iv-gap);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .iv-svg {
+    min-width: 0;
+  }
+
+  /* tints carry meaning (conditional, hedged, highlighted) */
+  .iv-kpi,
+  .iv-kpi.is-conditional,
+  .iv-rail-card.is-conditional,
+  .iv-stack-seg,
+  .iv-band,
+  .iv-compare .iv-col-self,
+  .iv-compare th[scope="row"],
+  .iv-accordion > summary,
+  .ref-chip,
+  .iv-timeline > li::before {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* --- Reduced motion --------------------------------------- */
+/* Sticky positioning is not motion, so .iv-secnav is left alone.
+   style.css already turns off smooth scrolling here, which is what
+   the script's scrollIntoView() would otherwise inherit. */
+@media (prefers-reduced-motion: reduce) {
+  .iv-tab,
+  .iv-choice,
+  .iv-node,
+  .ref-chip,
+  .iv-accordion > summary {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* --- Narrow screens --------------------------------------- */
+@media screen and (max-width: 640px) {
+  :root {
+    --iv-tile-min: 100%;
+    --iv-fs-kpi: 1.6rem;
+    --iv-fs-band-num: 1.8rem;
+  }
+
+  .iv-svg {
+    min-width: var(--iv-svg-min, 28rem);
+  }
+}

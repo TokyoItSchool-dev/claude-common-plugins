@@ -4,6 +4,15 @@
 
 <!-- 新しいエントリはこの行の直下に追加 -->
 
+## [0.1.2] - 2026-09-14
+
+### 追加
+- core-dev: config-sync スキル（HOME・training-project-skills・claude-common-plugins の3拠点で CLAUDE.md / rules / skills / commands を同期し、差分を検査する）
+- docs: html-design-doc に手順D「インタラクティブ・ビジュアル版」を追加（KPIタイル・タブ・シナリオ切替などの表示切替を持つ経営層向け資料。ダッシュボード型・スクロール物語型・フロー中心型の3レイアウトから選択。JavaScript無効時と印刷時にも全内容が読める段階的強化）
+
+### 改善
+- docs: html-design-doc の検証手順に手順D向けチェック（JavaScript無効表示・印刷展開・外部参照ゼロ・id/aria 整合）を追加
+
 ## [0.1.1] - 2026-09-04
 
 ### 改善

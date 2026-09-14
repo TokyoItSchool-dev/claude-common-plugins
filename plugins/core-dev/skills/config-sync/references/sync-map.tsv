@@ -11,6 +11,10 @@ skills/html-design-doc/references/mermaid-conventions.md	skills/html-design-doc/
 skills/html-design-doc/references/style.css	skills/html-design-doc/references/style.css	plugins/docs/skills/html-design-doc/references/style.css	mirror	mirror	HOME/TPS/CCP すべて一致
 skills/html-design-doc/references/template.html	skills/html-design-doc/references/template.html	plugins/docs/skills/html-design-doc/references/template.html	mirror	mirror	HOME/TPS/CCP すべて一致
 skills/html-design-doc/scripts/embed_images.py	skills/html-design-doc/scripts/embed_images.py	plugins/docs/skills/html-design-doc/scripts/embed_images.py	mirror	mirror	HOME/TPS/CCP すべて一致
+skills/html-design-doc/references/interactive.css	skills/html-design-doc/references/interactive.css	plugins/docs/skills/html-design-doc/references/interactive.css	mirror	mirror	HOME/TPS/CCP すべて一致（手順D 用）
+skills/html-design-doc/references/interactive.js	skills/html-design-doc/references/interactive.js	plugins/docs/skills/html-design-doc/references/interactive.js	mirror	mirror	HOME/TPS/CCP すべて一致（手順D 用）
+skills/html-design-doc/references/interactive-components.md	skills/html-design-doc/references/interactive-components.md	plugins/docs/skills/html-design-doc/references/interactive-components.md	mirror	mirror	HOME/TPS/CCP すべて一致（手順D 用）
+skills/html-design-doc/references/interactive-template.html	skills/html-design-doc/references/interactive-template.html	plugins/docs/skills/html-design-doc/references/interactive-template.html	mirror	mirror	HOME/TPS/CCP すべて一致（手順D 用）
 skills/markdown-conventions/SKILL.md	-	plugins/docs/skills/markdown-conventions/SKILL.md	-	variant	TPS に対応物なし。CCP は `## Origin` 節を追加
 skills/config-sync/	claude-codex/skills/config-sync/	plugins/core-dev/skills/config-sync/	mirror	variant	本スキル。CCP は `## Origin` 節を追加、スクリプトパスを ${CLAUDE_PLUGIN_ROOT} に置換
 commands/changelog-commit.md	commands/changelog-commit.md	plugins/core-dev/skills/changelog-commit/SKILL.md	variant	variant	3拠点とも分岐済み。TPS は CHANGELOG 記述ルールの例が簡略。CCP は description/argument-hint を拡張、コマンド名を `/core-dev:changelog-commit` に、SlideGen 固有の記述を一般化

@@ -1,6 +1,6 @@
 {
   "name": "dotnet-dev",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "displayName": ".NET Development",
   "description": "C#, .NET, ASP.NET Core, EF Core and xUnit/NUnit development conventions and reviewer agent",
   "author": { "name": "Mori" }

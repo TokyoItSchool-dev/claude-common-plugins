@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>手順D インタラクティブ・ビジュアル版 テンプレート</title>
+  <style>
+/* ============================================================
+   html-design-doc — standalone document stylesheet
+   Light mode only. No external fonts, no @import, no url().
+   ============================================================ */
+
+/* --- Design tokens ---------------------------------------- */
+:root {
+  /* Color: text */
+  --fg: #1f2328;
+  --fg-muted: #5a6472;
+  /* WCAG AA on white at small sizes (5.48:1) */
+  --fg-faint: #5f6a7a;
+
+  /* Color: surface */
+  --bg: #ffffff;
+  --surface: #f6f8fa;
+  --surface-2: #eef2f6;
+  --border: #d5dbe3;
+  --border-strong: #b8c1cc;
+
+  /* Color: accent */
+  --accent: #1b6ac9;
+  --accent-dark: #14508f;
+  --accent-soft: #e8f1fb;
+
+  /* Color: callouts */
+  --note-fg: #14508f;
+  --note-bg: #eef5fd;
+  --note-border: #3b82c4;
+  --warn-fg: #8a5300;
+  --warn-bg: #fff7e6;
+  --warn-border: #e0a02a;
+  --tip-fg: #1e6b46;
+  --tip-bg: #edf8f1;
+  --tip-border: #34a06a;
+
+  /* Color: code */
+  --code-bg: #f4f6f8;
+  --code-fg: #24292f;
+  --code-border: #e0e5eb;
+
+  /* Typography */
+  --font-body: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
+  --font-mono: Consolas, "Cascadia Mono", "SFMono-Regular", "Courier New", monospace;
+  --fs-base: 15.5px;
+  --fs-h1: 2.0rem;
+  --fs-h2: 1.45rem;
+  --fs-h3: 1.18rem;
+  --fs-h4: 1.02rem;
+  --fs-small: 0.87rem;
+  --lh-body: 1.85;
+  --lh-heading: 1.45;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.85rem;
+  --space-4: 1.3rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+
+  /* Layout */
+  --sidebar-width: 280px;
+  --content-width: 860px;
+  --radius: 6px;
+  --toc-anim: 0.25s ease;
+}
+
+/* --- Base ------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: var(--fs-base);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: var(--lh-body);
+  color: var(--fg);
+  background: var(--bg);
+  text-rendering: optimizeLegibility;
+}
+
+/* --- Layout: sidebar TOC + main column -------------------- */
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  max-width: calc(var(--sidebar-width) + var(--content-width) + 8rem);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+#TOC {
+  flex: 0 0 var(--sidebar-width);
+  width: var(--sidebar-width);
+  position: sticky;
+  top: 0;
+  /* height constraint is required for the independent scroll below */
+  height: 100vh;
+  overflow-y: auto;
+  /* extra top padding clears the fixed toggle button */
+  padding: var(--space-6) var(--space-3) var(--space-5) 0;
+  border-right: 1px solid var(--border);
+  font-size: var(--fs-small);
+  line-height: 1.6;
+  /* visibility is transitioned so it flips only at the end of the
+     fade-out (and immediately on fade-in), instead of snapping */
+  transition: width var(--toc-anim), flex-basis var(--toc-anim),
+              max-height var(--toc-anim), opacity var(--toc-anim),
+              padding var(--toc-anim), visibility var(--toc-anim);
+}
+
+.main {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--content-width);
+  padding: var(--space-5) 0 var(--space-6);
+  transition: max-width var(--toc-anim);
+}
+
+/* --- TOC toggle button ------------------------------------ */
+/* The button is hidden in markup and revealed by the inline
+   script, so with JavaScript disabled the sidebar stays open. */
+.toc-toggle {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0.75em;
+  font-family: inherit;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--fg-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.toc-toggle[hidden] {
+  display: none;
+}
+
+.toc-toggle:hover {
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.toc-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --- Collapsed state -------------------------------------- */
+body.toc-collapsed #TOC {
+  flex-basis: 0;
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-right-color: transparent;
+  opacity: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+/* the main column takes up part of the freed width */
+body.toc-collapsed .main {
+  max-width: calc(var(--content-width) + 200px);
+}
+
+/* --- TOC links -------------------------------------------- */
+#TOC .toc-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--fg-faint);
+}
+
+#TOC ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#TOC ul ul {
+  /* hierarchy indent */
+  padding-left: var(--space-3);
+}
+
+#TOC li {
+  margin: 1px 0;
+}
+
+#TOC a {
+  display: block;
+  padding: 0.3em 0.6em;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--fg-muted);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+#TOC a:hover {
+  background: var(--surface);
+  border-left-color: var(--border-strong);
+  color: var(--fg);
+}
+
+#TOC a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* active-look while the link is being followed */
+#TOC a:active {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+/* top-level TOC entries read as headings */
+#TOC > ul > li > a {
+  font-weight: 700;
+  color: var(--fg);
+}
+
+/* --- Headings --------------------------------------------- */
+h1, h2, h3, h4 {
+  line-height: var(--lh-heading);
+}
+
+/* anchor jumps land below the top edge; TOC links target the
+   <section> wrappers, so the offset must sit on them too */
+section[id],
+h1[id], h2[id], h3[id], h4[id] {
+  scroll-margin-top: var(--space-4);
+}
+
+h1 {
+  margin: 0 0 var(--space-5);
+  padding-bottom: var(--space-3);
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  border-bottom: 4px solid var(--accent);
+}
+
+h2 {
+  margin: var(--space-6) 0 var(--space-4);
+  padding: 0.4em 0.7em;
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  color: var(--accent-dark);
+  background: var(--surface);
+  border-left: 6px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+h3 {
+  margin: var(--space-5) 0 var(--space-3);
+  padding-bottom: 0.25em;
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+}
+
+h4 {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: var(--fs-h4);
+  font-weight: 700;
+  color: var(--fg-muted);
+}
+
+/* --- Text ------------------------------------------------- */
+p {
+  margin: 0 0 var(--space-4);
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--accent-dark);
+}
+
+strong {
+  font-weight: 700;
+}
+
+hr {
+  margin: var(--space-6) 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: var(--space-4) auto;
+}
+
+/* --- Lists ------------------------------------------------ */
+ul, ol {
+  margin: 0 0 var(--space-4);
+  padding-left: 1.6em;
+}
+
+li {
+  margin: 0.4em 0;
+}
+
+/* nested lists sit closer to their parent item */
+li > ul,
+li > ol {
+  margin: 0.4em 0 0.2em;
+}
+
+dl {
+  margin: 0 0 var(--space-4);
+}
+
+dt {
+  font-weight: 700;
+}
+
+dd {
+  margin: 0 0 var(--space-3) 1.5em;
+}
+
+/* --- Code ------------------------------------------------- */
+code {
+  padding: 0.12em 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--surface-2);
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+}
+
+pre {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--code-fg);
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  tab-size: 2;
+}
+
+pre code {
+  padding: 0;
+  font-size: inherit;
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+/* Mermaid source blocks render as diagrams; keep them frameless */
+pre.mermaid {
+  background: none;
+  border: none;
+  text-align: center;
+}
+
+/* --- Tables ----------------------------------------------- */
+table {
+  width: 100%;
+  margin: 0 0 var(--space-4);
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+caption {
+  margin-bottom: var(--space-2);
+  color: var(--fg-muted);
+  font-size: var(--fs-small);
+  text-align: left;
+}
+
+th, td {
+  padding: 0.55em 0.85em;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+thead th {
+  color: var(--accent-dark);
+  background: var(--surface-2);
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-strong);
+}
+
+/* zebra striping */
+tbody tr:nth-child(even) {
+  background: var(--surface);
+}
+
+/* --- Callouts --------------------------------------------- */
+.callout {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--border-strong);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+}
+
+.callout > :last-child {
+  margin-bottom: 0;
+}
+
+.callout .callout-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.callout.note {
+  background: var(--note-bg);
+  border-color: var(--note-border);
+  border-left-color: var(--note-border);
+}
+
+.callout.note .callout-label {
+  color: var(--note-fg);
+}
+
+.callout.warn {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+  border-left-color: var(--warn-border);
+}
+
+.callout.warn .callout-label {
+  color: var(--warn-fg);
+}
+
+.callout.tip {
+  background: var(--tip-bg);
+  border-color: var(--tip-border);
+  border-left-color: var(--tip-border);
+}
+
+.callout.tip .callout-label {
+  color: var(--tip-fg);
+}
+
+/* --- Utilities -------------------------------------------- */
+.file {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.doc-meta {
+  margin: calc(-1 * var(--space-4)) 0 var(--space-5);
+  color: var(--fg-muted);
+  font-size: var(--fs-small);
+}
+
+/* --- Appendix --------------------------------------------- */
+.appendix {
+  margin-top: var(--space-6);
+  color: var(--fg-muted);
+}
+
+.appendix h2 {
+  color: var(--fg-muted);
+  border-left-color: var(--border-strong);
+}
+
+.appendix h3 {
+  color: var(--fg-muted);
+}
+
+/* --- Print ------------------------------------------------ */
+@media print {
+  html {
+    font-size: 10.5pt;
+    scroll-behavior: auto;
+  }
+
+  /* single column: drop the sidebar, the toggle and the layout offsets */
+  #TOC,
+  .toc-toggle {
+    display: none !important;
+  }
+
+  .layout {
+    display: block;
+    max-width: none;
+    padding: 0;
+    gap: 0;
+  }
+
+  /* the collapsed-state selector is more specific, so match it here */
+  .main,
+  body.toc-collapsed .main {
+    max-width: none;
+    width: 100%;
+    padding: 0;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  @page {
+    margin: 15mm;
+  }
+
+  /* keep headings attached to the text that follows */
+  h1, h2, h3, h4 {
+    break-after: avoid;
+    page-break-after: avoid;
+    break-inside: avoid;
+  }
+
+  /* each top-level section after the first starts on a new page */
+  section.level1 + section.level1 {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  pre, table, figure, img, .callout {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* preserve heading, table header and callout tinting on paper */
+  h1, h2, h3, h4,
+  thead th,
+  tbody tr:nth-child(even),
+  pre,
+  .callout {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/* --- Reduced motion --------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  #TOC,
+  .main,
+  .toc-toggle {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* --- Narrow screens --------------------------------------- */
+@media screen and (max-width: 1100px) {
+  .layout {
+    display: block;
+    padding: 0 var(--space-4);
+  }
+
+  #TOC {
+    position: static;
+    width: auto;
+    height: auto;
+    max-height: 40vh;
+    padding: var(--space-6) 0 var(--space-4);
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* collapse vertically instead of horizontally */
+  body.toc-collapsed #TOC {
+    width: auto;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-bottom-color: transparent;
+  }
+
+  /* the collapsed-state selector is more specific, so match it here */
+  .main,
+  body.toc-collapsed .main {
+    max-width: none;
+  }
+}
+/* ============================================================
+   html-design-doc — 手順D interactive/visual layer
+   Append AFTER style.css inside the same <style> element.
+   Light mode only. No external fonts, no @import, no url().
+   Every direction-dependent value lives in the :root block
+   below; swapping that block re-skins the whole document.
+   ============================================================ */
+
+:root {
+  /* Color: inherited from style.css unless a direction overrides */
+  --iv-accent: var(--accent);
+  --iv-accent-dark: var(--accent-dark);
+  --iv-accent-soft: var(--accent-soft);
+  --iv-fg: var(--fg);
+  --iv-fg-muted: var(--fg-muted);
+  --iv-fg-faint: var(--fg-faint);
+  --iv-border: var(--border);
+  --iv-border-strong: var(--border-strong);
+  --iv-panel: var(--bg);
+  --iv-panel-alt: var(--surface);
+  --iv-panel-alt-2: var(--surface-2);
+  /* page ground behind panels; no style.css equivalent */
+  --iv-canvas: #fbfcfd;
+
+  /* Color: conditional / hedged content (amber family) */
+  --iv-hedge-fg: var(--warn-fg);
+  --iv-hedge-bg: var(--warn-bg);
+  --iv-hedge-border: var(--warn-border);
+
+  /* Typography */
+  --iv-font-figure: var(--font-body);
+  --iv-fs-kpi: 2rem;
+  --iv-fs-kpi-sm: 1.35rem;
+  --iv-fs-band-num: 2.4rem;
+  --iv-fs-label: 0.84rem;
+  --iv-fs-meta: 0.79rem;
+  --iv-lh-tight: 1.2;
+
+  /* Spacing */
+  --iv-gap-tight: var(--space-2);
+  --iv-gap: var(--space-3);
+  --iv-gap-lg: var(--space-5);
+  --iv-pad: var(--space-4);
+  --iv-pad-band: var(--space-5);
+
+  /* Shape and layout */
+  --iv-radius: var(--radius);
+  --iv-tile-min: 200px;
+  --iv-rail-width: 300px;
+  --iv-nav-height: 46px;
+  --iv-hit: 44px;
+  --iv-tab-border: 3px;
+  --iv-tile-accent: 3px;
+}
+
+/* --- Progressive enhancement gates ------------------------- */
+/* The interaction script adds `js` immediately and `iv-ready`
+   after wiring the controls (in a finally block, so a thrown
+   error still returns the static state). Between the two,
+   non-default panels are hidden by CSS so the page does not
+   flash the stacked state. Every [data-tabs] therefore needs
+   exactly one panel with `data-default`; omit it and the whole
+   group disappears for that interval. Without JavaScript
+   neither class appears and every panel stays in the flow. */
+body.js:not(.iv-ready) .iv-tabs > .iv-tabpanel:not([data-default]) {
+  display: none;
+}
+
+/* `hidden` must beat the layout display values set further down */
+.iv-tabpanel[hidden],
+.iv-tablist[hidden] {
+  display: none;
+}
+
+body:not(.js) .iv-tablist {
+  display: none;
+}
+
+/* stacked reading order without JavaScript */
+body:not(.js) .iv-tabs > .iv-tabpanel + .iv-tabpanel {
+  margin-top: var(--iv-gap-lg);
+  padding-top: var(--iv-gap);
+  border-top: 1px solid var(--iv-border);
+}
+
+/* panel titles duplicate the tab label, so they are dropped
+   once the tabs themselves provide the label */
+body.js .iv-tabpanel-title {
+  display: none;
+}
+
+/* --- Tab set ---------------------------------------------- */
+.iv-tabs {
+  margin: 0 0 var(--iv-pad);
+}
+
+.iv-tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: 1px solid var(--iv-border);
+}
+
+.iv-tab {
+  min-height: var(--iv-hit);
+  padding: 0.5em 1.1em;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--iv-fg-muted);
+  background: none;
+  border: 0;
+  border-bottom: var(--iv-tab-border) solid transparent;
+  cursor: pointer;
+}
+
+.iv-tab:hover {
+  color: var(--iv-accent-dark);
+  background: var(--iv-panel-alt);
+}
+
+.iv-tab[aria-selected="true"] {
+  color: var(--iv-accent-dark);
+  border-bottom-color: var(--iv-accent);
+}
+
+.iv-tab:focus-visible {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: 2px;
+}
+
+.iv-tabpanel {
+  padding-top: var(--iv-pad);
+}
+
+/* --- KPI tiles -------------------------------------------- */
+.iv-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--iv-tile-min), 1fr));
+  gap: var(--iv-gap);
+  margin: 0 0 var(--iv-pad);
+}
+
+.iv-kpi {
+  padding: var(--iv-gap) var(--iv-pad);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-top: var(--iv-tile-accent) solid var(--iv-accent);
+  border-radius: 0 0 var(--iv-radius) var(--iv-radius);
+}
+
+.iv-kpi > p {
+  margin: 0 0 var(--iv-gap-tight);
+}
+
+.iv-kpi > :last-child {
+  margin-bottom: 0;
+}
+
+.iv-kpi-label {
+  font-size: var(--iv-fs-label);
+  font-weight: 500;
+  color: var(--iv-fg-muted);
+}
+
+.iv-kpi-value {
+  font-family: var(--iv-font-figure);
+  font-size: var(--iv-fs-kpi);
+  font-weight: 700;
+  line-height: var(--iv-lh-tight);
+}
+
+.iv-kpi-value.is-long {
+  font-size: var(--iv-fs-kpi-sm);
+}
+
+/* required on every tile: the qualifier the number depends on */
+.iv-kpi-hedge {
+  font-size: var(--iv-fs-meta);
+  line-height: 1.7;
+  color: var(--iv-fg-faint);
+}
+
+.iv-kpi.is-conditional {
+  background: var(--iv-hedge-bg);
+  border-color: var(--iv-hedge-border);
+}
+
+.iv-kpi.is-conditional .iv-kpi-hedge {
+  color: var(--iv-hedge-fg);
+}
+
+/* --- Detail-link chip ------------------------------------- */
+.ref-chip {
+  display: inline-block;
+  padding: 0.05em 0.5em;
+  font-size: var(--iv-fs-meta);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--iv-accent-dark);
+  background: var(--iv-accent-soft);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  text-decoration: none;
+}
+
+.ref-chip:hover {
+  background: var(--iv-panel-alt-2);
+  border-color: var(--iv-accent);
+}
+
+.ref-chip:focus-visible {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: 1px;
+}
+
+/* --- Scenario / node switch (radios + :has) ---------------- */
+/* Shared by .iv-scenario and .iv-flow. Slots are addressed by
+   the radio `value` (a..f), never by id, so the same block can
+   be repeated in another view without colliding. Do not nest
+   one .iv-switch inside another. */
+.iv-switch > fieldset {
+  margin: 0 0 var(--iv-pad);
+  padding: var(--iv-gap-tight);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  min-width: 0;
+  background: var(--iv-panel-alt);
+}
+
+.iv-switch legend {
+  padding: 0 var(--iv-gap-tight);
+  font-size: var(--iv-fs-meta);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--iv-fg-faint);
+}
+
+.iv-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iv-gap-tight);
+}
+
+.iv-radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.iv-choice {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--iv-hit);
+  padding: 0.4em 1.1em;
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+  color: var(--iv-fg-muted);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  cursor: pointer;
+}
+
+.iv-choice:hover {
+  color: var(--iv-accent-dark);
+  border-color: var(--iv-border-strong);
+}
+
+.iv-radio:checked + .iv-choice {
+  color: var(--iv-panel);
+  background: var(--iv-accent);
+  border-color: var(--iv-accent-dark);
+}
+
+.iv-radio:focus-visible + .iv-choice {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: 2px;
+}
+
+.iv-set-title {
+  margin: 0 0 var(--iv-gap-tight);
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+  color: var(--iv-fg-muted);
+}
+
+.iv-switch:has(.iv-radio[value="a"]:checked) [data-set]:not([data-set="a"]),
+.iv-switch:has(.iv-radio[value="b"]:checked) [data-set]:not([data-set="b"]),
+.iv-switch:has(.iv-radio[value="c"]:checked) [data-set]:not([data-set="c"]),
+.iv-switch:has(.iv-radio[value="d"]:checked) [data-set]:not([data-set="d"]),
+.iv-switch:has(.iv-radio[value="e"]:checked) [data-set]:not([data-set="e"]),
+.iv-switch:has(.iv-radio[value="f"]:checked) [data-set]:not([data-set="f"]) {
+  display: none;
+}
+
+/* Without :has() the picker cannot filter anything, so it is
+   removed and every set stays visible with its own title. */
+@supports not selector(:has(*)) {
+  .iv-switch > fieldset {
+    display: none;
+  }
+}
+
+/* --- Comparison table (extends the base table) ------------- */
+.iv-table-scroll {
+  margin: 0 0 var(--iv-pad);
+  overflow-x: auto;
+}
+
+.iv-compare {
+  font-size: 0.9rem;
+}
+
+.iv-compare th[scope="row"] {
+  font-weight: 700;
+  background: var(--iv-panel-alt);
+}
+
+.iv-compare .iv-col-self {
+  background: var(--iv-accent-soft);
+}
+
+.iv-compare thead .iv-col-self {
+  color: var(--iv-accent-dark);
+  border-bottom-color: var(--iv-accent);
+}
+
+/* --- Roadmap timeline ------------------------------------- */
+.iv-timeline {
+  counter-reset: iv-step;
+  margin: 0 0 var(--iv-pad);
+  padding: 0;
+  list-style: none;
+  border-left: 2px solid var(--iv-border);
+}
+
+.iv-timeline > li {
+  counter-increment: iv-step;
+  position: relative;
+  margin: 0 0 var(--iv-gap);
+  padding: 0 0 var(--iv-gap-tight) var(--iv-pad-band);
+}
+
+.iv-timeline > li::before {
+  content: counter(iv-step, decimal-leading-zero);
+  position: absolute;
+  left: calc(-1 * var(--iv-pad));
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(2 * var(--iv-pad));
+  height: 1.9em;
+  font-family: var(--iv-font-figure);
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+  color: var(--iv-panel);
+  background: var(--iv-accent);
+  border-radius: var(--iv-radius);
+}
+
+.iv-timeline-title {
+  margin: 0 0 var(--iv-gap-tight);
+  font-weight: 700;
+}
+
+.iv-timeline-meta {
+  margin: 0;
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-faint);
+}
+
+/* --- Resource stack (FDE day allocation) ------------------- */
+.iv-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0 0 var(--iv-gap-tight);
+  padding: 0;
+  list-style: none;
+}
+
+.iv-stack-seg {
+  flex: var(--iv-days, 1) 1 8rem;
+  margin: 0;
+  padding: var(--iv-gap-tight) var(--iv-gap);
+  background: var(--iv-accent-soft);
+  border: 1px solid var(--iv-accent);
+}
+
+.iv-stack-seg.is-internal {
+  background: var(--iv-panel-alt);
+  border-color: var(--iv-border-strong);
+}
+
+.iv-stack-name {
+  display: block;
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+}
+
+.iv-stack-note {
+  display: block;
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-faint);
+}
+
+.iv-stack-caption {
+  margin: 0 0 var(--iv-pad);
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-muted);
+}
+
+/* --- SVG figure ------------------------------------------- */
+.iv-figure {
+  margin: 0 0 var(--iv-pad);
+  padding: var(--iv-gap);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  overflow-x: auto;
+}
+
+/* The floor keeps the drawing legible while .iv-figure scrolls.
+   Rendered text px = font-size attribute x displayed width / viewBox
+   width, so a figure whose viewBox is wider than the floor shrinks its
+   labels below 11px. Raise the floor per figure with an inline
+   style="--iv-svg-min: <viewBox width>px"; print resets it below. */
+.iv-svg {
+  display: block;
+  width: 100%;
+  min-width: var(--iv-svg-min, 32rem);
+  height: auto;
+}
+
+.iv-figure figcaption {
+  margin-top: var(--iv-gap-tight);
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-muted);
+}
+
+/* --- Layout pattern 1: dashboard -------------------------- */
+.iv-dashboard {
+  display: grid;
+  gap: var(--iv-gap);
+}
+
+.iv-dashboard .iv-panel {
+  padding: var(--iv-pad);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+}
+
+/* wide screens get 2 columns; below this and in print, 1 column (default above) */
+@media screen and (min-width: 60rem) {
+  .iv-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .iv-panel--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+/* --- Layout pattern 2: scroll narrative ------------------- */
+.iv-secnav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: var(--iv-gap-tight);
+  min-height: var(--iv-nav-height);
+  margin: 0 0 var(--iv-gap);
+  padding: 0;
+  background: var(--iv-panel);
+  border-bottom: 1px solid var(--iv-border);
+  overflow-x: auto;
+}
+
+.iv-secnav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--iv-hit);
+  padding: 0 0.9em;
+  font-size: var(--iv-fs-meta);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--iv-fg-muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--iv-radius);
+}
+
+.iv-secnav a:hover {
+  color: var(--iv-accent-dark);
+  background: var(--iv-panel-alt);
+  border-color: var(--iv-border);
+}
+
+.iv-secnav a:focus-visible {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: -2px;
+}
+
+.iv-band {
+  padding: var(--iv-pad-band) var(--iv-pad);
+  border-top: var(--iv-tile-accent) solid var(--iv-accent);
+  background: var(--iv-panel);
+}
+
+.iv-band:nth-of-type(even) {
+  background: var(--iv-canvas);
+}
+
+/* the sticky nav would otherwise cover an anchored band */
+.iv-narrative section[id] {
+  scroll-margin-top: calc(var(--iv-nav-height) + var(--space-4));
+}
+
+.iv-band-num {
+  margin: 0;
+  font-family: var(--iv-font-figure);
+  font-size: var(--iv-fs-band-num);
+  font-weight: 700;
+  line-height: var(--iv-lh-tight);
+  /* the artboards use a pale grey here; it fails AA as text, so the
+     faint text token is used instead */
+  color: var(--iv-fg-faint);
+}
+
+/* --- Layout pattern 3: flow-centric ----------------------- */
+.iv-flow-grid {
+  display: grid;
+  gap: var(--iv-gap);
+  align-items: start;
+}
+
+@media screen and (min-width: 60rem) {
+  .iv-flow-grid {
+    grid-template-columns: minmax(0, 1fr) var(--iv-rail-width);
+  }
+}
+
+.iv-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iv-gap-tight);
+}
+
+.iv-node {
+  display: flex;
+  flex: 1 1 10rem;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--iv-hit);
+  padding: var(--iv-gap-tight) var(--iv-gap);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+  cursor: pointer;
+}
+
+.iv-node:hover {
+  border-color: var(--iv-border-strong);
+}
+
+.iv-radio:checked + .iv-node {
+  background: var(--iv-accent-soft);
+  border-color: var(--iv-accent);
+  box-shadow: inset 0 calc(-1 * var(--iv-tile-accent)) 0 var(--iv-accent);
+}
+
+.iv-radio:focus-visible + .iv-node {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: 2px;
+}
+
+.iv-node-title {
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+  color: var(--iv-accent-dark);
+}
+
+.iv-node-meta {
+  font-size: var(--iv-fs-meta);
+  color: var(--iv-fg-muted);
+}
+
+.iv-flow-detail {
+  padding: var(--iv-pad);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border-strong);
+  border-top: var(--iv-tile-accent) solid var(--iv-accent);
+}
+
+.iv-rail {
+  display: grid;
+  gap: var(--iv-gap);
+}
+
+.iv-rail-card {
+  padding: var(--iv-gap) var(--iv-pad);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+}
+
+.iv-rail-card.is-conditional {
+  background: var(--iv-hedge-bg);
+  border-color: var(--iv-hedge-border);
+  color: var(--iv-hedge-fg);
+}
+
+.iv-rail-title {
+  margin: 0 0 var(--iv-gap-tight);
+  font-size: var(--iv-fs-label);
+  font-weight: 700;
+}
+
+/* --- Accordion (details, open by default) ----------------- */
+.iv-accordion {
+  margin: 0 0 var(--iv-gap);
+  background: var(--iv-panel);
+  border: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius);
+}
+
+.iv-accordion > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--iv-hit);
+  padding: var(--iv-gap-tight) var(--iv-pad);
+  font-weight: 700;
+  color: var(--iv-accent-dark);
+  background: var(--iv-panel-alt);
+  border-radius: var(--iv-radius);
+  cursor: pointer;
+}
+
+.iv-accordion[open] > summary {
+  border-bottom: 1px solid var(--iv-border);
+  border-radius: var(--iv-radius) var(--iv-radius) 0 0;
+}
+
+.iv-accordion > summary:focus-visible {
+  outline: 2px solid var(--iv-accent-dark);
+  outline-offset: -2px;
+}
+
+.iv-accordion-body {
+  padding: var(--iv-pad);
+}
+
+.iv-accordion-body > :last-child {
+  margin-bottom: 0;
+}
+
+/* --- Print ------------------------------------------------ */
+@media print {
+  /* controls carry no information on paper */
+  .iv-tablist,
+  .iv-secnav,
+  .iv-switch > fieldset,
+  .iv-nodes {
+    display: none !important;
+  }
+
+  /* everything the controls could hide is expanded */
+  .iv-tabs > .iv-tabpanel,
+  .iv-switch [data-set],
+  .iv-tabpanel-title {
+    display: block !important;
+  }
+
+  .iv-flow-grid,
+  .iv-dashboard,
+  .iv-rail,
+  .iv-kpis {
+    display: block;
+  }
+
+  .iv-kpi,
+  .iv-rail-card,
+  .iv-panel,
+  .iv-band,
+  .iv-figure,
+  .iv-accordion,
+  .iv-flow-detail {
+    margin-bottom: var(--iv-gap);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .iv-svg {
+    min-width: 0;
+  }
+
+  /* tints carry meaning (conditional, hedged, highlighted) */
+  .iv-kpi,
+  .iv-kpi.is-conditional,
+  .iv-rail-card.is-conditional,
+  .iv-stack-seg,
+  .iv-band,
+  .iv-compare .iv-col-self,
+  .iv-compare th[scope="row"],
+  .iv-accordion > summary,
+  .ref-chip,
+  .iv-timeline > li::before {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* --- Reduced motion --------------------------------------- */
+/* Sticky positioning is not motion, so .iv-secnav is left alone.
+   style.css already turns off smooth scrolling here, which is what
+   the script's scrollIntoView() would otherwise inherit. */
+@media (prefers-reduced-motion: reduce) {
+  .iv-tab,
+  .iv-choice,
+  .iv-node,
+  .ref-chip,
+  .iv-accordion > summary {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* --- Narrow screens --------------------------------------- */
+@media screen and (max-width: 640px) {
+  :root {
+    --iv-tile-min: 100%;
+    --iv-fs-kpi: 1.6rem;
+    --iv-fs-band-num: 1.8rem;
+  }
+
+  .iv-svg {
+    min-width: var(--iv-svg-min, 28rem);
+  }
+}
+  </style>
+</head>
+<body>
+<!-- Script 1 of 2: the interaction script, the first element child of
+     <body>. It sits first so the `js` class lands before the panels
+     paint. Placement, not content, is what avoids a flash of the
+     stacked state.
+     The two copies embedded in this template, this script and the CSS
+     in <head>, must equal references/interactive.js and the
+     concatenation of references/style.css and references/interactive.css
+     byte for byte. Update them by splicing the reference files in, never
+     by retyping. -->
+<script>
+/* html-design-doc — 手順D interaction script.
+   Inline this verbatim as the first element child of <body>, inside one
+   of the document's two permitted script elements. Display switching
+   only: no fetch, no storage, no globals. */
+(function () {
+  'use strict';
+
+  document.body.classList.add('js');
+
+  function panelOf(tab) {
+    return document.getElementById(tab.getAttribute('aria-controls'));
+  }
+
+  /* Tabs of this group only: a tab nested in an inner [data-tabs]
+     belongs to that inner group, and a tab whose aria-controls names
+     no element is ignored so it can never hide every panel. */
+  function tabsOf(group) {
+    return [].slice.call(group.querySelectorAll('[role="tab"]')).filter(
+      function (t) {
+        return t.closest('[data-tabs]') === group && panelOf(t);
+      }
+    );
+  }
+
+  function select(tab, focus) {
+    var group = tab.closest('[data-tabs]');
+    if (!group) return false;
+    var tabs = tabsOf(group);
+    if (tabs.indexOf(tab) < 0) return false;
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      panelOf(t).hidden = !on;
+    });
+    if (focus) tab.focus();
+    return true;
+  }
+
+  function initGroup(group) {
+    var list = group.querySelector('[role="tablist"]');
+    if (list && list.closest('[data-tabs]') === group) list.hidden = false;
+    var tabs = tabsOf(group);
+    if (!tabs.length) return;
+    var preferred = tabs.filter(function (t) {
+      return panelOf(t).hasAttribute('data-default');
+    })[0];
+    select(preferred || tabs[0], false);
+  }
+
+  /* Arrow keys are the tablist pattern, so they apply only inside a
+     horizontal [role="tablist"] that belongs to a tab group. */
+  function tablistOf(tab) {
+    var list = tab.closest('[role="tablist"]');
+    if (!list || !list.closest('[data-tabs]')) return null;
+    var axis = list.getAttribute('aria-orientation');
+    return !axis || axis === 'horizontal' ? list : null;
+  }
+
+  function move(tab, key) {
+    var list = tablistOf(tab);
+    if (!list) return false;
+    var tabs = tabsOf(list.closest('[data-tabs]'));
+    var i = tabs.indexOf(tab);
+    if (i < 0) return false;
+    if (key === 'ArrowRight') i = (i + 1) % tabs.length;
+    else if (key === 'ArrowLeft') i = (i - 1 + tabs.length) % tabs.length;
+    else if (key === 'Home') i = 0;
+    else if (key === 'End') i = tabs.length - 1;
+    else return false;
+    return select(tabs[i], true);
+  }
+
+  /* An anchor may point inside panels the reader cannot see, possibly
+     nested. Open them outermost first, then jump. */
+  function openPanels(target) {
+    var chain = [];
+    var el = target.closest('.iv-tabpanel[hidden]');
+    while (el) {
+      chain.unshift(el);
+      el = el.parentElement && el.parentElement.closest('.iv-tabpanel[hidden]');
+    }
+    chain.forEach(function (panel) {
+      var tab = document.getElementById(panel.getAttribute('aria-labelledby'));
+      if (tab) select(tab, false);
+    });
+  }
+
+  function reveal(hash) {
+    if (!hash || hash.length < 2) return;
+    var id;
+    try {
+      id = decodeURIComponent(hash.slice(1));
+    } catch (err) {
+      return; /* malformed percent-encoding: nothing to reveal */
+    }
+    var target = document.getElementById(id);
+    if (!target || !target.closest) return;
+    openPanels(target);
+    target.scrollIntoView();
+  }
+
+  function eachDetails(selector, fn) {
+    [].forEach.call(document.querySelectorAll(selector), fn);
+  }
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    var tab = e.target.closest('[role="tab"]');
+    if (tab && select(tab, true)) {
+      e.preventDefault();
+      return;
+    }
+    var link = e.target.closest('a[href^="#"]');
+    if (link) reveal(link.getAttribute('href'));
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (!e.target.closest) return;
+    var tab = e.target.closest('[role="tab"]');
+    if (tab && move(tab, e.key)) e.preventDefault();
+  });
+
+  window.addEventListener('hashchange', function () {
+    reveal(location.hash);
+  });
+
+  /* Closed <details> cannot be forced open from CSS, so paper
+     output needs this pair. */
+  window.addEventListener('beforeprint', function () {
+    eachDetails('details[data-collapsible]:not([open])', function (d) {
+      d.setAttribute('data-was-closed', '');
+      d.open = true;
+    });
+  });
+
+  window.addEventListener('afterprint', function () {
+    eachDetails('details[data-was-closed]', function (d) {
+      d.removeAttribute('data-was-closed');
+      d.open = false;
+    });
+  });
+
+  /* iv-ready must land even if wiring throws, or the CSS gate would
+     leave every non-default panel hidden with no way to open it. */
+  function start() {
+    try {
+      [].forEach.call(document.querySelectorAll('[data-tabs]'), initGroup);
+    } finally {
+      document.body.classList.add('iv-ready');
+    }
+    reveal(location.hash);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
+
+<!-- hidden by default; the TOC script at the end of this file reveals it,
+     so with JS disabled the sidebar simply stays open -->
+<button type="button" class="toc-toggle" id="toc-toggle" hidden aria-controls="TOC" aria-expanded="true">☰ 目次</button>
+<div class="layout">
+
+<nav id="TOC" role="doc-toc" aria-label="目次">
+<p class="toc-title">目次</p>
+<ul>
+<li><a href="#手順dテンプレート">手順D テンプレート（サンプル）</a>
+<ul>
+<li><a href="#この見本について">1. この見本について</a></li>
+<li><a href="#コンポーネント見本">2. コンポーネント見本</a>
+<ul>
+<li><a href="#タブセット">2.1 タブセット</a></li>
+<li><a href="#アコーディオン">2.2 アコーディオン</a></li>
+<li><a href="#kpiタイル">2.3 KPIタイルと詳細リンクチップ</a></li>
+<li><a href="#シナリオ切替">2.4 シナリオ切替</a></li>
+<li><a href="#比較表">2.5 比較表</a></li>
+<li><a href="#ロードマップ">2.6 ロードマップ</a></li>
+<li><a href="#リソース配分">2.7 リソース配分</a></li>
+<li><a href="#svg図版">2.8 SVG図版</a></li>
+</ul></li>
+<li><a href="#レイアウトパターン">3. レイアウトパターン</a>
+<ul>
+<li><a href="#パターン-dashboard">3.1 dashboard</a></li>
+<li><a href="#パターン-narrative">3.2 narrative</a></li>
+<li><a href="#パターン-flow">3.3 flow</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#付録">付録</a>
+<ul>
+<li><a href="#検証項目">A. 検証項目</a></li>
+</ul></li>
+</ul>
+</nav>
+
+<main class="main">
+
+<section id="手順dテンプレート" class="level1">
+<h1>手順D テンプレート（サンプル）</h1>
+<p class="doc-meta">最終更新: 2026-09-04 ／ 作成: html-design-doc スキル 手順D</p>
+
+<section id="この見本について" class="level2">
+<h2>1. この見本について</h2>
+
+<div class="callout note">
+<span class="callout-label">NOTE</span>
+<p>本文はすべて<strong>サンプル</strong>であり、記載された数値・社数・期間に意味はない。実際の文書を書くときはこの節ごと差し替える。金額は「〇〇万円」のままにしてあり、実在の見積りではない。</p>
+</div>
+
+<p>この見本は、手順Dで使うコンポーネントを1つずつ実際に描画したものである。第2章に各コンポーネントの見本を、第3章に3つのレイアウトパターンの骨格を置く。レイアウトパターンは文書ごとに<strong>1つだけ</strong>を選ぶ。同じ文書に複数を同居させない。</p>
+
+<div class="callout warn">
+<span class="callout-label">WARN</span>
+<p>この文書の <code>&lt;script&gt;</code> は2本だけである。1本目が本ファイル先頭のインタラクション用、2本目が末尾の目次開閉用で、いずれも外部ファイルを読み込まない。図はすべてSVGを直接記述しており、外部の画像・CSS・フォントを参照しない。</p>
+</div>
+</section>
+
+<section id="コンポーネント見本" class="level2">
+<h2>2. コンポーネント見本</h2>
+
+<section id="タブセット" class="level3">
+<h3>2.1 タブセット</h3>
+<p>文書内で唯一のJavaScript操作要素である。JavaScriptを無効にすると、タブ列は現れずパネルが縦に並ぶ。</p>
+
+<div class="iv-tabs" data-tabs>
+  <div class="iv-tablist" role="tablist" aria-label="観点の切替（サンプル）" hidden>
+    <button type="button" class="iv-tab" role="tab" id="タブ見本-1" aria-controls="面見本-1">観点A</button>
+    <button type="button" class="iv-tab" role="tab" id="タブ見本-2" aria-controls="面見本-2">観点B</button>
+    <button type="button" class="iv-tab" role="tab" id="タブ見本-3" aria-controls="面見本-3">観点C</button>
+  </div>
+  <section class="iv-tabpanel" id="面見本-1" role="tabpanel" aria-labelledby="タブ見本-1" data-default>
+    <h4 class="iv-tabpanel-title">観点A</h4>
+    <p>観点Aのサンプル本文。左右の矢印キー、Home、Endでタブを移動できる。</p>
+  </section>
+  <section class="iv-tabpanel" id="面見本-2" role="tabpanel" aria-labelledby="タブ見本-2">
+    <h4 class="iv-tabpanel-title">観点B</h4>
+    <p>観点Bのサンプル本文。このパネルは既定では閉じている。2.3のチップから飛ぶと、スクリプトがこのタブを開いてから移動する。</p>
+  </section>
+  <section class="iv-tabpanel" id="面見本-3" role="tabpanel" aria-labelledby="タブ見本-3">
+    <h4 class="iv-tabpanel-title">観点C</h4>
+    <p>観点Cのサンプル本文。印刷すると3つのパネルがすべて展開される。</p>
+  </section>
+</div>
+</section>
+
+<section id="アコーディオン" class="level3">
+<h3>2.2 アコーディオン</h3>
+<p>既定で開いた状態にする。閉じたまま印刷しても、スクリプトが印刷直前に開く。</p>
+
+<details class="iv-accordion" data-collapsible open>
+<summary>前提と未検証の項目（サンプル）</summary>
+<div class="iv-accordion-body">
+<ul>
+<li>ここに書くのは、読み飛ばしてよいが省いてはいけない情報である（サンプル）。</li>
+<li>根拠、出典、前提の一覧などが該当する（サンプル）。</li>
+</ul>
+</div>
+</details>
+
+<details class="iv-accordion" data-collapsible open>
+<summary>2つ目のアコーディオン（サンプル）</summary>
+<div class="iv-accordion-body">
+<p>アコーディオンはすべて <code>open</code> を付けて置く。読み手が手で閉じたものは、スクリプトが印刷直前に開き、プレビューを閉じると元に戻す。</p>
+</div>
+</details>
+</section>
+
+<section id="kpiタイル" class="level3">
+<h3>2.3 KPIタイルと詳細リンクチップ</h3>
+<p>各タイルにはヘッジ行を必ず置き、概算か、どの仮定に依存するか、根拠がどこにあるかを書く。</p>
+
+<div class="iv-kpis">
+  <div class="iv-kpi">
+    <p class="iv-kpi-label">サンプル指標A</p>
+    <p class="iv-kpi-value">〇〇万円</p>
+    <p class="iv-kpi-hedge">（サンプル）ここにヘッジ語と内訳を書く <a class="ref-chip" href="#比較表">詳細 §2.5</a></p>
+  </div>
+  <div class="iv-kpi">
+    <p class="iv-kpi-label">サンプル指標B</p>
+    <p class="iv-kpi-value is-long">月〇〇万円から〇〇万円</p>
+    <p class="iv-kpi-hedge">（サンプル）値が長い場合は is-long を付ける <a class="ref-chip" href="#ロードマップ">詳細 §2.6</a></p>
+  </div>
+  <div class="iv-kpi is-conditional">
+    <p class="iv-kpi-label">サンプル指標C（条件付き）</p>
+    <p class="iv-kpi-value">約〇〇万円</p>
+    <p class="iv-kpi-hedge">（サンプル）条件が成立した場合に限る <a class="ref-chip" href="#面見本-2">詳細 §2.1</a></p>
+  </div>
+  <div class="iv-kpi">
+    <p class="iv-kpi-label">サンプル指標D</p>
+    <p class="iv-kpi-value">〇〇%</p>
+    <p class="iv-kpi-hedge">（サンプル）仮定であることを明記する <a class="ref-chip" href="#リソース配分">詳細 §2.7</a></p>
+  </div>
+</div>
+
+<p>3枚目のタイルのチップは、既定で閉じているタブパネルを指している。押すとそのタブが開いてから移動する。</p>
+</section>
+
+<section id="シナリオ切替" class="level3">
+<h3>2.4 シナリオ切替</h3>
+<p>ラジオとCSSだけで動く。JavaScriptを無効にしても切り替えられる。</p>
+
+<div class="iv-switch">
+  <fieldset>
+    <legend>前提の選択（サンプル）</legend>
+    <div class="iv-choices">
+      <input type="radio" class="iv-radio" name="見本シナリオ" id="見本シナリオ-a" value="a" checked>
+      <label class="iv-choice" for="見本シナリオ-a">前提A</label>
+      <input type="radio" class="iv-radio" name="見本シナリオ" id="見本シナリオ-b" value="b">
+      <label class="iv-choice" for="見本シナリオ-b">前提B</label>
+      <input type="radio" class="iv-radio" name="見本シナリオ" id="見本シナリオ-c" value="c">
+      <label class="iv-choice" for="見本シナリオ-c">前提C</label>
+    </div>
+  </fieldset>
+  <div data-set="a">
+    <h4 class="iv-set-title">前提A</h4>
+    <p>前提Aを置いたときのサンプル本文。値は〇〇万円（サンプル）。</p>
+  </div>
+  <div data-set="b">
+    <h4 class="iv-set-title">前提B</h4>
+    <p>前提Bを置いたときのサンプル本文。値は〇〇万円（サンプル）。</p>
+  </div>
+  <div data-set="c">
+    <h4 class="iv-set-title">前提C</h4>
+    <p>前提Cを置いたときのサンプル本文。原資にない値は「未算定」と書く。</p>
+  </div>
+</div>
+</section>
+
+<section id="比較表" class="level3">
+<h3>2.5 比較表</h3>
+
+<div class="iv-table-scroll">
+<table class="iv-compare">
+<caption>比較（サンプル。調査時点を必ず書く）</caption>
+<thead>
+<tr><th scope="col">比較項目</th><th scope="col">A社</th><th scope="col">B社</th><th scope="col" class="iv-col-self">本サービス</th></tr>
+</thead>
+<tbody>
+<tr><th scope="row">価格</th><td>サンプル</td><td>サンプル</td><td class="iv-col-self">サンプル</td></tr>
+<tr><th scope="row">提供形態</th><td>サンプル</td><td>サンプル</td><td class="iv-col-self">サンプル</td></tr>
+<tr><th scope="row">対象規模</th><td>サンプル</td><td>サンプル</td><td class="iv-col-self">サンプル</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>自社列は色だけでなく列見出しの語でも区別できるようにする。</p>
+</section>
+
+<section id="ロードマップ" class="level3">
+<h3>2.6 ロードマップ</h3>
+
+<ol class="iv-timeline">
+<li>
+<p class="iv-timeline-title">1年目（サンプル）</p>
+<p class="iv-timeline-meta">売上 〇〇万円 ／ 売上総利益 ▲〇〇万円（サンプル）</p>
+</li>
+<li>
+<p class="iv-timeline-title">2年目（サンプル）</p>
+<p class="iv-timeline-meta">売上 〇〇万円 ／ 売上総利益 〇〇万円（サンプル）</p>
+</li>
+<li>
+<p class="iv-timeline-title">3年目（サンプル）</p>
+<p class="iv-timeline-meta">売上 〇〇万円 ／ 売上総利益 〇〇万円（サンプル）</p>
+</li>
+</ol>
+
+<p>番号はCSSが描くので本文に書かない。年度など識別に必要な語は見出しの本文に書く。</p>
+</section>
+
+<section id="リソース配分" class="level3">
+<h3>2.7 リソース配分</h3>
+
+<ul class="iv-stack">
+<li class="iv-stack-seg" style="--iv-days: 8">
+<span class="iv-stack-name">作業枠A　8日</span>
+<span class="iv-stack-note">サンプル</span>
+</li>
+<li class="iv-stack-seg" style="--iv-days: 8">
+<span class="iv-stack-name">作業枠B　8日</span>
+<span class="iv-stack-note">サンプル</span>
+</li>
+<li class="iv-stack-seg is-internal" style="--iv-days: 4">
+<span class="iv-stack-name">社内活動　4日</span>
+<span class="iv-stack-note">対象外</span>
+</li>
+</ul>
+<p class="iv-stack-caption">幅は比の目安である。日数は必ず文字でも書く（サンプル）。</p>
+</section>
+
+<section id="svg図版" class="level3">
+<h3>2.8 SVG図版</h3>
+<p>図は外部参照ゼロのSVGで描く。<code>&lt;desc&gt;</code> にMermaid相当のソースを入れ、機械可読性をそこで担保する。</p>
+
+<figure class="iv-figure">
+<svg class="iv-svg" style="--iv-svg-min: 820px" viewBox="0 0 820 210" role="img" aria-labelledby="図1-題 図1-説">
+<title id="図1-題">4段階の流れ（サンプル）</title>
+<desc id="図1-説">flowchart LR
+  S1[段階1] --&gt; S2[段階2]
+  S2 --&gt; S3[段階3]
+  S3 --&gt; S4[段階4]
+  S2 --&gt; LIB[再利用ライブラリ]
+  LIB --&gt; S2</desc>
+<rect x="10" y="20" width="180" height="72" fill="#f6f8fa" stroke="#b8c1cc" stroke-width="1"></rect>
+<text x="100" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">段階1</text>
+<text x="100" y="70" text-anchor="middle" font-size="12" fill="#1f2328">サンプル</text>
+<rect x="220" y="20" width="180" height="72" fill="#f6f8fa" stroke="#b8c1cc" stroke-width="1"></rect>
+<text x="310" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">段階2</text>
+<text x="310" y="70" text-anchor="middle" font-size="12" fill="#1f2328">サンプル</text>
+<rect x="430" y="20" width="180" height="72" fill="#f6f8fa" stroke="#b8c1cc" stroke-width="1"></rect>
+<text x="520" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">段階3</text>
+<text x="520" y="70" text-anchor="middle" font-size="12" fill="#1f2328">サンプル</text>
+<rect x="640" y="20" width="170" height="72" fill="#fff7e6" stroke="#e0a02a" stroke-width="1" stroke-dasharray="5 4"></rect>
+<text x="725" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#8a5300">段階4</text>
+<text x="725" y="70" text-anchor="middle" font-size="12" fill="#8a5300">条件付き</text>
+<path d="M 190 56 L 214 56" fill="none" stroke="#b8c1cc" stroke-width="1.5"></path>
+<path d="M 218 56 L 210 52 L 210 60 Z" fill="#b8c1cc"></path>
+<path d="M 400 56 L 424 56" fill="none" stroke="#b8c1cc" stroke-width="1.5"></path>
+<path d="M 428 56 L 420 52 L 420 60 Z" fill="#b8c1cc"></path>
+<path d="M 610 56 L 634 56" fill="none" stroke="#b8c1cc" stroke-width="1.5"></path>
+<path d="M 638 56 L 630 52 L 630 60 Z" fill="#b8c1cc"></path>
+<path d="M 275 92 L 275 138" fill="none" stroke="#b8c1cc" stroke-width="1.5"></path>
+<path d="M 275 142 L 271 134 L 279 134 Z" fill="#b8c1cc"></path>
+<path d="M 355 142 L 355 96" fill="none" stroke="#b8c1cc" stroke-width="1.5"></path>
+<path d="M 355 92 L 351 100 L 359 100 Z" fill="#b8c1cc"></path>
+<rect x="220" y="142" width="190" height="50" fill="#ffffff" stroke="#b8c1cc" stroke-width="1"></rect>
+<text x="315" y="163" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2328">再利用ライブラリ</text>
+<text x="315" y="181" text-anchor="middle" font-size="11" fill="#5a6472">サンプル</text>
+<text x="430" y="170" font-size="11" fill="#5a6472">段階2の成果を外に出し、次に当てはめる</text>
+</svg>
+<figcaption>図1　4段階の流れ（サンプル）</figcaption>
+</figure>
+</section>
+</section>
+
+<section id="レイアウトパターン" class="level2">
+<h2>3. レイアウトパターン</h2>
+<p>次の3つから<strong>1つだけ</strong>を選び、文書全体をその骨格で書く。ここでは比較のために3つを並べているが、実際の文書では1つだけを残して他は削除する。</p>
+
+<table>
+<thead>
+<tr><th>パターン</th><th>向いている資料</th><th>読み手の動線</th><th>弱点</th></tr>
+</thead>
+<tbody>
+<tr><td><code>dashboard</code></td><td>全体像を1画面で見せる提案書</td><td>上部のタブで面を切り替える</td><td>面をまたぐ比較がしにくい</td></tr>
+<tr><td><code>narrative</code></td><td>前提から結論まで順に読ませる説明書</td><td>上から下へ読み進める</td><td>縦に長く全体像がつかみにくい</td></tr>
+<tr><td><code>flow</code></td><td>1つのプロセスを軸にした資料</td><td>ノードを選んで詳細を見る</td><td>図に乗らない話題の置き場所が乏しい</td></tr>
+</tbody>
+</table>
+
+<section id="パターン-dashboard" class="level3">
+<h3>3.1 dashboard</h3>
+<p>KPIタイルの帯を最上部に置き、その下をタブで切り替える。1画面に結論を収めたいときに選ぶ。</p>
+
+<div class="iv-kpis">
+  <div class="iv-kpi">
+    <p class="iv-kpi-label">サンプル指標</p>
+    <p class="iv-kpi-value">〇〇万円</p>
+    <p class="iv-kpi-hedge">（サンプル）ヘッジ行は必須</p>
+  </div>
+  <div class="iv-kpi">
+    <p class="iv-kpi-label">サンプル指標</p>
+    <p class="iv-kpi-value">〇〇%</p>
+    <p class="iv-kpi-hedge">（サンプル）仮定であることを書く</p>
+  </div>
+</div>
+
+<div class="iv-tabs" data-tabs>
+  <div class="iv-tablist" role="tablist" aria-label="dashboard の面（サンプル）" hidden>
+    <button type="button" class="iv-tab" role="tab" id="タブd-1" aria-controls="面d-1">要点</button>
+    <button type="button" class="iv-tab" role="tab" id="タブd-2" aria-controls="面d-2">数字</button>
+  </div>
+  <section class="iv-tabpanel" id="面d-1" role="tabpanel" aria-labelledby="タブd-1" data-default>
+    <h4 class="iv-tabpanel-title">要点</h4>
+    <div class="iv-dashboard">
+      <div class="iv-panel">
+        <h4>左のパネル（サンプル）</h4>
+        <p>1つの面を2枚から4枚のパネルで構成する。</p>
+      </div>
+      <div class="iv-panel">
+        <h4>右のパネル（サンプル）</h4>
+        <p>パネルの中には表・図・アコーディオンのいずれも置ける。</p>
+      </div>
+    </div>
+  </section>
+  <section class="iv-tabpanel" id="面d-2" role="tabpanel" aria-labelledby="タブd-2">
+    <h4 class="iv-tabpanel-title">数字</h4>
+    <div class="iv-dashboard">
+      <div class="iv-panel">
+        <h4>数字のパネル（サンプル）</h4>
+        <p>面をまたぐ比較が必要になったら、そもそも同じ面に置くことを検討する。</p>
+      </div>
+    </div>
+  </section>
+</div>
+</section>
+
+<section id="パターン-narrative" class="level3">
+<h3>3.2 narrative</h3>
+<p>番号付きの帯を縦に積み、上部の節ナビで行き来する。論証の順序そのものが説得力になるときに選ぶ。</p>
+
+<div class="iv-narrative">
+<nav class="iv-secnav" aria-label="帯の一覧（サンプル）">
+<a href="#帯-01">01 前提</a>
+<a href="#帯-02">02 提案</a>
+<a href="#帯-03">03 判断</a>
+</nav>
+
+<section id="帯-01" class="level4 iv-band">
+<p class="iv-band-num">01</p>
+<h4>前提（サンプル）</h4>
+<p>帯ごとに主題を1つに絞る。番号は本文の <code>.iv-band-num</code> に書き、見出しには入れない。</p>
+</section>
+
+<section id="帯-02" class="level4 iv-band">
+<p class="iv-band-num">02</p>
+<h4>提案（サンプル）</h4>
+<p>偶数番目の帯は背景が変わり、区切りが分かるようになっている。</p>
+<details class="iv-accordion" data-collapsible open>
+<summary>根拠（サンプル）</summary>
+<div class="iv-accordion-body">
+<p>帯の中にアコーディオンを置き、詳細を畳む。</p>
+</div>
+</details>
+</section>
+
+<section id="帯-03" class="level4 iv-band">
+<p class="iv-band-num">03</p>
+<h4>判断（サンプル）</h4>
+<p>節ナビは画面上端に貼り付く。飛び先の見出しがナビに隠れないよう、<code>scroll-margin-top</code> を足してある。</p>
+</section>
+</div>
+</section>
+
+<section id="パターン-flow" class="level3">
+<h3>3.3 flow</h3>
+<p>中央に図と段階の選択、右に常設の補足レールを置く。資料の主題が流れそのものであるときに選ぶ。</p>
+
+<div class="iv-flow-grid">
+<div class="iv-switch">
+<figure class="iv-figure">
+<svg class="iv-svg" style="--iv-svg-min: 620px" viewBox="0 0 620 96" role="img" aria-labelledby="図2-題 図2-説">
+<title id="図2-題">3段階の並び（サンプル）</title>
+<desc id="図2-説">flowchart LR
+  A[段階A] --&gt; B[段階B]
+  B --&gt; C[段階C]</desc>
+<rect x="10" y="16" width="180" height="60" fill="#f6f8fa" stroke="#b8c1cc" stroke-width="1"></rect>
+<text x="100" y="52" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">段階A</text>
+<rect x="220" y="16" width="180" height="60" fill="#f6f8fa" stroke="#b8c1cc" stroke-width="1"></rect>
+<text x="310" y="52" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">段階B</text>
+<rect x="430" y="16" width="180" height="60" fill="#f6f8fa" stroke="#b8c1cc" stroke-width="1"></rect>
+<text x="520" y="52" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">段階C</text>
+<path d="M 190 46 L 214 46" fill="none" stroke="#b8c1cc" stroke-width="1.5"></path>
+<path d="M 218 46 L 210 42 L 210 50 Z" fill="#b8c1cc"></path>
+<path d="M 400 46 L 424 46" fill="none" stroke="#b8c1cc" stroke-width="1.5"></path>
+<path d="M 428 46 L 420 42 L 420 50 Z" fill="#b8c1cc"></path>
+</svg>
+<figcaption>図2　3段階の並び（サンプル）。ノードは下のボタン列で選ぶ。</figcaption>
+</figure>
+
+<fieldset>
+<legend>段階の選択（サンプル）</legend>
+<div class="iv-nodes">
+<input type="radio" class="iv-radio" name="見本ノード" id="見本ノード-a" value="a" checked>
+<label class="iv-node" for="見本ノード-a">
+<span class="iv-node-title">段階A</span>
+<span class="iv-node-meta">サンプル</span>
+</label>
+<input type="radio" class="iv-radio" name="見本ノード" id="見本ノード-b" value="b">
+<label class="iv-node" for="見本ノード-b">
+<span class="iv-node-title">段階B</span>
+<span class="iv-node-meta">サンプル</span>
+</label>
+<input type="radio" class="iv-radio" name="見本ノード" id="見本ノード-c" value="c">
+<label class="iv-node" for="見本ノード-c">
+<span class="iv-node-title">段階C</span>
+<span class="iv-node-meta">サンプル</span>
+</label>
+</div>
+</fieldset>
+
+<div class="iv-flow-detail" data-set="a">
+<h4 class="iv-set-title">段階A</h4>
+<p>段階Aのサンプル本文。図のラベルとノードの見出しは同じ語にする。</p>
+</div>
+<div class="iv-flow-detail" data-set="b">
+<h4 class="iv-set-title">段階B</h4>
+<p>段階Bのサンプル本文。JavaScriptは使っていないので、無効でも切り替えられる。</p>
+</div>
+<div class="iv-flow-detail" data-set="c">
+<h4 class="iv-set-title">段階C</h4>
+<p>段階Cのサンプル本文。印刷すると3つとも展開される。</p>
+</div>
+</div>
+
+<aside class="iv-rail" aria-label="補足（サンプル）">
+<div class="iv-rail-card">
+<p class="iv-rail-title">決めてほしいこと（サンプル）</p>
+<p>レールには、どの段階を見ていても変わらない情報を置く。</p>
+</div>
+<div class="iv-rail-card is-conditional">
+<p class="iv-rail-title">条件付きの補足（サンプル）</p>
+<p>条件が成立した場合にだけ生じる話は、地色を変えて区別する。</p>
+</div>
+</aside>
+</div>
+</section>
+</section>
+</section>
+
+<section id="付録" class="level1 appendix">
+<h1>付録</h1>
+
+<section id="検証項目" class="level2">
+<h2>A. 検証項目</h2>
+<table>
+<thead>
+<tr><th>項目</th><th>確認方法</th></tr>
+</thead>
+<tbody>
+<tr><td>JS無効時の可読性</td><td>ブラウザでJavaScriptを切り、全パネル・全シナリオ・全ノードが読めること</td></tr>
+<tr><td>印刷時の展開</td><td>印刷プレビューで操作要素が消え、全パネルとアコーディオンが展開されること</td></tr>
+<tr><td>外部参照ゼロ</td><td>プロトコル指定・外部CSSの取り込み・CSSの外部アセット指定・要素の外部ファイル指定をグレップし、ルールを説明したコメント以外に出現しないこと（検索語は interactive-components.md の「検証」に列挙してある）</td></tr>
+<tr><td>スクリプト本数</td><td>スクリプト要素が2本のみであること</td></tr>
+<tr><td>参照の解決</td><td>すべての <code>aria-controls</code>・<code>aria-labelledby</code>・ページ内リンクの参照先が、実在する <code>id</code> であること</td></tr>
+<tr><td>タグ整合</td><td>パーサで開始タグと終了タグの対応を確認すること</td></tr>
+</tbody>
+</table>
+</section>
+</section>
+
+</main>
+</div>
+<!-- Script 2 of 2: the TOC toggle from 手順A, unchanged. -->
+<script>
+var tocBtn = document.getElementById('toc-toggle');
+tocBtn.hidden = false;
+tocBtn.addEventListener('click', function () {
+  var collapsed = document.body.classList.toggle('toc-collapsed');
+  tocBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+});
+</script>
+</body>
+</html>
