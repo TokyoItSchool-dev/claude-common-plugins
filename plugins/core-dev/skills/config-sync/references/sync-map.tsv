@@ -20,7 +20,7 @@ skills/config-sync/	claude-codex/skills/config-sync/	plugins/core-dev/skills/con
 commands/changelog-commit.md	commands/changelog-commit.md	plugins/core-dev/skills/changelog-commit/SKILL.md	variant	variant	3拠点とも分岐済み。TPS は CHANGELOG 記述ルールの例が簡略。CCP は description/argument-hint を拡張、コマンド名を `/core-dev:changelog-commit` に、SlideGen 固有の記述を一般化
 commands/generate-design-doc/	commands/generate-design-doc/	-	mirror	-	4ファイル
 commands/MajorLectureMaterials/	commands/MajorLectureMaterials/	-	mirror	-	7ファイル
-# exclude: skills/coding-standards, skills/api-design, skills/officecli, skills/frontend-slides — CCP に同名スキルがあるが系統が別。同期しない
+# exclude: skills/officecli, skills/frontend-slides — CCP に同名スキルがあるが系統が別。同期しない
 # exclude: skills/codex-brief-review — HOME 専用
 # exclude: skills/html-design-doc/scripts/plantuml.jar — マシンごとに用意するバイナリ（HOME は /skills/**/*.jar、CCP は *.jar で gitignore 済み）
 # exclude: CCP plugins/*/agents/*.md — HOME に対応物なし。CCP 単独で保守する
