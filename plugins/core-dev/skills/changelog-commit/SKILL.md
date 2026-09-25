@@ -234,27 +234,92 @@ git tag -a vA.B.C -m "{コミットメッセージと同じ要約}"
 
 タグをpushすると、リポジトリに `.github/workflows/release.yml` が存在する場合はGitHub Actionsのリリースワークフローが起動し、`docs/CHANGELOG.md` からGitHub Releaseを作成する（通知連携の有無はワークフローの内容による）。該当ワークフローがないリポジトリではタグのpushのみが行われる。
 
+#### タグを push できない環境（Claude Code クラウドセッション等）
+
+Claude Code クラウドセッション（Claude Code on the web）ではブランチのpushはできるが、タグのpushはできない。`git push origin vA.B.C` は git-receive-pack から `HTTP 403` で拒否され、GitHub REST API の `git/refs` 書き込みもセッションのプロキシで拒否される。
+
+**判定方法:** 次のいずれかに該当する場合、この手順に切り替える。
+
+- 環境変数 `CLAUDE_CODE_REMOTE=true` が設定されている
+- ブランチ（main）のpushは成功したが、`git push origin vA.B.C` が git-receive-pack から `HTTP 403` を返した
+
+**前提条件:** リポジトリの `.github/workflows/release.yml` が、workflow_dispatch でのタグ作成に対応していること。具体的には次を満たす。
+
+- `workflow_dispatch` の入力に `version` を持つ
+- Actions 内で `GITHUB_TOKEN` を使って注釈付きタグ `v<version>` を作成するジョブ（tag ジョブ）がある
+- tag ジョブが、`package.json` と `docs/CHANGELOG.md` に当該バージョンが記載済みであること、および同名タグが未作成であることを検証する
+- GitHub Release の作成とビルドを同じ run 内で実行する（`GITHUB_TOKEN` でpushしたタグは `on: push` を起動しないため）
+
+SlideGen_AI はこの構成を実装済みである（tag ジョブあり。既存タグのビルドを再実行する `rebuild` 入力あり）。
+
+`release.yml` が上記に対応していない場合は、タグ作成を行わずに終了し、ローカル環境から次のコマンドでタグをpushするようユーザーに案内する（`<sha>` はpush済みのリリースコミット）:
+
+```bash
+git fetch origin main
+git tag -a vA.B.C <sha> -m "{コミットメッセージと同じ要約}"
+git push origin vA.B.C
+```
+
+**手順:**
+
+1. コミットは 6-4 と同じ手順でmainへpushする
+2. タグはローカルで作成しない。403 で判定した場合など、ローカルに作成済みのタグは `git tag -d vA.B.C` で削除する
+3. リポジトリの Release ワークフローを workflow_dispatch で `version=A.B.C` を指定して起動する
+
+   GitHub MCP ツールを使う場合は `actions_run_trigger` を次の引数で呼び出す:
+
+   ```text
+   method: run_workflow
+   workflow_id: release.yml
+   ref: main
+   inputs: {version: "A.B.C"}
+   ```
+
+   `gh` が利用できる環境では次のコマンドで起動する:
+
+   ```bash
+   gh workflow run release.yml -f version=A.B.C
+   ```
+
+4. run の完了を待ち、run の結論（conclusion）が `success` であることを確認する
+5. 次のコマンドでタグがリモートに存在することを確認する:
+
+   ```bash
+   git ls-remote --tags origin vA.B.C
+   ```
+
+run が失敗した場合はエラーとしてログを確認し、ユーザーに報告する。空コミットのpushや、同じ version での再 dispatch による再試行は行わない（tag ジョブは既存タグを拒否する）。既存タグの成果物を再ビルドする必要がある場合に限り、リポジトリが `rebuild` 入力を提供していればそれを使う。
+
 ### 6-4: push
 
-gitモードの場合:
+先にコミットをpushし、次にタグを反映し、最後にタグのリモート到達を確認する。
+
+gitモードの場合、まずコミットをpushする:
+
 ```bash
 git push
 ```
-コミットのpush後、タグも必ずpushする:
+
+コミットのpush後、タグも必ず反映する。通常の環境では次のコマンドでタグをpushする。タグをpushできない環境（6-3「タグを push できない環境」参照）では、代わりに Release ワークフローを workflow_dispatch で起動してタグを作成する:
+
 ```bash
 git push origin vA.B.C
 ```
-push後は以下でリモートへの到達を確認する。見つからない場合はエラーとして報告する:
+
+タグの反映後は以下でリモートへの到達を確認する。見つからない場合はエラーとして報告する:
+
 ```bash
 git ls-remote --tags origin vA.B.C
 ```
 
-jjモードの場合、bookmarkが新しいコミットを指すよう必要に応じて更新してからpushする:
+jjモードの場合、bookmarkが新しいコミットを指すよう必要に応じて更新してからコミットをpushする:
+
 ```bash
 jj bookmark set main -r @-
 jj git push
 ```
-コミットのpush後、タグも必ず `git push origin vA.B.C` でpushし、`git ls-remote --tags origin vA.B.C` でリモート到達を確認する。見つからない場合はエラーとして報告する。
+
+コミットのpush後、タグも必ず反映する。通常の環境では `git push origin vA.B.C` でpushし、タグをpushできない環境では 6-3 の workflow_dispatch の手順でタグを作成する。いずれの場合も最後に `git ls-remote --tags origin vA.B.C` でリモート到達を確認する。見つからない場合はエラーとして報告する。
 
 リモートが未設定の場合はpushをスキップし、結果報告にその旨を記載する。
 
@@ -270,8 +335,8 @@ jj git push
 - 対象コミット数: N件
 - コミット: 完了 ✓
 - push: 完了 ✓ / スキップ（リモートなし）
-- タグ: vA.B.C（push済み・リモート到達確認済み）
-- リリース: タグpushによりGitHub ActionsのリリースワークフローがRelease作成を実行（該当ワークフローがある場合）
+- タグ: vA.B.C（push済み・リモート到達確認済み） / vA.B.C（Actions の Release ワークフローで作成・run URL・リモート到達確認済み）
+- リリース: タグpushによりGitHub ActionsのリリースワークフローがRelease作成を実行（該当ワークフローがある場合） / workflow_dispatch で起動した Release ワークフローの同一 run 内でRelease作成・ビルドを実行（run URL・結論 success）
 - PR: {URL}（PR作成のみの場合）
 ```
 
@@ -308,3 +373,6 @@ jj git push
 | マージでコンフリクト発生 | 解消方法をユーザーと相談。自動で強行しない |
 | PR作成時にgh CLIが未認証 | `gh auth login` を案内して終了 |
 | jjモードでブランチ名が取得できない（detached HEAD） | bookmarkから特定するかユーザーに確認 |
+| タグの push が 403 で拒否される（クラウドセッション） | Release ワークフローの workflow_dispatch でタグを作成（6-3 参照） |
+| release.yml が dispatch でのタグ作成に未対応 | ローカルからタグを push するよう案内して終了（6-3 のコマンドを提示） |
+| dispatch した run が失敗 | ログを確認して報告。同じ version で再 dispatch しない（既存タグは拒否される） |
