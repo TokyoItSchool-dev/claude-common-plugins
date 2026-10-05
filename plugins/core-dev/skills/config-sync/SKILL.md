@@ -33,7 +33,7 @@ description: HOME（~/.claude）・training-project-skills・claude-common-plugi
 
 1. `bash "${CLAUDE_PLUGIN_ROOT}/skills/config-sync/scripts/check-sync.sh"` を実行し、ペアごとのドリフト状況を得る（読み取り専用のためメインが直接実行してよい）。出力末尾の `git status --short` で各拠点の未コミット変更が見える。
 2. 同期方向を決める。未コミット変更がある側、または mtime が新しい側がソース。**両側に未コミット変更がある場合は作業を止めてユーザーに確認する。**
-3. mirror クラスのペアは `cp` でソースからターゲットへ上書きする（Haiku に委譲。メインは `~/.claude/CLAUDE.md` のオーケストレーション方針どおり指示と受入判定のみ行う）。
+3. mirror クラスのペアは `cp` でソースからターゲットへ上書きする（Haiku に委譲。メインは `orchestration-core` スキルの方針どおり指示と受入判定のみ行う）。
 4. variant クラスのペアは、同じ意味の変更を当てつつ TSV の `notes` に記載された既知差分を保存する意味編集として Haiku / Sonnet に委譲する。**全文コピーで上書きしない。** `skills/orchestration-core/` の委譲固定句を変更した場合は、CCP の `plugins/*/agents/*.md` の `## Output format` 節にも同等の行を手作業で入れる（HOME に対応物がないため自動同期されない）。
 5. `bash "${CLAUDE_PLUGIN_ROOT}/skills/config-sync/scripts/check-sync.sh"` を再実行する。mirror ペアがすべて `IDENTICAL` になっていること。
 6. 変更した語句を各ターゲットで `grep` し、実際に反映されていることを確認する。

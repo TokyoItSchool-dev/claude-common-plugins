@@ -1,7 +1,7 @@
 home	tps	ccp	class_tps	class_ccp	notes
-CLAUDE.md	claude-codex/CLAUDE.md	templates/CLAUDE.md	mirror	variant	CCP はチーム配布向けにサニタイズした変種（約190行差分）。意味変更のみ手作業で反映し、全文コピーは禁止
+CLAUDE.md	claude-codex/CLAUDE.md	templates/CLAUDE.md	mirror	variant	CCP はチーム配布向けにサニタイズした変種（メインセッションの役割と `core-dev:orchestration-core` へのポインタ・導入手順、機能実装ワークフロー、固有ルールで構成。「スキルの利用」節は入れない。HOME の「開発環境の前提」は入れない）。意味変更のみ手作業で反映し、全文コピーは禁止
 rules/common/	claude-codex/rules/common/	-	mirror	-	9ファイル
-skills/orchestration-core/	claude-codex/skills/orchestration-core/	-	mirror	-	SKILL.md と references/ 4ファイル。委譲の固定句を変更したら CCP の plugins/*/agents/*.md の `## Output format` にも同等の行を手作業で入れる
+skills/orchestration-core/	claude-codex/skills/orchestration-core/	plugins/core-dev/skills/orchestration-core/	mirror	variant	SKILL.md と references/ 4ファイル。CCP はチーム配布向けの変種（SKILL.md 冒頭に Codex が任意である旨とフォールバックの注記、末尾に `## Origin` 節を追加。個人環境固有の記述〔個人パス、確認日、研修ドメインの例、環境設定値〕を一般化。個人環境のみのツール（ECC のコマンド・スキル・フックと env 設定、`context-budget`、`iterative-retrieval`、`local-vision-analysis` とその画像検証雛形）への参照を削除、`ecc:planner` を `core-dev:planner` に、`ecc:code-reviewer` のフォールバック先を `core-dev:code-reviewer` に変更、references の run-tests.sh パスを ${CLAUDE_PLUGIN_ROOT} に置換）。委譲の固定句を変更したら CCP の plugins/*/agents/*.md の `## Output format` にも同等の行を手作業で入れる
 skills/japanese-tech-writing/SKILL.md	skills/japanese-tech-writing/SKILL.md	plugins/docs/skills/japanese-tech-writing/SKILL.md	mirror	variant	CCP は末尾に `## Origin` 節を追加
 skills/cognitive-rhythm-writing/SKILL.md	skills/cognitive-rhythm-writing/SKILL.md	plugins/docs/skills/cognitive-rhythm-writing/SKILL.md	mirror	variant	CCP は `## Origin` 節の追加と、相互参照を `docs:japanese-tech-writing` に書き換え
 skills/test-run-discipline/	skills/test-run-discipline/	plugins/core-dev/skills/test-run-discipline/	mirror	variant	CCP は SKILL.md のパスを ${CLAUDE_PLUGIN_ROOT} に置換し description を調整、scripts/run-tests.sh の shebang が `#!/usr/bin/env bash`（HOME/TPS は `#!/bin/sh`）

@@ -14,12 +14,12 @@
 
 | Plugin | Skills | Agents | 用途 |
 | --- | --- | --- | --- |
-| `core-dev` | 8 | 3 | 言語非依存の開発ワークフロー（規約・レビュー・TDD・セキュリティ・git・API 設計・テスト実行規律） |
+| `core-dev` | 10 | 3 | 言語非依存の開発ワークフロー（規約・レビュー・TDD・セキュリティ・git・API 設計・テスト実行規律・オーケストレーション） |
 | `java-dev` | 5 | 1 | Java / Spring Boot の規約・パターン・セキュリティ・テスト・検証ループ |
 | `dotnet-dev` | 4 | 1 | C# / .NET / ASP.NET Core / EF Core の規約・パターン・セキュリティ・テスト |
 | `docs` | 7 | 1 | 技術文書作成（日本語ライティング、Markdown、HTML 設計書、Office 文書、HTML スライド） |
 
-いずれも `version` は `0.1.0`。プラグインは個別にインストールでき、必要なものだけを有効化してよい。
+プラグインは個別にインストールでき、必要なものだけを有効化してよい。
 
 ## Available Skills
 
@@ -32,8 +32,10 @@
 | `core-dev:api-design` | REST/HTTP API のリソース命名、HTTP メソッドとステータスコード、エラー応答、ページング、バージョニングの設計規範 |
 | `core-dev:changelog-commit` | CHANGELOG 更新・バージョンバンプ・コミット・タグ・push を一括実行する（原則 main ブランチ専用） |
 | `core-dev:code-review` | 変更差分を深刻度付きでレビューし、承認・警告・ブロックの可否を判断する |
+| `core-dev:config-sync` | HOME（`~/.claude`）・training-project-skills・claude-common-plugins の 3 拠点で CLAUDE.md / rules / skills / commands を同期し、差分を検査する |
 | `core-dev:coding-standards` | 命名、ファイル分割、エラー処理、入力検証など、コードを書く側の品質規約 |
 | `core-dev:git-workflow` | コミットメッセージと PR の作法、サブエージェント並列実行中の git 操作規律 |
+| `core-dev:orchestration-core` | サブエージェントへの委譲・モデル選択・委譲プロンプト雛形・受入判定と検証の手順。`templates/CLAUDE.md` が参照する。Codex は任意で、ない場合は本スキル記載のフォールバックを使う |
 | `core-dev:security-check` | コミット前のセキュリティ点検（認証・認可・入力検証・DB クエリ・秘密情報の扱い） |
 | `core-dev:tdd-testing` | RED-GREEN-REFACTOR の TDD サイクルとカバレッジ基準に沿ってテストを書く |
 | `core-dev:test-run-discipline` | テスト実行と結果報告の作法。実行は同梱の `run-tests.sh` 経由に統一する |
@@ -199,7 +201,7 @@ python -c "import json,os; fs=[os.path.join(r,n) for r,d,f in os.walk('.') if '.
 以下は個人環境固有のため、このリポジトリには移さず `~/.claude` に残す。
 
 - `CLAUDE.md`（個人のオーケストレーション方針。Codex / ECC への依存を含む）
-- `skills/orchestration-core`、`skills/codex-brief-review`（Codex 前提）
+- `skills/codex-brief-review`（Codex 前提。`skills/orchestration-core` は `core-dev:orchestration-core` として移行済み）
 - `skills/local-vision-analysis`（lemonade server と PowerShell スクリプト、絶対パス依存）
 - `skills/image-generation-style`（gpt-image-2 MCP サーバー前提）
 - `rules/common/{agents,performance,hooks,development-workflow}.md`（Codex / ECC への言及を含む）

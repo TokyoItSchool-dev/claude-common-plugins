@@ -8,7 +8,7 @@
     {
       "name": "core-dev",
       "source": "./plugins/core-dev",
-      "description": "Language-agnostic development workflows: coding standards, code review, TDD, security check, git and PR conventions, API design, test-run discipline"
+      "description": "Language-agnostic development workflows: coding standards, code review, TDD, security check, git and PR conventions, API design, test-run discipline, subagent orchestration"
     },
     {
       "name": "java-dev",

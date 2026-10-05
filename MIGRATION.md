@@ -24,6 +24,7 @@
 | `claude-share/skills/tdd-testing` + `rules/common/testing.md` | `core-dev:tdd-testing` |
 | `skills/api-design` | `core-dev:api-design` |
 | `skills/test-run-discipline`（`scripts/run-tests.sh` を含む） | `core-dev:test-run-discipline` |
+| `skills/orchestration-core`（`references/` を含む） | `core-dev:orchestration-core` |
 | `commands/changelog-commit.md` | `core-dev:changelog-commit`（コマンドからスキルへ変換） |
 
 `claude-share` 側の 5 スキルをベースとし、`rules/common` の対応ファイルの内容を統合している（詳細は Merged 節）。
@@ -70,7 +71,7 @@
 移行にあたって内容を意図的に変更した箇所。
 
 - **`mvn` → `./mvnw`**: java-dev の全スキルで Maven の呼び出しを Maven Wrapper に統一した。マシンに Maven が入っている前提を外すため。
-- **`run-tests.sh` のパス**: `core-dev:test-run-discipline` の参照先を `${CLAUDE_PLUGIN_ROOT}/skills/test-run-discipline/scripts/run-tests.sh` に書き換えた。プラグインとして配布される以上、絶対パスもリポジトリ相対パスも使えないため。
+- **`run-tests.sh` のパス**: `core-dev:test-run-discipline` と `core-dev:orchestration-core`（`references/delegation-templates.md`・`references/verification.md`）の参照先を `${CLAUDE_PLUGIN_ROOT}/skills/test-run-discipline/scripts/run-tests.sh` に書き換えた。プラグインとして配布される以上、絶対パスもリポジトリ相対パスも使えないため。
 - **`.ecc-design/` → `.slide-previews/`**: `docs:frontend-slides` のプレビュー出力先を、ECC 由来の名前から中立な名前に変更した。
 - **ECC 節の削除**: `docs:frontend-slides` から ECC プラグイン固有の記述を除去した。
 - **サンドボックス可否の追記**: `docs:anydoc` と `docs:officecli` に、ネイティブ CLI バイナリの導入・実行が許可されない環境（Claude Code on the web 等）では実行できず、迂回策を試みずに中断する旨の節を追加した。
@@ -81,6 +82,8 @@
 - **テスト実装例の重複排除**: `java-dev/skills/springboot-verification/SKILL.md` から `java-testing` と重複するテスト実装例（JUnit 5 / MockMvc / Testcontainers）を削除し `java-dev:java-testing` へのポインタに置換（235 行 → 131 行）。
 - **Markdown 空行ルールの圧縮**: `core-dev/skills/coding-standards/SKILL.md` の Markdown 空行ルールを 1 行に圧縮し `docs:markdown-conventions` を参照。
 - **相対パス参照の置換**: `docs/skills/cognitive-rhythm-writing/SKILL.md` の相対パス参照を `docs:japanese-tech-writing` に変更。
+- **orchestration-core の任意依存の注記**: `core-dev:orchestration-core` の SKILL.md 冒頭に、Codex は任意であり、使えない場合は `core-dev:code-reviewer` 等の別 Claude モデルでレビューする旨の注記を追加した。本文は個人環境固有の記述（個人パス、確認日、研修ドメインの例、環境設定値）を一般化し、`ecc:code-reviewer` のフォールバック先を `core-dev:code-reviewer` に変更した。個人環境のみのツール（`ecc:cost-report`、`context-budget`、`ecc:strategic-compact`、`iterative-retrieval`、`local-vision-analysis`）への参照と、ECC フックの環境変数チューニング節は削除し、`ecc:planner` は `core-dev:planner` に置き換えた。画像検証の雛形を削除したため雛形番号を詰めた（旧雛形6・7 は雛形5・6）。
+- **テンプレート CLAUDE.md の縮小**: `templates/CLAUDE.md` からモデル階層・委譲規律・エスカレーション・検証の各節とワークフロー・タスク管理・コア原則を削除し、`core-dev:orchestration-core` へのポインタと未導入時のインストール手順に置き換えた。さらに「スキルの利用」節（インストール手順とスキル一覧表）も削除した。スキル一覧は README に記載している。
 - **出典表記の更新**: java-dev / dotnet-dev の `## Origin` 行の "ECC 2.0.0" を出典 URL 付き表記に変更。
 
 ### 出典の照合（ECC 2.0.0 プラグインキャッシュとの diff）
@@ -143,7 +146,7 @@
 個人環境固有のため `~/.claude` に残すもの。
 
 - `CLAUDE.md`（個人のオーケストレーション方針。Codex 依存）
-- `skills/orchestration-core`、`skills/codex-brief-review`（Codex 前提）
+- `skills/codex-brief-review`（Codex 前提）
 - `skills/local-vision-analysis`（lemonade server と PowerShell スクリプト、絶対パス依存）
 - `skills/image-generation-style`（gpt-image-2 MCP 前提）
 - `rules/common/{agents,performance,hooks,development-workflow}.md`（Codex / ECC への言及を含む）
@@ -201,7 +204,7 @@
 
 ### 2. スキル名の名前空間化
 
-インストール後、スキル名は `core-dev:test-run-discipline` のように名前空間付きになる。ローカルの参照のうち、`CLAUDE.md` の `/codex-brief-review` は影響を受けない。一方 `orchestration-core` は `test-run-discipline` と `local-vision-analysis` を素の名前で参照している。これらは `~/.claude/skills` のコピーが残っている限り動作するが、オリジナルを削除するとリンクが切れる。
+インストール後、スキル名は `core-dev:test-run-discipline` のように名前空間付きになる。ローカルの参照のうち、`CLAUDE.md` の `/codex-brief-review` は影響を受けない。`core-dev:orchestration-core` の `run-tests.sh` 参照は `${CLAUDE_PLUGIN_ROOT}` 経由に置き換えた。
 
 ### 3. スキル description 内の相互参照の表記ゆれ
 
