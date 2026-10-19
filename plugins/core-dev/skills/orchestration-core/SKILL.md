@@ -24,6 +24,7 @@ description: 複数ステップ（3ステップ以上または複数ファイル
 | コードレビュー・計画レビュー・レビュー観点のセカンドオピニオン（既定） | Codex Luna・effort xhigh（常時。ゲート判定必須。実装・調査・計画立案には使わない） |
 | 最重要タスクの検証・重要な設計・難解なデバッグ・大規模な計画立案 | Fable（調査・実装には使わない） |
 | 10件超の同型タスク（Workflow 化は同型・大量のみ。異種の細粒度タスクは件数によらず Agent の並列 fan-out） | Workflow ツール（Sonnet / Opus） |
+| 作業中にチームメイト同士の連絡が必要な作業（連絡なしの分担は対象外） | Agent Teams。判定は routing.md、手順は `references/agent-teams.md` |
 
 メイン直接の枠は存在しない。自明な修正も Haiku/Sonnet へ委譲する。
 
@@ -44,13 +45,13 @@ description: 複数ステップ（3ステップ以上または複数ファイル
 委譲文を書く前に `references/delegation-templates.md` の雛形を Read してコピペ。最低限このチェックリストを満たすこと:
 
 1. **英語で書く**: 委譲プロンプト全文を英語で書き、返却も英語で受け取る（"Reply in English." を返却形式に含める）。日本語での委譲は幻覚を誘発しやすいため禁止。ユーザーへの報告時にメインが日本語へ要約する。
-2. **再委譲禁止句と飾らない文章句**（冒頭に必須）: "[NO RE-DELEGATION] Execute this task directly yourself using your own Read/Write/Edit/Bash tools. Delegating to other agents or external CLIs (e.g., Codex) is prohibited." と "[PLAIN PROSE] Remove all mannered prose: say what you mean; when a literal phrase is available, use it."
+2. **再委譲禁止句と飾らない文章句**（冒頭に必須。チームメイト起動文は例外で雛形7）: "[NO RE-DELEGATION] Execute this task directly yourself using your own Read/Write/Edit/Bash tools. Delegating to other agents or external CLIs (e.g., Codex) is prohibited." と "[PLAIN PROSE] Remove all mannered prose: say what you mean; when a literal phrase is available, use it."
 3. **成果物定義**: 作成・変更するファイルと期待内容を具体的に。
-4. **返却形式**: 結論・要約・file:line のみ。生ログ・全文貼付は禁止と明記。人間向け出力（進捗ナレーション・推論の要約・途中経過）は不要と明記し、出力はメイン/他エージェント宛の最終メッセージ（チーム作業時は SendMessage）のみとする。飾らない散文で書かせる（`[PLAIN PROSE]`）。
+4. **返却形式**: 結論・要約・file:line のみ。生ログ・全文貼付は禁止と明記。人間向け出力（進捗ナレーション・推論の要約・途中経過）は不要と明記し、出力はメイン/他エージェント宛の最終メッセージ（サブエージェントは Agent の返却。チームメイト→リードのみ SendMessage）のみとする。飾らない散文で書かせる（`[PLAIN PROSE]`）。
 5. **検証可能性**: 変更ファイル一覧・`git diff --stat`・テスト結果の自己報告を要求。
 6. **出所規律**: 自分がツール結果で裏取りできていない「事実」を委譲文に書かない（ハルシネーション連鎖防止）。
 
-第一手段はメインによるファイル分担で書き込み先を分離すること。分担で衝突を回避できない場合のみ `isolation: "worktree"` を使う。並列委譲中に作業ツリー全体へ及ぶ git 操作をしない。
+第一手段はメインによるファイル分担で書き込み先を分離すること。分担で衝突を回避できない場合のみ `isolation: "worktree"` を使う（通常のサブエージェント限定。`name` と混ぜない。agent-teams.md）。並列委譲中に作業ツリー全体へ及ぶ git 操作をしない。
 
 ## 3. 委譲後の受入判定と検証委譲
 

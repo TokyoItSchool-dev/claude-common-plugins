@@ -5,14 +5,14 @@
 ## 言語規律（最優先）
 
 - **委譲プロンプトは全文英語で書く**。サブエージェントからの返却も英語で受け取る（各雛形の Return format に "Reply in English." を含めてある。削らないこと）。
-- **人間向け出力は不要**: 各雛形の Return format に「出力はオーケストレーター宛の最終メッセージのみ。進捗・推論・途中経過は出力しない」旨の英文を含めてある。削らないこと。チーム作業時の出力は SendMessage で送らせる。
+- **人間向け出力は不要**: 各雛形の Return format に「出力はオーケストレーター宛の最終メッセージのみ。進捗・推論・途中経過は出力しない」旨の英文を含めてある。削らないこと。チームメイトの最終メッセージは自動でリードに届く（SendMessage はチームメイト→リードの作業中の連絡用）。
 - 理由: 日本語での委譲・返却は幻覚（存在しないファイル名・関数名・仕様の捏造）を誘発しやすいため。
 - ユーザーとの会話は日本語。サブエージェントの英語返却は、メインが日本語に要約してユーザーへ報告する。
 - タスク固有の記入欄（Task / Deliverables / Constraints 等）も英語で埋める。日本語の固有名詞（ファイル名・資料名等）はそのまま埋め込んでよい。
 
 ## 共通固定句
 
-全ての委譲文の冒頭には必ず以下を入れる。
+全ての委譲文の冒頭には必ず以下を入れる（チームメイト起動文は例外。雛形7）。
 
 ```
 [NO RE-DELEGATION] Execute this task directly yourself using your own Read/Write/Edit/Bash tools. Delegating to other agents or external CLIs (e.g., Codex) is prohibited.
@@ -69,7 +69,7 @@ Files you must NOT touch: <list>
 Return format: list of changed files + `git diff --stat` output + tests you ran and their results. Do NOT paste full file contents. Your output is read only by the orchestrating session, never by a human: do not narrate progress, reasoning, or intermediate steps; emit only this final message. Reply in English.
 ```
 
-注意: 担当ファイルの分割はメインが決定し、上記 Scope 欄で明示する。ファイル分担で書き込み先を分離できない場合のみ、Agent 呼び出しに `isolation: "worktree"` を指定する。並列委譲が進行中は、メインセッションが `git stash` / `git reset` / `git checkout .` 等、作業ツリー全体に及ぶ操作を行わないこと。進行中の編集が静かに失われる。
+注意: 担当ファイルの分割はメインが決定し、上記 Scope 欄で明示する。ファイル分担で書き込み先を分離できない場合のみ、Agent 呼び出しに `isolation: "worktree"` を指定する（通常のサブエージェント限定。`name` と混ぜない）。並列委譲が進行中は、メインセッションが `git stash` / `git reset` / `git checkout .` 等、作業ツリー全体に及ぶ操作を行わないこと。進行中の編集が静かに失われる。
 
 記入例（Deliverables・Constraints・Scope 欄のみ差し替え）:
 
@@ -164,6 +164,23 @@ Deliverable: <what was implemented and by which agent>
 Commands: <exact test/build/run commands>
 
 Return format: for each command, report the exact command, its exit code, and a 3-5 line summary of the output tail (include full error messages verbatim on failure). State PASS/FAIL per command and an overall verdict. Do NOT paste full logs. Your output is read only by the orchestrating session, never by a human: do not narrate progress, reasoning, or intermediate steps; emit only this final message. Reply in English.
+```
+
+## 雛形7: チームメイト起動
+
+Agent ツールに `name` と `model`（選択は routing.md「チーム or サブエージェント」）を渡して起動する（agent-teams.md）。`name` と `isolation` は併用しない。`[NO RE-DELEGATION]` は入れない（チームメイトは自分の作業単位のオーケストレーターで、サブエージェントへ委譲する）。チームメイトを起動できない環境（ヘッドレス `-p`、`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` 未設定、`name` 付き呼び出しでチームメイトが起動しなかった場合など）ではチームを組まず、雛形2で通常の委譲をする。`[TEAMMATE]` プロンプトは出さない。
+
+```
+[TEAMMATE] You are a teammate in an agent team and the orchestrator of the work unit below. Apply the main-session rules (CLAUDE.md "メインセッションの役割" and the orchestration-core skill) to your unit: delegate all real work, including trivial edits, to subagents per the routing rules and delegation templates; yourself do only read-only acceptance checks and reporting. You own the model-separated review of your unit (if Codex is available, Codex via /codex-brief-review or codex:codex-rescue first; otherwise, or on Codex failure, core-dev:code-reviewer), run in the foreground, one Codex review at a time across the team. Differences from the lead: never spawn teammates; never pass `name` to Agent calls and never use Agent `run_in_background` (foreground only); report to the lead.
+[PLAIN PROSE] Remove all mannered prose: say what you mean; when a literal phrase is available, use it.
+<state the expected depth, e.g. "Reason thoroughly and verify your work before concluding.">
+
+Work unit: <task, in 1-3 sentences>
+Deliverables: <files to create/modify and the expected content, concretely>
+Scope — files you own: <list>
+Files you must NOT touch: <list; ask the lead via SendMessage if you need a change there>
+
+Report: your final message is delivered to the lead automatically. In English: conclusions, summary, file:line, list of changed files, review result, and test results. Do NOT paste full file contents or raw logs. Your output is read only by the lead, never by a human: do not narrate progress or reasoning. Use SendMessage to the lead only for questions during the work.
 ```
 
 ## 禁止事項（ハルシネーション連鎖防止）

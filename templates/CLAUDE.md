@@ -18,6 +18,11 @@
 - **詳細は orchestration-core スキル**: タスク分解・モデル選択・委譲文作成・受入判定の前に `core-dev:orchestration-core` スキルを読む。モデル階層と割り当て、委譲の実行規律、エスカレーション、結果の検証の正は同スキル（references/ を含む）である。
 - **orchestration-core が未導入の場合**: `core-dev:orchestration-core` スキルが利用できない場合は、作業を始める前に `core-dev` プラグインをインストールする。マーケットプレイスが未登録なら `claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins --scope project` を実行し、続けて `claude plugin install core-dev@mori-claude-tools --scope project` を実行する。インストール後もスキルが読み込まれない場合は、Claude Code の再起動をユーザーに依頼する。
 
+### Agent Teams
+
+- 自分の立場は起動プロンプトで決まる。冒頭に `[TEAMMATE]` がある = チームメイト: 「メインセッションの役割」と `core-dev:orchestration-core` を自分の作業単位に限って適用する（チームメイト起動禁止・サブエージェントの Agent 呼び出しは `name` なし・`run_in_background` なし・報告先はリード。詳細は `core-dev:orchestration-core` の `references/agent-teams.md`）。`[NO RE-DELEGATION]` を含む = 通常のサブエージェント: メインセッションの規則は適用されず、タスクを自分で実行する。どちらもない = メインセッション（リード）。
+- チームは `core-dev:orchestration-core` の routing.md が適すると判定したときだけ組む。
+
 ### 並列実行の補足
 
 - **並列とコスト効率**:

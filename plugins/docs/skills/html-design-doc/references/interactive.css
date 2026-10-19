@@ -1,6 +1,7 @@
 /* ============================================================
    html-design-doc — 手順D interactive/visual layer
-   Append AFTER style.css inside the same <style> element.
+   The source page references it with <link rel="stylesheet"
+   href="interactive.css"> after style.css; pack_doc.py inlines it.
    Light mode only. No external fonts, no @import, no url().
    Every direction-dependent value lives in the :root block
    below; swapping that block re-skins the whole document.

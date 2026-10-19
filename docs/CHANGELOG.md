@@ -4,6 +4,23 @@
 
 <!-- 新しいエントリはこの行の直下に追加 -->
 
+## [0.1.5] - 2026-10-19
+
+### 追加
+- core-dev の orchestration-core に Agent Teams の運用ルール（チームメイトの役割規則、チームを組む判断基準、チームメイトのモデル選択、チームメイト起動文の雛形）
+- テンプレート CLAUDE.md に Agent Teams の節（自分の立場の判定、チームを組む条件）
+- docs: html-design-doc に pack_doc.py（原稿の CSS・JS・画像を 1 つの単体 HTML にまとめる）を追加。印刷時は目次が PDF の 1 ページ目になり、図の `figure` / `figcaption` と手動改ページ用のスタイルを追加
+
+### 改善
+- docs: html-design-doc の原稿は CSS・JS を `<link>` / `<script src>` で参照する構成に変更。テンプレートが大幅に短くなり、検証は pack_doc.py の実行に一本化
+
+### 変更
+- core-dev プラグインのバージョンを 0.2.0 に更新
+- config-sync の同期対象表を pack_doc.py・test_pack_doc.py の追加に合わせて更新
+
+### 削除
+- docs: html-design-doc の embed_images.py（画像の data URI 化は pack_doc.py に統合）
+
 ## [0.1.4] - 2026-10-05
 
 ### 追加

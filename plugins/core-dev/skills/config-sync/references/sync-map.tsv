@@ -10,7 +10,8 @@ skills/html-design-doc/references/plantuml-conventions.md	skills/html-design-doc
 skills/html-design-doc/references/mermaid-conventions.md	skills/html-design-doc/references/mermaid-conventions.md	plugins/docs/skills/html-design-doc/references/mermaid-conventions.md	mirror	mirror	HOME/TPS/CCP すべて一致
 skills/html-design-doc/references/style.css	skills/html-design-doc/references/style.css	plugins/docs/skills/html-design-doc/references/style.css	mirror	mirror	HOME/TPS/CCP すべて一致
 skills/html-design-doc/references/template.html	skills/html-design-doc/references/template.html	plugins/docs/skills/html-design-doc/references/template.html	mirror	mirror	HOME/TPS/CCP すべて一致
-skills/html-design-doc/scripts/embed_images.py	skills/html-design-doc/scripts/embed_images.py	plugins/docs/skills/html-design-doc/scripts/embed_images.py	mirror	mirror	HOME/TPS/CCP すべて一致
+skills/html-design-doc/scripts/pack_doc.py	skills/html-design-doc/scripts/pack_doc.py	plugins/docs/skills/html-design-doc/scripts/pack_doc.py	mirror	mirror	HOME/TPS/CCP すべて一致
+skills/html-design-doc/scripts/test_pack_doc.py	skills/html-design-doc/scripts/test_pack_doc.py	plugins/docs/skills/html-design-doc/scripts/test_pack_doc.py	mirror	mirror	HOME/TPS/CCP すべて一致
 skills/html-design-doc/references/interactive.css	skills/html-design-doc/references/interactive.css	plugins/docs/skills/html-design-doc/references/interactive.css	mirror	mirror	HOME/TPS/CCP すべて一致（手順D 用）
 skills/html-design-doc/references/interactive.js	skills/html-design-doc/references/interactive.js	plugins/docs/skills/html-design-doc/references/interactive.js	mirror	mirror	HOME/TPS/CCP すべて一致（手順D 用）
 skills/html-design-doc/references/interactive-components.md	skills/html-design-doc/references/interactive-components.md	plugins/docs/skills/html-design-doc/references/interactive-components.md	mirror	mirror	HOME/TPS/CCP すべて一致（手順D 用）

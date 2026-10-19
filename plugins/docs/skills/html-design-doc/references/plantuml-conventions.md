@@ -70,13 +70,7 @@ fi
 
 ### 3. base64埋め込み（スタンドアロン化）
 
-HTMLを配布・保存可能な単一ファイルにするため、`scripts/embed_images.py` を実行して画像をdata URIへ変換する。
-
-```bash
-python "<skill-dir>/scripts/embed_images.py" output.html
-```
-
-実行後、`output.html` 内の `<img src="図.png">` は `<img src="data:image/png;base64,....">` に書き換えられる。
+HTMLを配布・保存可能な単一ファイルにするため、`scripts/pack_doc.py` を実行する（SKILL.md 手順C）。相対パスの `<img src>` は、出力の `.packed.html` 内でdata URIに変換される。別のコマンドは不要で、元のHTMLは書き換わらない。
 
 ### 4. ソースの保持
 

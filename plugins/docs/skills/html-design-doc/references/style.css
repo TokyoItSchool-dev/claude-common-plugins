@@ -497,15 +497,44 @@ tbody tr:nth-child(even) {
   color: var(--fg-muted);
 }
 
+/* --- Figures ---------------------------------------------- */
+figure {
+  margin: 0 0 var(--space-4);
+}
+
+figure > img {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+figcaption {
+  margin-top: var(--space-2);
+  color: var(--fg-muted);
+  font-size: var(--fs-small);
+  text-align: left;
+}
+
+/* manual page break for print; invisible on screen */
+.page-break {
+  height: 0;
+}
+
 /* --- Print ------------------------------------------------ */
 @media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
   html {
     font-size: 10.5pt;
     scroll-behavior: auto;
   }
 
-  /* single column: drop the sidebar, the toggle and the layout offsets */
-  #TOC,
+  body {
+    margin: 0;
+  }
+
   .toc-toggle {
     display: none !important;
   }
@@ -525,12 +554,39 @@ tbody tr:nth-child(even) {
     padding: 0;
   }
 
-  body {
-    margin: 0;
+  /* the sidebar TOC becomes page 1, also when it was collapsed on screen */
+  #TOC,
+  body.toc-collapsed #TOC {
+    display: block !important;
+    position: static !important;
+    flex: none !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    border: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: none !important;
+    font-size: 1rem;
+    break-after: page;
+    page-break-after: always;
   }
 
-  @page {
-    margin: 15mm;
+  #TOC .toc-title {
+    margin: 0 0 var(--space-4);
+    padding-bottom: var(--space-2);
+    font-size: var(--fs-h2);
+    letter-spacing: normal;
+    color: var(--fg);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  #TOC a,
+  #TOC > ul > li > a {
+    padding: 0.15em 0.4em;
+    color: var(--accent-dark);
   }
 
   /* keep headings attached to the text that follows */
@@ -541,14 +597,52 @@ tbody tr:nth-child(even) {
   }
 
   /* each top-level section after the first starts on a new page */
-  section.level1 + section.level1 {
+  section.level1 + section.level1,
+  body.lecture section.level2 + section.level2,
+  .page-break {
     break-before: page;
     page-break-before: always;
   }
 
-  pre, table, figure, img, .callout {
+  p, li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  pre, tr, figure, img, .callout {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  /* code wraps instead of being cut at the page edge */
+  pre {
+    white-space: pre-wrap;
+    overflow: visible;
+    word-break: break-all;
+  }
+
+  /* repeat the header row on every page a table spans */
+  thead {
+    display: table-header-group;
+  }
+
+  /* A4 content height at 15mm margins is 267mm; 230mm leaves room for a caption */
+  img,
+  pre.mermaid svg,
+  svg[role="img"] {
+    max-width: 100%;
+    max-height: 230mm;
+    height: auto;
+    break-inside: avoid;
+  }
+
+  img {
+    width: auto;
+  }
+
+  figcaption {
+    break-before: avoid;
+    page-break-before: avoid;
   }
 
   /* preserve heading, table header and callout tinting on paper */
@@ -564,6 +658,18 @@ tbody tr:nth-child(even) {
   a {
     color: inherit;
     text-decoration: none;
+  }
+
+  /* handout readers cannot click, so external links print their URL */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: smaller;
+    overflow-wrap: anywhere;
+  }
+
+  /* the link text already shows the URL */
+  a.plain-url::after {
+    content: none;
   }
 }
 

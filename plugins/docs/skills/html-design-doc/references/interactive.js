@@ -1,6 +1,6 @@
 /* html-design-doc — 手順D interaction script.
-   Inline this verbatim as the first element child of <body>, inside one
-   of the document's two permitted script elements. Display switching
+   The source page references it with <script src="interactive.js"> as
+   the first element child of <body>; pack_doc.py inlines it. Display switching
    only: no fetch, no storage, no globals. */
 (function () {
   'use strict';
