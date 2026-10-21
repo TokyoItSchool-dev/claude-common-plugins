@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# Report drift between the three config roots, driven by references/sync-map.tsv.
+# Report drift between the four config roots, driven by references/sync-map.tsv.
 # Exit 1 if any mirror pair differs or is missing.
 
 HOME_ROOT="${CONFIG_SYNC_HOME:-$HOME/.claude}"
 TPS_ROOT="${CONFIG_SYNC_TPS:-/c/git/training-project-skills}"
 CCP_ROOT="${CONFIG_SYNC_CCP:-/c/git/claude-common-plugins}"
+CDT_ROOT="${CONFIG_SYNC_CDT:-/c/git/claude-dev-template}"
 MAP="$(dirname "$0")/../references/sync-map.tsv"
 
 [ -f "$MAP" ] || { echo "sync map not found: $MAP" >&2; exit 2; }
 
 fail=0
-hp=(); tp=(); cp=()
+hp=(); tp=(); cp=(); dp=()
 
 compare() { # $1=src $2=dst $3=class -> prints status, returns 1 if mirror drift
   local a=$1 b=$2 cls=$3 n
@@ -40,7 +41,7 @@ check() { # $1=label $2=src $3=dst $4=class $5=home_path
   printf '%-4s %-58s %s\n' "$1" "$5" "$st"
 }
 
-while IFS=$'\t' read -r h t c ct cc _note; do
+while IFS=$'\t' read -r h t c ct cc d cd _note; do
   case "$h" in ''|'#'*|home) continue;; esac
   hp+=("$h")
   if [ "$t" != "-" ] && [ "$ct" != "-" ]; then
@@ -49,7 +50,12 @@ while IFS=$'\t' read -r h t c ct cc _note; do
   if [ "$c" != "-" ] && [ "$cc" != "-" ]; then
     cp+=("$c"); check CCP "$HOME_ROOT/$h" "$CCP_ROOT/$c" "$cc" "$h"
   fi
+  if [ "$d" != "-" ] && [ "$cd" != "-" ]; then
+    dp+=("$d"); check CDT "$HOME_ROOT/$h" "$CDT_ROOT/$d" "$cd" "$h"
+  fi
 done < <(tr -d '\r' < "$MAP")
+
+check CDT "$CCP_ROOT/templates/CLAUDE.md" "$CDT_ROOT/CLAUDE.md" mirror "CLAUDE.md (CCP templates -> CDT)"
 
 show_status() { # $1=label $2=root, remaining args = pathspecs
   local label=$1 root=$2; shift 2
@@ -61,5 +67,6 @@ show_status() { # $1=label $2=root, remaining args = pathspecs
 show_status HOME "$HOME_ROOT" "${hp[@]}"
 show_status TPS "$TPS_ROOT" "${tp[@]}"
 show_status CCP "$CCP_ROOT" "${cp[@]}"
+show_status CDT "$CDT_ROOT" "${dp[@]}"
 
 exit $fail

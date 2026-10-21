@@ -29,7 +29,7 @@ description: 複数ステップ（3ステップ以上または複数ファイル
 メイン直接の枠は存在しない。自明な修正も Haiku/Sonnet へ委譲する。
 
 - 迷ったら `references/routing.md` の4軸スコアリング、または `/route <タスク内容>` で判定。それでも迷えば一段安いモデルで試す。
-- **effort は必ず明示**（`high` / `xhigh` / `max`。`low` / `medium` は使わない）。Workflow は `opts.effort`、Agent ツールは委譲文冒頭の英文で代替。基準は routing.md。
+- **effort はモデル既定を使う**: Agent ツールの `effort` と Workflow の `opts.effort` は指定しない。ユーザーが明示的に effort レベルを指示した場合のみ、その値を渡す。詳細は routing.md。
 - Codex はレビュー専用の「役割」。常に Luna・effort xhigh。最重要タスクの検証は Fable へ回す。ファイル I/O を伴う委譲は routing.md の Codex ゲート（読取可否の最終確認日・検証条件）を通す。Web 検索は Codex ではなく Claude + WebSearch ツールを使う。`OPENAI_API_KEY` は設定しない（サブスク定額から API 従量課金に切り替わるため）。
 - **Opus コストガード**（実測でコストの87%が Opus に集中）: Opus 委譲は1タスク単位に分割、委譲前にスコープ宣言、メイン=Opus 時はフェーズ境界で /compact。詳細は routing.md。
 - 2回失敗で1段上へエスカレーション（経緯を引き継ぐ。同一モデルで3回以上リトライしない）。

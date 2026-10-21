@@ -4,6 +4,13 @@
 
 <!-- 新しいエントリはこの行の直下に追加 -->
 
+## [0.1.6] - 2026-10-21
+
+### 変更
+- core-dev の orchestration-core: サブエージェントの effort はモデルごとの既定を使う方針に変更。Agent ツールの `effort` と Workflow の `opts.effort` はユーザーが明示した場合のみ指定し、委譲文冒頭で思考の深さを指示する運用を廃止
+- core-dev の config-sync: 同期拠点に claude-dev-template を追加。同期対象は CLAUDE.md のみで、templates/CLAUDE.md を同期元とする
+- core-dev プラグインのバージョンを 0.2.1 に更新
+
 ## [0.1.5] - 2026-10-19
 
 ### 追加

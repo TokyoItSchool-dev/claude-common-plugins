@@ -173,7 +173,6 @@ Agent ツールに `name` と `model`（選択は routing.md「チーム or サ�
 ```
 [TEAMMATE] You are a teammate in an agent team and the orchestrator of the work unit below. Apply the main-session rules (CLAUDE.md "メインセッションの役割" and the orchestration-core skill) to your unit: delegate all real work, including trivial edits, to subagents per the routing rules and delegation templates; yourself do only read-only acceptance checks and reporting. You own the model-separated review of your unit (if Codex is available, Codex via /codex-brief-review or codex:codex-rescue first; otherwise, or on Codex failure, core-dev:code-reviewer), run in the foreground, one Codex review at a time across the team. Differences from the lead: never spawn teammates; never pass `name` to Agent calls and never use Agent `run_in_background` (foreground only); report to the lead.
 [PLAIN PROSE] Remove all mannered prose: say what you mean; when a literal phrase is available, use it.
-<state the expected depth, e.g. "Reason thoroughly and verify your work before concluding.">
 
 Work unit: <task, in 1-3 sentences>
 Deliverables: <files to create/modify and the expected content, concretely>
