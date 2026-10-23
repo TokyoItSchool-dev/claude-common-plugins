@@ -1,6 +1,6 @@
 ---
 name: changelog-commit
-description: CHANGELOG 更新・バージョンバンプ・コミット・タグ・push を一括実行する（原則 main ブランチ専用）。「リリースして」「CHANGELOG を更新してコミットして」「バージョンを上げて」と明示的に言われた時に使用。引数は `[major|minor|build] [説明(任意)]`。通常のコミットには使用不可 — `core-dev:git-workflow` を使用すること。他の作業の流れで暗黙に発動させない。
+description: CHANGELOG 更新・バージョンバンプ・コミット・push を一括実行する（タグは major / minor または明示依頼時のみ）（原則 main ブランチ専用）。「リリースして」「CHANGELOG を更新してコミットして」「バージョンを上げて」と明示的に言われた時に使用。引数は `[major|minor|build] [説明(任意)]`。通常のコミットには使用不可 — `core-dev:git-workflow` を使用すること。他の作業の流れで暗黙に発動させない。
 argument-hint: "[major|minor|build] [説明(任意)]"
 ---
 
@@ -12,7 +12,7 @@ git履歴から変更内容を収集し、機能単位でまとめた`docs/CHANG
 
 | モード | 発動条件 | 動作 |
 |--------|---------|------|
-| **mainモード（既定）** | mainブランチ | 実行時点までの未記録の変更（マージ済みブランチの変更を含む）を取り込み、CHANGELOG作成・バージョンバンプ（既定build）・コミット・タグ・push |
+| **mainモード（既定）** | mainブランチ | 実行時点までの未記録の変更（マージ済みブランチの変更を含む）を取り込み、CHANGELOG作成・バージョンバンプ（既定build）・コミット・push（major/minor・明示依頼時のみタグも作成） |
 | **ブランチモード** | main以外＋明示的な呼び出し | ユーザーに確認のうえ、(a) mainへマージして恒例のmainモード処理（CHANGELOG作成等）を実行、または (b) PR作成のみ（CHANGELOG処理なし） |
 
 ## 呼び出し方
@@ -74,7 +74,7 @@ git pull
 git merge {ブランチ名}
 ```
 
-コンフリクトが発生した場合は解消をユーザーと相談する。マージ完了後、**mainモード（Step 1）へ進み**、恒例どおりCHANGELOG作成〜タグ・pushまで実行する。
+コンフリクトが発生した場合は解消をユーザーと相談する。マージ完了後、**mainモード（Step 1）へ進み**、恒例どおりCHANGELOG作成〜pushまで実行する。
 
 jjモードではbookmark運用に応じて `jj new main {ブランチ名}` 等で統合し、mainのbookmarkを進める。
 
@@ -225,16 +225,18 @@ jjモードの場合:
 jj commit -m "{変更内容の要約} (vA.B.C)"
 ```
 
-### 6-3: タグ付け（必須）
+### 6-3: タグ付け（major / minor / 明示依頼時のみ）
 
-タグ付けはリリース版を確定させる必須ステップである。省略しない。軽量タグではなく注釈付きタグを作成する。jjにネイティブなtagコマンドはないため、colocatedリポジトリではjjモードでもgitのままタグを作成する:
+タグを作成するのは、バンプが `major` または `minor` の場合、またはユーザーが引数・依頼文でタグ作成を明示した場合だけである。バンプが `build`（引数なしの既定を含む）の場合はタグを作成せず、このステップを省略する。タグを作成する場合は軽量タグではなく注釈付きタグを作成する。jjにネイティブなtagコマンドはないため、colocatedリポジトリではjjモードでもgitのままタグを作成する:
 ```bash
 git tag -a vA.B.C -m "{コミットメッセージと同じ要約}"
 ```
 
-タグをpushすると、リポジトリに `.github/workflows/release.yml` が存在する場合はGitHub Actionsのリリースワークフローが起動し、`docs/CHANGELOG.md` からGitHub Releaseを作成する（通知連携の有無はワークフローの内容による）。該当ワークフローがないリポジトリではタグのpushのみが行われる。
+タグを作成しない場合、タグ起動のリリースワークフロー（GitHub Release作成）は実行されない。タグをpushすると、リポジトリに `.github/workflows/release.yml` が存在する場合はGitHub Actionsのリリースワークフローが起動し、`docs/CHANGELOG.md` からGitHub Releaseを作成する（通知連携の有無はワークフローの内容による）。該当ワークフローがないリポジトリではタグのpushのみが行われる。
 
 #### タグを push できない環境（Claude Code クラウドセッション等）
+
+この節はタグを作成する場合（major / minor / 明示依頼）だけに適用する。build でタグを作成しない場合は何もしない。
 
 Claude Code クラウドセッション（Claude Code on the web）ではブランチのpushはできるが、タグのpushはできない。`git push origin vA.B.C` は git-receive-pack から `HTTP 403` で拒否され、GitHub REST API の `git/refs` 書き込みもセッションのプロキシで拒否される。
 
@@ -292,7 +294,7 @@ run が失敗した場合はエラーとしてログを確認し、ユーザー�
 
 ### 6-4: push
 
-先にコミットをpushし、次にタグを反映し、最後にタグのリモート到達を確認する。
+先にコミットをpushし、6-3でタグを作成した場合のみ、次にタグを反映し、最後にタグのリモート到達を確認する。
 
 gitモードの場合、まずコミットをpushする:
 
@@ -300,13 +302,13 @@ gitモードの場合、まずコミットをpushする:
 git push
 ```
 
-コミットのpush後、タグも必ず反映する。通常の環境では次のコマンドでタグをpushする。タグをpushできない環境（6-3「タグを push できない環境」参照）では、代わりに Release ワークフローを workflow_dispatch で起動してタグを作成する:
+コミットのpush後、6-3でタグを作成した場合のみタグを反映する。通常の環境では次のコマンドでタグをpushする。タグをpushできない環境（6-3「タグを push できない環境」参照）では、代わりに Release ワークフローを workflow_dispatch で起動してタグを作成する:
 
 ```bash
 git push origin vA.B.C
 ```
 
-タグの反映後は以下でリモートへの到達を確認する。見つからない場合はエラーとして報告する:
+タグを反映した場合は以下でリモートへの到達を確認する。見つからない場合はエラーとして報告する:
 
 ```bash
 git ls-remote --tags origin vA.B.C
@@ -319,7 +321,7 @@ jj bookmark set main -r @-
 jj git push
 ```
 
-コミットのpush後、タグも必ず反映する。通常の環境では `git push origin vA.B.C` でpushし、タグをpushできない環境では 6-3 の workflow_dispatch の手順でタグを作成する。いずれの場合も最後に `git ls-remote --tags origin vA.B.C` でリモート到達を確認する。見つからない場合はエラーとして報告する。
+コミットのpush後、6-3でタグを作成した場合のみタグを反映する。通常の環境では `git push origin vA.B.C` でpushし、タグをpushできない環境では 6-3 の workflow_dispatch の手順でタグを作成する。いずれの場合も最後に `git ls-remote --tags origin vA.B.C` でリモート到達を確認する。見つからない場合はエラーとして報告する。
 
 リモートが未設定の場合はpushをスキップし、結果報告にその旨を記載する。
 
@@ -335,8 +337,8 @@ jj git push
 - 対象コミット数: N件
 - コミット: 完了 ✓
 - push: 完了 ✓ / スキップ（リモートなし）
-- タグ: vA.B.C（push済み・リモート到達確認済み） / vA.B.C（Actions の Release ワークフローで作成・run URL・リモート到達確認済み）
-- リリース: タグpushによりGitHub ActionsのリリースワークフローがRelease作成を実行（該当ワークフローがある場合） / workflow_dispatch で起動した Release ワークフローの同一 run 内でRelease作成・ビルドを実行（run URL・結論 success）
+- タグ: vA.B.C（push済み・リモート到達確認済み） / vA.B.C（Actions の Release ワークフローで作成・run URL・リモート到達確認済み） / なし（buildのため未作成）
+- リリース: タグpushによりGitHub ActionsのリリースワークフローがRelease作成を実行（該当ワークフローがある場合） / workflow_dispatch で起動した Release ワークフローの同一 run 内でRelease作成・ビルドを実行（run URL・結論 success） / なし（タグ未作成のためワークフロー未起動）
 - PR: {URL}（PR作成のみの場合）
 ```
 
@@ -373,6 +375,6 @@ jj git push
 | マージでコンフリクト発生 | 解消方法をユーザーと相談。自動で強行しない |
 | PR作成時にgh CLIが未認証 | `gh auth login` を案内して終了 |
 | jjモードでブランチ名が取得できない（detached HEAD） | bookmarkから特定するかユーザーに確認 |
-| タグの push が 403 で拒否される（クラウドセッション） | Release ワークフローの workflow_dispatch でタグを作成（6-3 参照） |
+| タグの push が 403 で拒否される（クラウドセッション、タグ作成時） | Release ワークフローの workflow_dispatch でタグを作成（6-3 参照） |
 | release.yml が dispatch でのタグ作成に未対応 | ローカルからタグを push するよう案内して終了（6-3 のコマンドを提示） |
 | dispatch した run が失敗 | ログを確認して報告。同じ version で再 dispatch しない（既存タグは拒否される） |
