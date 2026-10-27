@@ -374,7 +374,7 @@
 
 ## SVG図版
 
-**用途**: 図は手順DではSVGで直接描く（外部参照ゼロ）。Mermaidは明示指示があるときだけ使う。
+**用途**: 図はSVGで直接描く（外部参照ゼロ）。共通の規則（骨格・色・矢印）は `references/svg-conventions.md` に従い、この節では手順D固有の書き方を定める。Mermaidは明示指示があるときだけ使う。
 
 ```html
 <figure class="iv-figure">

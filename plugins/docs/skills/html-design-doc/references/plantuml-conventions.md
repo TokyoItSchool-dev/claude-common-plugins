@@ -1,6 +1,6 @@
 # PlantUML 作図ルール（html-design-doc スキル・明示指示時のみ使用）
 
-このファイルは、利用者が **明示的にPlantUMLでの作図を指示した場合のみ**参照する。既定の作図手法はMermaid（`references/mermaid-conventions.md`）であり、PlantUMLは人間の読者向けに画像として確実に見せたい場合の代替手段である。Mermaid経路は追加のセットアップなしにHTML内で直接描画され、Claude Code on the webのサンドボックスでもそのまま動作するが、PlantUMLはローカルの実行環境（後述のjarまたはplantumlコマンド）を必要とするため、そうしたサンドボックスでは利用できない場合がある。
+このファイルは、利用者が **明示的にPlantUMLでの作図を指示した場合のみ**参照する。既定の作図手法はSVG直書き（`references/svg-conventions.md`）である。PlantUMLは人間の読者向けに画像として確実に見せたい場合の代替手段である。SVG直書きは追加のセットアップなしにHTML内で直接描画され、Claude Code on the webのサンドボックスでもそのまま動作するが、PlantUMLはローカルの実行環境（後述のjarまたはplantumlコマンド）を必要とするため、そうしたサンドボックスでは利用できない場合がある。
 
 ## ハウス skinparam ブロック（改変せず使用）
 

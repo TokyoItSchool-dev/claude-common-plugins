@@ -50,14 +50,14 @@
 
 <div class="callout note">
 <span class="callout-label">NOTE</span>
-<p>このテンプレートは単一ファイルで完結する。外部参照は Mermaid の CDN スクリプト1本のみで、外部CSSやフォントは読み込まない。</p>
+<p>このテンプレートは単一ファイルで完結する。外部のスクリプト・CSS・フォント・画像を参照しない。</p>
 </div>
 
 <ul>
 <li>対象は設計書・説明書・俯瞰資料などの読み物ドキュメント</li>
-<li>作図は既定で Mermaid、明示指示があるときのみ PlantUML
+<li>作図は既定で SVG 直書き、明示指示があるときのみ Mermaid または PlantUML
 <ul>
-<li>Mermaid はソースをそのままHTMLに書く</li>
+<li>SVG は <code>&lt;desc&gt;</code> に Mermaid 相当のソースを書く</li>
 <li>PlantUML は PNG を base64 で埋め込む</li>
 </ul></li>
 <li>印刷時は目次が1ページ目になり、本文は1カラムに切り替わる</li>
@@ -69,14 +69,36 @@
 
 <section id="処理フロー" class="level3">
 <h3>2.1 処理フロー</h3>
-<p>図は <code>&lt;pre class="mermaid"&gt;</code> として本文中に直接記述する。</p>
-<pre class="mermaid">
-flowchart TD
-    A[入力: 素材ドキュメント] --> B[構成の設計]
-    B --> C[HTML本文の記述]
-    C --> D[検証: リンク・外部参照]
-    D --> E[出力: 単一HTMLファイル]
-</pre>
+<p>図は <code>&lt;figure&gt;</code> 内の <code>&lt;svg&gt;</code> として本文中に直接記述する。</p>
+<figure>
+<svg viewBox="0 0 800 110" width="100%" role="img" aria-labelledby="図1-題 図1-説">
+<title id="図1-題">文書生成の処理フロー</title>
+<desc id="図1-説">flowchart LR
+  A[入力: 素材ドキュメント] --&gt; B[HTML本文の記述]
+  B --&gt; C[検証: リンク・外部参照]
+  C --&gt; D[出力: 単一HTMLファイル]</desc>
+<defs>
+<marker id="fig1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 Z" fill="#b8c1cc"></path>
+</marker>
+</defs>
+<rect x="10" y="25" width="170" height="60" rx="6" fill="#f6f8fa" stroke="#b8c1cc"></rect>
+<text x="95" y="51" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">入力</text>
+<text x="95" y="71" text-anchor="middle" font-size="12" fill="#1f2328">素材ドキュメント</text>
+<rect x="216" y="25" width="170" height="60" rx="6" fill="#f6f8fa" stroke="#b8c1cc"></rect>
+<text x="301" y="60" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">HTML本文の記述</text>
+<rect x="422" y="25" width="170" height="60" rx="6" fill="#f6f8fa" stroke="#b8c1cc"></rect>
+<text x="507" y="51" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">検証</text>
+<text x="507" y="71" text-anchor="middle" font-size="12" fill="#1f2328">リンク・外部参照</text>
+<rect x="628" y="25" width="162" height="60" rx="6" fill="#ffffff" stroke="#b8c1cc"></rect>
+<text x="709" y="51" text-anchor="middle" font-size="14" font-weight="700" fill="#14508f">出力</text>
+<text x="709" y="71" text-anchor="middle" font-size="12" fill="#1f2328">単一HTMLファイル</text>
+<line x1="180" y1="55" x2="214" y2="55" stroke="#b8c1cc" stroke-width="1.5" marker-end="url(#fig1-arrow)"></line>
+<line x1="386" y1="55" x2="420" y2="55" stroke="#b8c1cc" stroke-width="1.5" marker-end="url(#fig1-arrow)"></line>
+<line x1="592" y1="55" x2="626" y2="55" stroke="#b8c1cc" stroke-width="1.5" marker-end="url(#fig1-arrow)"></line>
+</svg>
+<figcaption>図1　文書生成の処理フロー</figcaption>
+</figure>
 </section>
 
 <section id="構成要素" class="level3">
@@ -94,13 +116,16 @@ flowchart TD
 </table>
 
 <figure>
-<svg viewBox="0 0 480 120" width="480" height="120" role="img" aria-label="目次と本文の2カラム構成の模式図">
-<rect x="10" y="10" width="130" height="100" rx="6" fill="#f6f8fa" stroke="#1b6ac9" stroke-width="2"/>
-<text x="75" y="65" text-anchor="middle" font-size="14" fill="#1f2328">nav#TOC</text>
-<rect x="160" y="10" width="310" height="100" rx="6" fill="#ffffff" stroke="#b8c1cc" stroke-width="2"/>
+<svg viewBox="0 0 480 120" width="100%" style="max-width: 480px" role="img" aria-labelledby="図2-題 図2-説">
+<title id="図2-題">目次と本文の2カラム構成</title>
+<desc id="図2-説">flowchart LR
+  TOC[nav#TOC] --- MAIN[main.main]</desc>
+<rect x="10" y="10" width="130" height="100" rx="6" fill="#f6f8fa" stroke="#b8c1cc" stroke-width="2"></rect>
+<text x="75" y="65" text-anchor="middle" font-size="14" fill="#14508f">nav#TOC</text>
+<rect x="160" y="10" width="310" height="100" rx="6" fill="#ffffff" stroke="#b8c1cc" stroke-width="2"></rect>
 <text x="315" y="65" text-anchor="middle" font-size="14" fill="#1f2328">main.main</text>
 </svg>
-<figcaption>図1　目次と本文の2カラム構成</figcaption>
+<figcaption>図2　目次と本文の2カラム構成</figcaption>
 </figure>
 </section>
 </section>
@@ -116,7 +141,7 @@ flowchart TD
 <p>コードブロックは横スクロールし、等幅フォントで表示される。</p>
 <pre><code>{
   "output": "design-doc.html",
-  "diagram": "mermaid",
+  "diagram": "svg",
   "embedImages": false
 }</code></pre>
 
@@ -129,7 +154,7 @@ flowchart TD
 
 <div class="callout warn">
 <span class="callout-label">WARN</span>
-<p>Mermaid の CDN スクリプト以外の JavaScript を追加してはならない。外部CSS・外部フォントの読み込みも禁止する。</p>
+<p>目次開閉のスクリプト以外の JavaScript を追加してはならない。外部CSS・外部フォントの読み込みも禁止する。</p>
 </div>
 
 <div class="callout tip">
@@ -165,21 +190,6 @@ tocBtn.hidden = false;
 tocBtn.addEventListener('click', function () {
   var collapsed = document.body.classList.toggle('toc-collapsed');
   tocBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-});
-</script>
-<script type="module">
-import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-mermaid.initialize({
-  startOnLoad: true,
-  theme: 'base',
-  themeVariables: {
-    primaryColor: '#f6f8fa',
-    primaryBorderColor: '#1b6ac9',
-    primaryTextColor: '#1f2328',
-    lineColor: '#5a6472',
-    fontFamily: '"Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif',
-    fontSize: '14px'
-  }
 });
 </script>
 </body>
