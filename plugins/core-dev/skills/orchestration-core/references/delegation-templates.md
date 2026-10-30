@@ -82,9 +82,9 @@ Files you must NOT touch: src/api/orders.ts
 
 ## 雛形3: Codex 委譲
 
-`subagent_type: codex:codex-rescue`（モデル未指定時は config.toml の既定 Luna・effort xhigh で実行される）向け。タスク本文も英語で書く。用途は「コードレビュー・計画レビュー・レビュー観点のセカンドオピニオン」「重要成果物のレビュー」（routing.md の Codex ゲート参照）。定型・低難度の作業には使わない。
+`subagent_type: codex:codex-rescue`（Luna・effort high で実行される）向け。タスク本文も英語で書く。用途は「コードレビュー・計画レビュー・レビュー観点のセカンドオピニオン」「重要成果物のレビュー」（routing.md の Codex ゲート参照）。定型・低難度の作業には使わない。
 
-モデルの使い分け: Web 検索・軽量な調査は Claude（Haiku/Sonnet）+ WebSearch を使う（Codex は使わない）。コードレビュー・計画レビューは常に Luna・effort xhigh（唯一のモデル）。最重要タスクの検証・重要な設計は Codex ではなく Fable（`model: fable`）に委譲する。
+モデルの使い分け: Web 検索・軽量な調査は Claude（Haiku/Sonnet）+ WebSearch を使う（Codex は使わない）。コードレビュー・計画レビューは常に Luna・effort high（唯一のモデル）。最重要タスクの検証・重要な設計は Codex ではなく Fable（`model: fable`）に委譲する。
 
 前提: Codex のローカルファイル読取可否はプローブで確認する（routing.md の Codex ゲート参照）。ただし確実性を優先する場合は対象コード・資料を委譲文にインライン貼付する。ファイルパスを渡す場合は、返却の [CODEX-AUDIT] と裏取りで実際に読めたことを検証する。
 
@@ -115,7 +115,7 @@ Then, in a "Deviations" subsection, list any work you performed that was NOT exp
 
 原則: 実装とレビューのモデルを分離し、同一モデルに自己レビューさせない。
 
-- Claude 系が実装した場合 → Codex にレビューを委譲する。通常は `/codex-brief-review`（Luna・effort xhigh）、文脈不要の高速チェックのみ `/codex:review` を使う。Codex 不可・リミット時は `core-dev:code-reviewer`（実装と別の Claude モデル）にフォールバックする（リミット回復は待たない）。手動 ChatGPT（Astro Pro、`/codex-brief-review` 手順 4b）はフォールバックではなく、テンポより品質を優先する重要な設計・実装に対しユーザー指示で選択する。
+- Claude 系が実装した場合 → Codex にレビューを委譲する。通常は `/codex-brief-review`（Luna・effort high）、文脈不要の高速チェックのみ `/codex:review` を使う。Codex 不可・リミット時は `core-dev:code-reviewer`（実装と別の Claude モデル）にフォールバックする（リミット回復は待たない）。手動 ChatGPT（Astro Pro、`/codex-brief-review` 手順 4b）はフォールバックではなく、テンポより品質を優先する重要な設計・実装に対しユーザー指示で選択する。
 
 レビュー雛形:
 

@@ -21,7 +21,7 @@ description: 複数ステップ（3ステップ以上または複数ファイル
 | 単一ファイル修正・定型テスト追加・通常の探索・資料変換 | Sonnet |
 | Web 検索・軽量な調査 | Haiku / Sonnet + WebSearch（Codex は使わない） |
 | 複雑バグの根本原因調査・横断リファクタ・計画/設計ドラフト作成・特に複雑/重要な実装・調査・仕様深掘り | Opus |
-| コードレビュー・計画レビュー・レビュー観点のセカンドオピニオン（既定） | Codex Luna・effort xhigh（常時。ゲート判定必須。実装・調査・計画立案には使わない） |
+| コードレビュー・計画レビュー・レビュー観点のセカンドオピニオン（既定） | Codex Luna・effort high（常時。ゲート判定必須。実装・調査・計画立案には使わない） |
 | 最重要タスクの検証・重要な設計・難解なデバッグ・大規模な計画立案 | Fable（調査・実装には使わない） |
 | 10件超の同型タスク（Workflow 化は同型・大量のみ。異種の細粒度タスクは件数によらず Agent の並列 fan-out） | Workflow ツール（Sonnet / Opus） |
 | 作業中にチームメイト同士の連絡が必要な作業（連絡なしの分担は対象外） | Agent Teams。判定は routing.md、手順は `references/agent-teams.md` |
@@ -30,7 +30,7 @@ description: 複数ステップ（3ステップ以上または複数ファイル
 
 - 迷ったら `references/routing.md` の4軸スコアリング、または `/route <タスク内容>` で判定。それでも迷えば一段安いモデルで試す。
 - **effort はモデル既定を使う**: Agent ツールの `effort` と Workflow の `opts.effort` は指定しない。ユーザーが明示的に effort レベルを指示した場合のみ、その値を渡す。詳細は routing.md。
-- Codex はレビュー専用の「役割」。常に Luna・effort xhigh。最重要タスクの検証は Fable へ回す。ファイル I/O を伴う委譲は routing.md の Codex ゲート（読取可否の最終確認日・検証条件）を通す。Web 検索は Codex ではなく Claude + WebSearch ツールを使う。`OPENAI_API_KEY` は設定しない（サブスク定額から API 従量課金に切り替わるため）。
+- Codex はレビュー専用の「役割」。常に Luna・effort high。最重要タスクの検証は Fable へ回す。ファイル I/O を伴う委譲は routing.md の Codex ゲート（読取可否の最終確認日・検証条件）を通す。Web 検索は Codex ではなく Claude + WebSearch ツールを使う。`OPENAI_API_KEY` は設定しない（サブスク定額から API 従量課金に切り替わるため）。
 - **Opus コストガード**（実測でコストの87%が Opus に集中）: Opus 委譲は1タスク単位に分割、委譲前にスコープ宣言、メイン=Opus 時はフェーズ境界で /compact。詳細は routing.md。
 - 2回失敗で1段上へエスカレーション（経緯を引き継ぐ。同一モデルで3回以上リトライしない）。
 
@@ -75,7 +75,7 @@ Codex 返却は末尾の Self-Audit テーブルを読んでメインが [CODEX-
 
 Claude 実装分のレビューは既存の手段を呼ぶ。本スキルで手順を再定義しない。
 
-`/codex-brief-review`（Luna・effort xhigh。高速チェックのみ `/codex:review`）。Codex 不可・リミット時は `core-dev:code-reviewer` にフォールバック（リミット回復は待たない）。重要な対象はフォールバックではなくユーザー指示で ChatGPT Astro Pro に手動レビュー
+`/codex-brief-review`（Luna・effort high。高速チェックのみ `/codex:review`）。Codex 不可・リミット時は `core-dev:code-reviewer` にフォールバック（リミット回復は待たない）。重要な対象はフォールバックではなくユーザー指示で ChatGPT Astro Pro に手動レビュー
 
 ## Origin
 

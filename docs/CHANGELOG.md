@@ -4,6 +4,12 @@
 
 <!-- 新しいエントリはこの行の直下に追加 -->
 
+## [0.1.9] - 2026-10-30
+
+### 変更
+- core-dev プラグイン: orchestration-core の Codex レビュー effort を xhigh から high に変更（core-dev 0.2.3）
+- core-dev プラグイン: Codex の config.toml 既定 effort を xhigh と記載していた箇所を修正
+
 ## [0.1.8] - 2026-10-27
 
 ### 追加
