@@ -39,10 +39,11 @@ def _arrow(d, path):
           f'stroke-dasharray="8 7" marker-end="url(#arrow)"/>', layer="over")
 
 
-def _legend(d, y, statuses, move_label):
+def _legend(d, y, statuses, move_label, labels=None):
     x = 60
     for key in statuses:
         f, dash, tc, label = STATUS[key]
+        label = (labels or {}).get(key, label)
         d.plain(x, y, 54, 30, rx=6, fill=f, sw=2.5, shadow=False, dash=dash)
         d.text(x + 66, y + 23, label, fs=22, weight=500, fill=TEXT, layer="nodes")
         x += 66 + text_width(label, 22) + 44
@@ -86,6 +87,7 @@ def plan_diagram(spec, path):
       "arrows": [ (item_id, box_id, "out"|"in") ], # out: 節→箱（送り出す）、in: 箱→節（受け入れる）
       "notes":  ["脚注", ...],                      # 省略可
       "legend": ["reuse","rewrite","new","out"],   # 省略可。凡例に出す状態
+      "status_labels": {"out": "このモジュールから外す"},  # 省略可。凡例の文言を上書き
       "move_label": "移動（«move»）",              # 省略可
     }
     """
@@ -148,7 +150,8 @@ def plan_diagram(spec, path):
         d.folder(RX, by, RW, bh, title=btitle, tab=(90, 18), band=48, fs=20, fill=GREY if kind == "ref" else BODY)
         ly = by + 48 + 30
         for ln in lines:
-            d.text(RX + 22, ly, ln, fs=19, weight=500, fill=MUTED if kind == "ref" else TEXT, layer="nodes")
+            ln, lfs = _fit_note(ln, RW - 44, fs=19)
+            d.text(RX + 22, ly, ln, fs=lfs, weight=500, fill=MUTED if kind == "ref" else TEXT, layer="nodes")
             ly += 30
         box_pos[bid] = (RX, by, bh)
         prev_bottom = by + bh
@@ -172,7 +175,7 @@ def plan_diagram(spec, path):
         lane_x += 7
 
     ly = max(cy + 30, prev_bottom + 10)
-    _legend(d, ly, legend_keys, spec.get("move_label", "移動（«move»）"))
+    _legend(d, ly, legend_keys, spec.get("move_label", "移動（«move»）"), spec.get("status_labels"))
     return _finalize(d, path, ly + 54)
 
 
