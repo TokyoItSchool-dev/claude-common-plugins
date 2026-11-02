@@ -17,7 +17,7 @@
 | `core-dev` | 10 | 3 | 言語非依存の開発ワークフロー（規約・レビュー・TDD・セキュリティ・git・API 設計・テスト実行規律・オーケストレーション） |
 | `java-dev` | 5 | 1 | Java / Spring Boot の規約・パターン・セキュリティ・テスト・検証ループ |
 | `dotnet-dev` | 4 | 1 | C# / .NET / ASP.NET Core / EF Core の規約・パターン・セキュリティ・テスト |
-| `docs` | 7 | 1 | 技術文書作成（日本語ライティング、Markdown、HTML 設計書、Office 文書、HTML スライド） |
+| `docs` | 8 | 1 | 技術文書作成（日本語ライティング、Markdown、HTML 設計書、Office 文書、HTML スライド） |
 
 プラグインは個別にインストールでき、必要なものだけを有効化してよい。
 
@@ -65,6 +65,7 @@
 | --- | --- |
 | `docs:anydoc` | Office ファイル（xlsx/docx/pptx/pdf/ods 等）を Markdown へ変換する CLI `anydoc` の導入と使用 |
 | `docs:cognitive-rhythm-writing` | 説明的な文章に緩急（認知モードの切替と未回収の緊張）を設計するための規範 |
+| `docs:diagram-svg` | UML 8 種と構成案パッケージ図を、編集できて拡大しても劣化しない手書き SVG で作図する（画像の再現・文章からの新規作図、PNG 描画と記法チェックリストで検証） |
 | `docs:frontend-slides` | アニメーション付き HTML プレゼンテーションの新規作成、および PowerPoint からの変換 |
 | `docs:html-design-doc` | 設計書・説明書をスタンドアロン HTML（左サイドバー目次＋本文 1 カラム）で生成する。作図は既定で Mermaid |
 | `docs:japanese-tech-writing` | 日本語技術文書の整形、段落と論証の構成、論証の厳密さ、冗長の排除 |

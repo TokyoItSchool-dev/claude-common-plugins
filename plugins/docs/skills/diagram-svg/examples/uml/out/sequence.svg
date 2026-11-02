@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1448 1086" width="1448" height="1086">
+<defs>
+<style>text{font-family:"Noto Sans CJK JP","Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;}</style>
+<marker id="arrow" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M1,1 L13,7 L1,13" fill="none" stroke="#13294b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="arrowf" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="13" markerHeight="13" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#13294b"/></marker>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#13294b" flood-opacity="0.12"/></filter>
+<symbol id="logo" viewBox="0 0 80 90"><path d="M40 5 L74 24 L74 66 L40 85 L6 66 L6 24 Z" fill="#cfe6ff" stroke="#0b6fd8" stroke-width="7" stroke-linejoin="round"/><path d="M6 24 L40 43 L74 24 M40 43 L40 85" fill="none" stroke="#0b6fd8" stroke-width="7" stroke-linejoin="round"/></symbol>
+<symbol id="bulb" viewBox="0 0 48 48"><g fill="none" stroke="#2a8cf0" stroke-width="2.6" stroke-linecap="round"><path d="M17,30 a11,11 0 1 1 14,0 v5 h-14 z"/><path d="M19,39 h10 M21,43 h6 M24,4 v4 M9,10 l3,3 M39,10 l-3,3 M4,22 h4 M40,22 h4"/></g></symbol>
+<symbol id="i-globe" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="28" r="22"/><ellipse cx="28" cy="28" rx="9" ry="22"/><path d="M6,28 H50 M10,17 H46 M10,39 H46"/></g></symbol>
+<symbol id="i-gear" viewBox="0 0 56 56"><polygon points="52.8,24.8 52.8,31.2 46.3,32.9 44.5,37.5 47.8,43.2 43.2,47.8 37.5,44.5 32.9,46.3 31.2,52.8 24.8,52.8 23.1,46.3 18.5,44.5 12.8,47.8 8.2,43.2 11.5,37.5 9.7,32.9 3.2,31.2 3.2,24.8 9.7,23.1 11.5,18.5 8.2,12.8 12.8,8.2 18.5,11.5 23.1,9.7 24.8,3.2 31.2,3.2 32.9,9.7 37.5,11.5 43.2,8.2 47.8,12.8 44.5,18.5 46.3,23.1" fill="#13294b"/><circle cx="28" cy="28" r="7.5" fill="#fff"/></symbol>
+<symbol id="i-db" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="28" cy="12" rx="18" ry="7"/><path d="M10,12 V44 a18,7 0 0 0 36,0 V12 M10,23 a18,7 0 0 0 36,0 M10,34 a18,7 0 0 0 36,0"/></g></symbol>
+<symbol id="i-card" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="46" height="34" rx="4"/><path d="M5,22 H51" stroke-width="7"/><path d="M12,36 H24"/></g></symbol>
+<symbol id="i-component" viewBox="0 0 56 56"><g fill="none" stroke="#1d4f91" stroke-width="3.5" stroke-linejoin="round"><rect x="16" y="5" width="32" height="46" rx="3" fill="#dcecfd"/><rect x="7" y="13" width="17" height="10" rx="2" fill="#fff"/><rect x="7" y="33" width="17" height="10" rx="2" fill="#fff"/></g></symbol>
+<symbol id="i-person" viewBox="0 0 56 56"><circle cx="28" cy="16" r="10" fill="#13294b"/><path d="M8,50 a20,18 0 0 1 40,0 Z" fill="#13294b"/></symbol>
+<symbol id="i-users" viewBox="0 0 56 56"><g fill="#13294b"><circle cx="28" cy="17" r="7.5"/><path d="M15,44 a13,12 0 0 1 26,0 Z"/><circle cx="12" cy="21" r="5.5"/><path d="M2,42 a10,9 0 0 1 16,-6 a16,14 0 0 0 -4,6 Z"/><circle cx="44" cy="21" r="5.5"/><path d="M54,42 a10,9 0 0 0 -16,-6 a16,14 0 0 1 4,6 Z"/></g></symbol>
+<symbol id="i-doc" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13,5 H35 L45,15 V51 H13 Z"/><path d="M35,5 V15 H45 M20,25 H38 M20,33 H38 M20,41 H32"/></g></symbol>
+<symbol id="i-cube" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M28 6 L48 17 L48 39 L28 50 L8 39 L8 17 Z M8 17 L28 28 L48 17 M28 28 V50"/></g></symbol>
+<symbol id="i-book" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M28,14 C22,9 12,9 5,11 V46 C12,44 22,44 28,49 C34,44 44,44 51,46 V11 C44,9 34,9 28,14 Z M28,14 V49"/></g></symbol>
+<symbol id="i-cart" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4,8 H11 L17,38 H45 L50,17 H14"/><circle cx="20" cy="47" r="3.5" fill="#13294b"/><circle cx="42" cy="47" r="3.5" fill="#13294b"/></g></symbol>
+<symbol id="i-window" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="46" height="40" rx="4"/><path d="M5,18 H51" stroke-width="5"/></g><g fill="#fff"><circle cx="11" cy="13" r="1.6"/><circle cx="16" cy="13" r="1.6"/><circle cx="21" cy="13" r="1.6"/></g></symbol>
+<symbol id="i-search" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="4.5" stroke-linecap="round"><circle cx="23" cy="23" r="14"/><path d="M33,33 L48,48"/></g></symbol>
+<symbol id="i-check" viewBox="0 0 56 56"><circle cx="28" cy="28" r="22" fill="#13294b"/><path d="M17,29 L25,37 L40,20" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-mail" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="46" height="34" rx="4"/><path d="M6,13 L28,31 L50,13"/></g></symbol>
+<symbol id="i-warn" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M28,6 L52,48 H4 Z"/><path d="M28,21 V34"/></g><circle cx="28" cy="41" r="2.6" fill="#13294b"/></symbol>
+<symbol id="i-artifact" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12,4 H34 L46,16 V52 H12 Z"/><path d="M34,4 V16 H46"/></g></symbol>
+<symbol id="i-actor" viewBox="0 0 80 112"><g fill="#a9d3fb" stroke="#13294b" stroke-width="4"><circle cx="40" cy="28" r="22"/><path d="M4,108 V84 a36,30 0 0 1 72,0 V108 Z" stroke-linejoin="round"/></g></symbol>
+</defs>
+<rect width="1448" height="1086" fill="#fff"/>
+<rect x="50" y="1016" width="1348" height="58" rx="22" fill="#e6f1fd"/>
+<use href="#bulb" x="400" y="1021" width="48" height="48"/>
+<line x1="466" y1="1029.0" x2="466" y2="1061.0" stroke="#9aa8bb" stroke-width="2"/>
+<text x="490.5" y="1055.0" font-size="27" font-weight="500" text-anchor="start" fill="#1b2a44">オブジェクト間のやり取りを時間順に示す図。</text>
+<path d="M144.5,307 L144.5,982" fill="none" stroke="#13294b" stroke-width="2" stroke-dasharray="8 7"/>
+<path d="M383.0,307 L383.0,982" fill="none" stroke="#13294b" stroke-width="2" stroke-dasharray="8 7"/>
+<path d="M621.0,307 L621.0,982" fill="none" stroke="#13294b" stroke-width="2" stroke-dasharray="8 7"/>
+<path d="M856.5,307 L856.5,982" fill="none" stroke="#13294b" stroke-width="2" stroke-dasharray="8 7"/>
+<path d="M1088.0,307 L1088.0,982" fill="none" stroke="#13294b" stroke-width="2" stroke-dasharray="8 7"/>
+<path d="M1311.5,307 L1311.5,982" fill="none" stroke="#13294b" stroke-width="2" stroke-dasharray="8 7"/>
+<path d="M155,378 L370.0,378" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrowf)"/>
+<path d="M155,441 L370.0,441" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrowf)"/>
+<path d="M155,504 L370.0,504" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrowf)"/>
+<path d="M396.0,556 L608.0,556" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrowf)"/>
+<path d="M634.0,608 L843.5,608" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrowf)"/>
+<path d="M843.5,648 L634.0,648" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<path d="M634.0,712 L1075.0,712" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrowf)"/>
+<path d="M1075.0,754 L634.0,754" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<path d="M634.0,812 L1298.5,812" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrowf)"/>
+<path d="M1298.5,854 L634.0,854" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<path d="M608.0,908 L396.0,908" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<path d="M370.0,958 L157,958" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<use href="#logo" x="379" y="16" width="80" height="90"/>
+<text x="481" y="87" font-size="72" font-weight="900" fill="#1b2a44"><tspan fill="#0b6fd8">UML</tspan> シーケンス図</text>
+<text x="724.0" y="148" font-size="42" font-weight="700" text-anchor="middle" fill="#2b3446">オンライン書店システム例</text>
+<line x1="90" y1="161" x2="1358" y2="161" stroke="#2a8cf0" stroke-width="3"/>
+<rect x="51" y="193" width="187" height="114" rx="8" fill="#dcecfd" stroke="#13294b" stroke-width="2.5" filter="url(#shadow)"/>
+<use href="#i-person" x="119.3" y="207.8" width="50.4" height="50.4"/>
+<text x="144.5" y="290" font-size="24" font-weight="700" text-anchor="middle" fill="#1b2a44">顧客</text>
+<rect x="290" y="193" width="186" height="114" rx="8" fill="#dcecfd" stroke="#13294b" stroke-width="2.5" filter="url(#shadow)"/>
+<use href="#i-window" x="357.8" y="207.8" width="50.4" height="50.4"/>
+<text x="383.0" y="290" font-size="24" font-weight="700" text-anchor="middle" fill="#1b2a44">Web画面</text>
+<rect x="527" y="193" width="188" height="114" rx="8" fill="#dcecfd" stroke="#13294b" stroke-width="2.5" filter="url(#shadow)"/>
+<use href="#i-gear" x="595.8" y="207.8" width="50.4" height="50.4"/>
+<text x="621.0" y="290" font-size="24" font-weight="700" text-anchor="middle" fill="#1b2a44">注文サービス</text>
+<rect x="763" y="193" width="187" height="114" rx="8" fill="#dcecfd" stroke="#13294b" stroke-width="2.5" filter="url(#shadow)"/>
+<use href="#i-cube" x="831.3" y="207.8" width="50.4" height="50.4"/>
+<text x="856.5" y="290" font-size="24" font-weight="700" text-anchor="middle" fill="#1b2a44">在庫サービス</text>
+<rect x="996" y="193" width="184" height="114" rx="8" fill="#dcecfd" stroke="#13294b" stroke-width="2.5" filter="url(#shadow)"/>
+<use href="#i-card" x="1062.8" y="207.8" width="50.4" height="50.4"/>
+<text x="1088.0" y="290" font-size="24" font-weight="700" text-anchor="middle" fill="#1b2a44">決済サービス</text>
+<rect x="1224" y="193" width="175" height="114" rx="8" fill="#dcecfd" stroke="#13294b" stroke-width="2.5" filter="url(#shadow)"/>
+<use href="#i-db" x="1286.3" y="207.8" width="50.4" height="50.4"/>
+<text x="1311.5" y="290" font-size="24" font-weight="700" text-anchor="middle" fill="#1b2a44">注文DB</text>
+<rect x="132.0" y="344" width="25" height="168" rx="4" fill="#a9d3fb" stroke="#0b6fd8" stroke-width="2.5"/>
+<rect x="132.0" y="935" width="25" height="30" rx="4" fill="#a9d3fb" stroke="#0b6fd8" stroke-width="2.5"/>
+<rect x="370.5" y="362" width="25" height="34" rx="4" fill="#a9d3fb" stroke="#0b6fd8" stroke-width="2.5"/>
+<rect x="370.5" y="425" width="25" height="33" rx="4" fill="#a9d3fb" stroke="#0b6fd8" stroke-width="2.5"/>
+<rect x="370.5" y="488" width="25" height="477" rx="4" fill="#a9d3fb" stroke="#0b6fd8" stroke-width="2.5"/>
+<rect x="608.0" y="540" width="26" height="372" rx="4" fill="#a9d3fb" stroke="#0b6fd8" stroke-width="2.5"/>
+<rect x="844.0" y="592" width="25" height="60" rx="4" fill="#a9d3fb" stroke="#0b6fd8" stroke-width="2.5"/>
+<rect x="1075.0" y="692" width="26" height="66" rx="4" fill="#a9d3fb" stroke="#0b6fd8" stroke-width="2.5"/>
+<rect x="1298.5" y="797" width="26" height="61" rx="4" fill="#a9d3fb" stroke="#0b6fd8" stroke-width="2.5"/>
+<circle cx="201" cy="356" r="16" fill="#0b6fd8"/>
+<text x="201" y="364" font-size="22" font-weight="700" text-anchor="middle" fill="#fff">1</text>
+<text x="227" y="364" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">商品選択()</text>
+<circle cx="201" cy="419" r="16" fill="#0b6fd8"/>
+<text x="201" y="427" font-size="22" font-weight="700" text-anchor="middle" fill="#fff">2</text>
+<text x="227" y="427" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">カート追加()</text>
+<circle cx="201" cy="482" r="16" fill="#0b6fd8"/>
+<text x="201" y="490" font-size="22" font-weight="700" text-anchor="middle" fill="#fff">3</text>
+<text x="227" y="490" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">注文依頼()</text>
+<circle cx="442.0" cy="534" r="16" fill="#0b6fd8"/>
+<text x="442.0" y="542" font-size="22" font-weight="700" text-anchor="middle" fill="#fff">4</text>
+<text x="468.0" y="542" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">注文登録()</text>
+<circle cx="680.0" cy="586" r="16" fill="#0b6fd8"/>
+<text x="680.0" y="594" font-size="22" font-weight="700" text-anchor="middle" fill="#fff">5</text>
+<text x="706.0" y="594" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">在庫引当()</text>
+<circle cx="680.0" cy="626" r="16" fill="#0b6fd8"/>
+<text x="680.0" y="634" font-size="22" font-weight="700" text-anchor="middle" fill="#fff">6</text>
+<text x="706.0" y="634" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">引当結果</text>
+<circle cx="680.0" cy="690" r="16" fill="#0b6fd8"/>
+<text x="680.0" y="698" font-size="22" font-weight="700" text-anchor="middle" fill="#fff">7</text>
+<text x="706.0" y="698" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">決済要求()</text>
+<circle cx="680.0" cy="732" r="16" fill="#0b6fd8"/>
+<text x="680.0" y="740" font-size="22" font-weight="700" text-anchor="middle" fill="#fff">8</text>
+<text x="706.0" y="740" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">決済結果</text>
+<circle cx="680.0" cy="790" r="16" fill="#0b6fd8"/>
+<text x="680.0" y="798" font-size="22" font-weight="700" text-anchor="middle" fill="#fff">9</text>
+<text x="706.0" y="798" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">注文保存()</text>
+<circle cx="680.0" cy="832" r="16" fill="#0b6fd8"/>
+<text x="680.0" y="838" font-size="17" font-weight="700" text-anchor="middle" fill="#fff">10</text>
+<text x="706.0" y="840" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">保存完了</text>
+<circle cx="442.0" cy="886" r="16" fill="#0b6fd8"/>
+<text x="442.0" y="892" font-size="17" font-weight="700" text-anchor="middle" fill="#fff">11</text>
+<text x="468.0" y="894" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">注文完了</text>
+<circle cx="203" cy="936" r="16" fill="#0b6fd8"/>
+<text x="203" y="942" font-size="17" font-weight="700" text-anchor="middle" fill="#fff">12</text>
+<text x="229" y="944" font-size="21" font-weight="700" text-anchor="start" fill="#1b2a44">完了画面表示</text>
+</svg>
