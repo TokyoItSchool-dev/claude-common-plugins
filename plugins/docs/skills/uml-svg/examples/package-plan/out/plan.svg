@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1448 1376" width="1448" height="1376">
+<defs>
+<style>text{font-family:"Noto Sans CJK JP","Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;}</style>
+<marker id="arrow" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M1,1 L13,7 L1,13" fill="none" stroke="#13294b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="arrowf" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="13" markerHeight="13" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#13294b"/></marker>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#13294b" flood-opacity="0.12"/></filter>
+<symbol id="logo" viewBox="0 0 80 90"><path d="M40 5 L74 24 L74 66 L40 85 L6 66 L6 24 Z" fill="#cfe6ff" stroke="#0b6fd8" stroke-width="7" stroke-linejoin="round"/><path d="M6 24 L40 43 L74 24 M40 43 L40 85" fill="none" stroke="#0b6fd8" stroke-width="7" stroke-linejoin="round"/></symbol>
+<symbol id="bulb" viewBox="0 0 48 48"><g fill="none" stroke="#2a8cf0" stroke-width="2.6" stroke-linecap="round"><path d="M17,30 a11,11 0 1 1 14,0 v5 h-14 z"/><path d="M19,39 h10 M21,43 h6 M24,4 v4 M9,10 l3,3 M39,10 l-3,3 M4,22 h4 M40,22 h4"/></g></symbol>
+<symbol id="i-globe" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="28" r="22"/><ellipse cx="28" cy="28" rx="9" ry="22"/><path d="M6,28 H50 M10,17 H46 M10,39 H46"/></g></symbol>
+<symbol id="i-gear" viewBox="0 0 56 56"><polygon points="52.8,24.8 52.8,31.2 46.3,32.9 44.5,37.5 47.8,43.2 43.2,47.8 37.5,44.5 32.9,46.3 31.2,52.8 24.8,52.8 23.1,46.3 18.5,44.5 12.8,47.8 8.2,43.2 11.5,37.5 9.7,32.9 3.2,31.2 3.2,24.8 9.7,23.1 11.5,18.5 8.2,12.8 12.8,8.2 18.5,11.5 23.1,9.7 24.8,3.2 31.2,3.2 32.9,9.7 37.5,11.5 43.2,8.2 47.8,12.8 44.5,18.5 46.3,23.1" fill="#13294b"/><circle cx="28" cy="28" r="7.5" fill="#fff"/></symbol>
+<symbol id="i-db" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="28" cy="12" rx="18" ry="7"/><path d="M10,12 V44 a18,7 0 0 0 36,0 V12 M10,23 a18,7 0 0 0 36,0 M10,34 a18,7 0 0 0 36,0"/></g></symbol>
+<symbol id="i-card" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="46" height="34" rx="4"/><path d="M5,22 H51" stroke-width="7"/><path d="M12,36 H24"/></g></symbol>
+<symbol id="i-component" viewBox="0 0 56 56"><g fill="none" stroke="#1d4f91" stroke-width="3.5" stroke-linejoin="round"><rect x="16" y="5" width="32" height="46" rx="3" fill="#dcecfd"/><rect x="7" y="13" width="17" height="10" rx="2" fill="#fff"/><rect x="7" y="33" width="17" height="10" rx="2" fill="#fff"/></g></symbol>
+<symbol id="i-person" viewBox="0 0 56 56"><circle cx="28" cy="16" r="10" fill="#13294b"/><path d="M8,50 a20,18 0 0 1 40,0 Z" fill="#13294b"/></symbol>
+<symbol id="i-users" viewBox="0 0 56 56"><g fill="#13294b"><circle cx="28" cy="17" r="7.5"/><path d="M15,44 a13,12 0 0 1 26,0 Z"/><circle cx="12" cy="21" r="5.5"/><path d="M2,42 a10,9 0 0 1 16,-6 a16,14 0 0 0 -4,6 Z"/><circle cx="44" cy="21" r="5.5"/><path d="M54,42 a10,9 0 0 0 -16,-6 a16,14 0 0 1 4,6 Z"/></g></symbol>
+<symbol id="i-doc" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13,5 H35 L45,15 V51 H13 Z"/><path d="M35,5 V15 H45 M20,25 H38 M20,33 H38 M20,41 H32"/></g></symbol>
+<symbol id="i-cube" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M28 6 L48 17 L48 39 L28 50 L8 39 L8 17 Z M8 17 L28 28 L48 17 M28 28 V50"/></g></symbol>
+<symbol id="i-book" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M28,14 C22,9 12,9 5,11 V46 C12,44 22,44 28,49 C34,44 44,44 51,46 V11 C44,9 34,9 28,14 Z M28,14 V49"/></g></symbol>
+<symbol id="i-cart" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4,8 H11 L17,38 H45 L50,17 H14"/><circle cx="20" cy="47" r="3.5" fill="#13294b"/><circle cx="42" cy="47" r="3.5" fill="#13294b"/></g></symbol>
+<symbol id="i-window" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="46" height="40" rx="4"/><path d="M5,18 H51" stroke-width="5"/></g><g fill="#fff"><circle cx="11" cy="13" r="1.6"/><circle cx="16" cy="13" r="1.6"/><circle cx="21" cy="13" r="1.6"/></g></symbol>
+<symbol id="i-search" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="4.5" stroke-linecap="round"><circle cx="23" cy="23" r="14"/><path d="M33,33 L48,48"/></g></symbol>
+<symbol id="i-check" viewBox="0 0 56 56"><circle cx="28" cy="28" r="22" fill="#13294b"/><path d="M17,29 L25,37 L40,20" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-mail" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="46" height="34" rx="4"/><path d="M6,13 L28,31 L50,13"/></g></symbol>
+<symbol id="i-warn" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M28,6 L52,48 H4 Z"/><path d="M28,21 V34"/></g><circle cx="28" cy="41" r="2.6" fill="#13294b"/></symbol>
+<symbol id="i-artifact" viewBox="0 0 56 56"><g fill="none" stroke="#13294b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12,4 H34 L46,16 V52 H12 Z"/><path d="M34,4 V16 H46"/></g></symbol>
+<symbol id="i-actor" viewBox="0 0 80 112"><g fill="#a9d3fb" stroke="#13294b" stroke-width="4"><circle cx="40" cy="28" r="22"/><path d="M4,108 V84 a36,30 0 0 1 72,0 V108 Z" stroke-linejoin="round"/></g></symbol>
+</defs>
+<rect width="1448" height="1376" fill="#fff"/>
+<path d="M940.0,1337 L1010.0,1337" fill="none" stroke="#13294b" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<use href="#logo" x="448" y="16" width="80" height="90"/>
+<text x="550" y="71" font-size="56" font-weight="900" fill="#1b2a44"><tspan fill="#0b6fd8">003</tspan> Web開発入門</text>
+<text x="724.0" y="148" font-size="42" font-weight="700" text-anchor="middle" fill="#2b3446">部・節の構成案</text>
+<line x1="90" y1="161" x2="1358" y2="161" stroke="#2a8cf0" stroke-width="3"/>
+<g filter="url(#shadow)"><path d="M50,200 V180 a4,4 0 0 1 4,-4 H186 a4,4 0 0 1 4,4 V200 Z" fill="#a9d3fb" stroke="#13294b" stroke-width="2.1"/><rect x="50" y="200" width="900" height="1114" rx="5" fill="#f8fbff" stroke="#13294b" stroke-width="3"/></g>
+<rect x="51.5" y="201.5" width="897" height="56" fill="#a9d3fb" opacity="0.45"/>
+<text x="80" y="238.08" font-size="30" font-weight="700" text-anchor="start" fill="#1b2a44">003 Web開発入門 [WEB003]</text>
+<g filter="url(#shadow)"><path d="M78,278 V264 a4,4 0 0 1 4,-4 H164 a4,4 0 0 1 4,4 V278 Z" fill="#a9d3fb" stroke="#13294b" stroke-width="2.1"/><rect x="78" y="278" width="844" height="112" rx="5" fill="#ffffff" stroke="#13294b" stroke-width="3"/></g>
+<rect x="79.5" y="279.5" width="841" height="40" fill="#a9d3fb" opacity="0.45"/>
+<text x="108" y="305.2" font-size="24" font-weight="700" text-anchor="start" fill="#1b2a44">はじめに</text>
+<rect x="100" y="336" width="800" height="40" rx="8" fill="#ffffff" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)" stroke-dasharray="9 6"/>
+<text x="118" y="364" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">目的、この教材の読み方</text>
+<text x="393.0" y="363" font-size="18" font-weight="500" text-anchor="start" fill="#5a6a85">← 旧 第1章</text>
+<g filter="url(#shadow)"><path d="M78,412 V398 a4,4 0 0 1 4,-4 H164 a4,4 0 0 1 4,4 V412 Z" fill="#a9d3fb" stroke="#13294b" stroke-width="2.1"/><rect x="78" y="412" width="844" height="312" rx="5" fill="#ffffff" stroke="#13294b" stroke-width="3"/></g>
+<rect x="79.5" y="413.5" width="841" height="40" fill="#a9d3fb" opacity="0.45"/>
+<text x="108" y="439.2" font-size="24" font-weight="700" text-anchor="start" fill="#1b2a44">第1部 Web の仕組み</text>
+<rect x="100" y="470" width="800" height="40" rx="8" fill="#eef6ff" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)"/>
+<text x="118" y="498" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">1-1 ブラウザとサーバー</text>
+<rect x="100" y="520" width="800" height="40" rx="8" fill="#eef6ff" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)"/>
+<text x="118" y="548" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">1-2 URL とリクエストの流れ</text>
+<rect x="100" y="570" width="800" height="40" rx="8" fill="#ffffff" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)" stroke-dasharray="9 6"/>
+<text x="118" y="598" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">1-3 HTML の骨組み</text>
+<text x="342.4" y="597" font-size="18" font-weight="500" text-anchor="start" fill="#5a6a85">← 旧 2-1〜2-3 を 1 節に</text>
+<rect x="100" y="620" width="800" height="40" rx="8" fill="#a9d3fb" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)" stroke-dasharray="9 6"/>
+<text x="118" y="648" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">1-4 ワーク: 自己紹介ページを作る</text>
+<text x="508.0" y="647" font-size="18" font-weight="500" text-anchor="start" fill="#5a6a85">【提案】</text>
+<rect x="100" y="670" width="800" height="40" rx="8" fill="#f1f4f8" stroke="#13294b" stroke-width="2.2" stroke-dasharray="3 5"/>
+<text x="118" y="698" font-size="23" font-weight="500" text-anchor="start" fill="#5a6a85">旧 1-5 サーバーの設置場所</text>
+<text x="425.2" y="697" font-size="18" font-weight="500" text-anchor="start" fill="#5a6a85">→ 004 インフラ入門へ</text>
+<g filter="url(#shadow)"><path d="M78,746 V732 a4,4 0 0 1 4,-4 H164 a4,4 0 0 1 4,4 V746 Z" fill="#a9d3fb" stroke="#13294b" stroke-width="2.1"/><rect x="78" y="746" width="844" height="262" rx="5" fill="#ffffff" stroke="#13294b" stroke-width="3"/></g>
+<rect x="79.5" y="747.5" width="841" height="40" fill="#a9d3fb" opacity="0.45"/>
+<text x="108" y="773.2" font-size="24" font-weight="700" text-anchor="start" fill="#1b2a44">第2部 動きを付ける</text>
+<rect x="100" y="804" width="800" height="40" rx="8" fill="#eef6ff" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)"/>
+<text x="118" y="832" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">2-1 CSS で飾る</text>
+<rect x="100" y="854" width="800" height="40" rx="8" fill="#ffffff" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)" stroke-dasharray="9 6"/>
+<text x="118" y="882" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">2-2 JavaScript で動かす</text>
+<text x="425.2" y="881" font-size="18" font-weight="500" text-anchor="start" fill="#5a6a85">← 旧 第3章（例を差し替え）</text>
+<rect x="100" y="904" width="800" height="40" rx="8" fill="#a9d3fb" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)" stroke-dasharray="9 6"/>
+<text x="118" y="932" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">2-3 ワーク: ボタンで色を変える</text>
+<rect x="100" y="954" width="800" height="40" rx="8" fill="#f1f4f8" stroke="#13294b" stroke-width="2.2" stroke-dasharray="3 5"/>
+<text x="118" y="982" font-size="23" font-weight="500" text-anchor="start" fill="#5a6a85">旧 2-6 SQL との接続</text>
+<text x="358.5" y="981" font-size="18" font-weight="500" text-anchor="start" fill="#5a6a85">→ 005 DB入門へ</text>
+<g filter="url(#shadow)"><path d="M78,1030 V1016 a4,4 0 0 1 4,-4 H164 a4,4 0 0 1 4,4 V1030 Z" fill="#a9d3fb" stroke="#13294b" stroke-width="2.1"/><rect x="78" y="1030" width="844" height="212" rx="5" fill="#ffffff" stroke="#13294b" stroke-width="3"/></g>
+<rect x="79.5" y="1031.5" width="841" height="40" fill="#a9d3fb" opacity="0.45"/>
+<text x="108" y="1057.2" font-size="24" font-weight="700" text-anchor="start" fill="#1b2a44">付録・巻末</text>
+<rect x="100" y="1088" width="800" height="40" rx="8" fill="#eef6ff" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)"/>
+<text x="118" y="1116" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">A タグ早見表</text>
+<text x="275.70000000000005" y="1115" font-size="18" font-weight="500" text-anchor="start" fill="#5a6a85">← 旧 付録 A</text>
+<rect x="100" y="1138" width="800" height="40" rx="8" fill="#f1f4f8" stroke="#13294b" stroke-width="2.2" stroke-dasharray="3 5"/>
+<text x="118" y="1166" font-size="23" font-weight="500" text-anchor="start" fill="#5a6a85">B ショートカット集</text>
+<text x="344.70000000000005" y="1165" font-size="18" font-weight="500" text-anchor="start" fill="#5a6a85">→ 002 PC操作基礎へ</text>
+<rect x="100" y="1188" width="800" height="40" rx="8" fill="#a9d3fb" stroke="#13294b" stroke-width="2.2" filter="url(#shadow)" stroke-dasharray="9 6"/>
+<text x="118" y="1216" font-size="23" font-weight="700" text-anchor="start" fill="#1b2a44">確認クイズ 10問</text>
+<text x="80" y="1274" font-size="20" font-weight="500" text-anchor="start" fill="#5a6a85">旧 第4章（デプロイ）は本教材から外し、研修後半の演習で扱う。</text>
+<g filter="url(#shadow)"><path d="M1000,554.6666666666666 V540.6666666666666 a4,4 0 0 1 4,-4 H1086 a4,4 0 0 1 4,4 V554.6666666666666 Z" fill="#a9d3fb" stroke="#13294b" stroke-width="2.1"/><rect x="1000" y="554.6666666666666" width="398" height="104" rx="5" fill="#f1f4f8" stroke="#13294b" stroke-width="3"/></g>
+<rect x="1001.5" y="556.1666666666666" width="395" height="48" fill="#a9d3fb" opacity="0.45"/>
+<text x="1030" y="587.3066666666666" font-size="20" font-weight="700" text-anchor="start" fill="#1b2a44">← 旧 Web開発入門 v1</text>
+<text x="1022" y="632.6666666666666" font-size="19" font-weight="500" text-anchor="start" fill="#5a6a85">第1〜3章、付録 A</text>
+<g filter="url(#shadow)"><path d="M1000,682.6666666666666 V668.6666666666666 a4,4 0 0 1 4,-4 H1086 a4,4 0 0 1 4,4 V682.6666666666666 Z" fill="#a9d3fb" stroke="#13294b" stroke-width="2.1"/><rect x="1000" y="682.6666666666666" width="398" height="104" rx="5" fill="#eef6ff" stroke="#13294b" stroke-width="3"/></g>
+<rect x="1001.5" y="684.1666666666666" width="395" height="48" fill="#a9d3fb" opacity="0.45"/>
+<text x="1030" y="715.3066666666666" font-size="20" font-weight="700" text-anchor="start" fill="#1b2a44">→ 004 インフラ入門</text>
+<text x="1022" y="760.6666666666666" font-size="19" font-weight="500" text-anchor="start" fill="#1b2a44">サーバーとデータセンター</text>
+<g filter="url(#shadow)"><path d="M1000,922.0 V908.0 a4,4 0 0 1 4,-4 H1086 a4,4 0 0 1 4,4 V922.0 Z" fill="#a9d3fb" stroke="#13294b" stroke-width="2.1"/><rect x="1000" y="922.0" width="398" height="104" rx="5" fill="#eef6ff" stroke="#13294b" stroke-width="3"/></g>
+<rect x="1001.5" y="923.5" width="395" height="48" fill="#a9d3fb" opacity="0.45"/>
+<text x="1030" y="954.64" font-size="20" font-weight="700" text-anchor="start" fill="#1b2a44">→ 005 DB入門</text>
+<text x="1022" y="1000.0" font-size="19" font-weight="500" text-anchor="start" fill="#1b2a44">SQL の基本</text>
+<g filter="url(#shadow)"><path d="M1000,1106.0 V1092.0 a4,4 0 0 1 4,-4 H1086 a4,4 0 0 1 4,4 V1106.0 Z" fill="#a9d3fb" stroke="#13294b" stroke-width="2.1"/><rect x="1000" y="1106.0" width="398" height="104" rx="5" fill="#eef6ff" stroke="#13294b" stroke-width="3"/></g>
+<rect x="1001.5" y="1107.5" width="395" height="48" fill="#a9d3fb" opacity="0.45"/>
+<text x="1030" y="1138.64" font-size="20" font-weight="700" text-anchor="start" fill="#1b2a44">→ 002 PC操作基礎</text>
+<text x="1022" y="1184.0" font-size="19" font-weight="500" text-anchor="start" fill="#1b2a44">付録 ショートカット</text>
+<rect x="60" y="1322" width="54" height="30" rx="6" fill="#eef6ff" stroke="#13294b" stroke-width="2.5"/>
+<text x="126" y="1345" font-size="22" font-weight="500" text-anchor="start" fill="#1b2a44">流用</text>
+<rect x="214.0" y="1322" width="54" height="30" rx="6" fill="#ffffff" stroke="#13294b" stroke-width="2.5" stroke-dasharray="9 6"/>
+<text x="280.0" y="1345" font-size="22" font-weight="500" text-anchor="start" fill="#1b2a44">改写（書き直す）</text>
+<rect x="500.0" y="1322" width="54" height="30" rx="6" fill="#a9d3fb" stroke="#13294b" stroke-width="2.5" stroke-dasharray="9 6"/>
+<text x="566.0" y="1345" font-size="22" font-weight="500" text-anchor="start" fill="#1b2a44">新規</text>
+<rect x="654.0" y="1322" width="54" height="30" rx="6" fill="#f1f4f8" stroke="#13294b" stroke-width="2.5" stroke-dasharray="3 5"/>
+<text x="720.0" y="1345" font-size="22" font-weight="500" text-anchor="start" fill="#1b2a44">この教材から外す</text>
+<text x="1024.0" y="1345" font-size="22" font-weight="500" text-anchor="start" fill="#1b2a44">移動（«move»）</text>
+<path d="M900,690 H954 V735 H997" fill="none" stroke="#13294b" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<path d="M900,974 H997" fill="none" stroke="#13294b" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<path d="M900,1158 H997" fill="none" stroke="#13294b" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<path d="M1000,585 H975 V356 H903" fill="none" stroke="#13294b" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<path d="M1000,607 H982 V590 H903" fill="none" stroke="#13294b" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<path d="M1000,629 H989 V874 H903" fill="none" stroke="#13294b" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+</svg>

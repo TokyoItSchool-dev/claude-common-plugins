@@ -27,3 +27,4 @@ commands/MajorLectureMaterials/	commands/MajorLectureMaterials/	-	mirror	-	-	-	7
 # exclude: CCP plugins/*/agents/*.md — HOME に対応物なし。CCP 単独で保守する
 # exclude: 上記以外の HOME の skills/ 配下すべて（ECC 等から取り込んだ外部由来スキル）
 # exclude: CDT の .claude/settings.json, .claude/hooks/, .github/ — HOME に対応物なし。CDT 単独で保守する
+# exclude: CCP plugins/docs/skills/uml-svg — HOME/TPS に対応物なし。CCP 単独で保守する

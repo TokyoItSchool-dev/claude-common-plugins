@@ -17,7 +17,7 @@
 | `core-dev` | 10 | 3 | 言語非依存の開発ワークフロー（規約・レビュー・TDD・セキュリティ・git・API 設計・テスト実行規律・オーケストレーション） |
 | `java-dev` | 5 | 1 | Java / Spring Boot の規約・パターン・セキュリティ・テスト・検証ループ |
 | `dotnet-dev` | 4 | 1 | C# / .NET / ASP.NET Core / EF Core の規約・パターン・セキュリティ・テスト |
-| `docs` | 7 | 1 | 技術文書作成（日本語ライティング、Markdown、HTML 設計書、Office 文書、HTML スライド） |
+| `docs` | 8 | 1 | 技術文書作成（日本語ライティング、Markdown、HTML 設計書、Office 文書、HTML スライド） |
 
 プラグインは個別にインストールでき、必要なものだけを有効化してよい。
 
@@ -70,6 +70,7 @@
 | `docs:japanese-tech-writing` | 日本語技術文書の整形、段落と論証の構成、論証の厳密さ、冗長の排除 |
 | `docs:markdown-conventions` | Markdown 出力時に必ず適用する記述規範（HTML 変換を前提とした空行ルール等） |
 | `docs:officecli` | `officecli` CLI による Office 文書（.docx/.xlsx/.pptx）の作成・解析・校正・修正 |
+| `docs:uml-svg` | UML 8 種を、編集できて拡大しても劣化しない手書き SVG で作図する（PNG 描画と記法チェックリストで検証）。構成案パッケージ図・画像からの SVG 再現・UML 以外の図は `/docs:uml-svg` の明示呼び出し時のみ |
 
 ## Available Agents
 
