@@ -1,4 +1,4 @@
-# diagram-svg
+# uml-svg
 
 図解を、編集可能な手書きSVGとして作るスキルです。画像の忠実な再現と、文章からの新規作図の両方に対応しています。
 描いたあとは、見た目と、分野ごとの記法の正しさを検証して修正します。
@@ -9,7 +9,7 @@
 ## 構成
 
 ```
-diagram-svg/
+uml-svg/
 ├── SKILL.md                    汎用の手順・レイアウト・描く順番・ハマりどころ
 ├── references/
 │   ├── uml.md                  UMLの記法チェックリストと図種ごとの組み立て方
@@ -35,7 +35,7 @@ SKILL.md は毎回読み込まれます。`references/` 以下は、必要な分
 
 ## 導入
 
-このスキルは `mori-claude-tools` マーケットプレイスの `docs` プラグインに含まれています。`docs` プラグインを導入すると `docs:diagram-svg` として使えるようになります。
+このスキルは `mori-claude-tools` マーケットプレイスの `docs` プラグインに含まれています。`docs` プラグインを導入すると `docs:uml-svg` として使えるようになります。
 
 ```
 claude plugin install docs@mori-claude-tools
@@ -44,7 +44,7 @@ claude plugin install docs@mori-claude-tools
 呼び出し方は2通りです。
 
 - 自動：「〜の図をSVGで作って」と頼むと、Claudeが判断して使います。
-- 明示：`/diagram-svg 会員登録のシーケンス図を作って` のように指定します。
+- 明示：`/uml-svg 会員登録のシーケンス図を作って` のように指定します。
 
 ## 動作に必要なもの
 

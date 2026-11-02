@@ -1,6 +1,6 @@
 ---
-name: diagram-svg
-description: UML 図（配置・コンポーネント・ステートマシン・アクティビティ・シーケンス・クラス・ユースケース・パッケージの 8 種）を描く依頼があった時だけ自動で使う。編集できて拡大しても劣化しない手書き SVG として作図し、青系フラットの部品ライブラリ diagsvg.py で描いたあと、PNG に描画して見た目を、記法チェックリストで正しさを検証する。「UML図を描いて」「クラス図をSVGで」「シーケンス図を作って」「配置図を作図して」と言われた時に使用。構成案パッケージ図（教材やモジュールの再編を 流用／改写／新規／外す で塗り分ける図）、画像からの SVG 再現、UML 以外の構造図・フロー図（ER 図・クラウド構成図・フローチャート等）にも対応するが、これらはユーザーが `/docs:diagram-svg` を明示的に呼んだ時だけ使い、自動では使用しない。HTML 設計書の本文にインライン図を埋め込む場合は使用不可 — `docs:html-design-doc` の SVG 規約に従うこと。PlantUML / Mermaid で描く指示がある場合も使用不可。
+name: uml-svg
+description: UML 図（配置・コンポーネント・ステートマシン・アクティビティ・シーケンス・クラス・ユースケース・パッケージの 8 種）を描く依頼があった時だけ自動で使う。編集できて拡大しても劣化しない手書き SVG として作図し、青系フラットの部品ライブラリ diagsvg.py で描いたあと、PNG に描画して見た目を、記法チェックリストで正しさを検証する。「UML図を描いて」「クラス図をSVGで」「シーケンス図を作って」「配置図を作図して」と言われた時に使用。構成案パッケージ図（教材やモジュールの再編を 流用／改写／新規／外す で塗り分ける図）、画像からの SVG 再現、UML 以外の構造図・フロー図（ER 図・クラウド構成図・フローチャート等）にも対応するが、これらはユーザーが `/docs:uml-svg` を明示的に呼んだ時だけ使い、自動では使用しない。HTML 設計書の本文にインライン図を埋め込む場合は使用不可 — `docs:html-design-doc` の SVG 規約に従うこと。PlantUML / Mermaid で描く指示がある場合も使用不可。
 ---
 
 # 図解をSVGで作図・再現する
@@ -17,7 +17,7 @@ description: UML 図（配置・コンポーネント・ステートマシン・
 ## 発動条件
 
 - 自動で使うのは UML 図（8 種）を描く依頼があった時だけ。
-- 構成案パッケージ図、画像からの SVG 再現、UML 以外の構造図・フロー図は、ユーザーが `/docs:diagram-svg` を明示的に呼んだ時だけ使う。依頼文に「図を描いて」とあるだけでは使わない。
+- 構成案パッケージ図、画像からの SVG 再現、UML 以外の構造図・フロー図は、ユーザーが `/docs:uml-svg` を明示的に呼んだ時だけ使う。依頼文に「図を描いて」とあるだけでは使わない。
 - HTML 設計書の本文に埋め込む図は `docs:html-design-doc` の SVG 規約に従い、このスキルは使わない。PlantUML / Mermaid の指示がある場合も使わない。
 
 ## 分野別ルール（必要なものだけ読む）
@@ -34,10 +34,10 @@ description: UML 図（配置・コンポーネント・ステートマシン・
 
 | ファイル | 用途 |
 |---|---|
-| `${CLAUDE_PLUGIN_ROOT}/skills/diagram-svg/scripts/diagsvg.py` | 部品ライブラリ。汎用部品とUML部品を収録 |
-| `${CLAUDE_PLUGIN_ROOT}/skills/diagram-svg/scripts/pkgplan.py` | 構成案パッケージ図の部品。`plan_diagram(spec, path)`（構成案）と `migration_diagram(spec, path)`（集約・移行）。高さ自動、矢印のレーン分け付き |
-| `${CLAUDE_PLUGIN_ROOT}/skills/diagram-svg/scripts/compare.py` | 元画像との4分割比較（再現のときだけ使う）。`python3 "${CLAUDE_PLUGIN_ROOT}/skills/diagram-svg/scripts/compare.py" out.svg original.png cmp.png` |
-| `${CLAUDE_PLUGIN_ROOT}/skills/diagram-svg/scripts/montage.py` | 複数のSVGを1枚の一覧画像にする。`python3 "${CLAUDE_PLUGIN_ROOT}/skills/diagram-svg/scripts/montage.py" montage.png out/*.svg` |
+| `${CLAUDE_PLUGIN_ROOT}/skills/uml-svg/scripts/diagsvg.py` | 部品ライブラリ。汎用部品とUML部品を収録 |
+| `${CLAUDE_PLUGIN_ROOT}/skills/uml-svg/scripts/pkgplan.py` | 構成案パッケージ図の部品。`plan_diagram(spec, path)`（構成案）と `migration_diagram(spec, path)`（集約・移行）。高さ自動、矢印のレーン分け付き |
+| `${CLAUDE_PLUGIN_ROOT}/skills/uml-svg/scripts/compare.py` | 元画像との4分割比較（再現のときだけ使う）。`python3 "${CLAUDE_PLUGIN_ROOT}/skills/uml-svg/scripts/compare.py" out.svg original.png cmp.png` |
+| `${CLAUDE_PLUGIN_ROOT}/skills/uml-svg/scripts/montage.py` | 複数のSVGを1枚の一覧画像にする。`python3 "${CLAUDE_PLUGIN_ROOT}/skills/uml-svg/scripts/montage.py" montage.png out/*.svg` |
 | `examples/uml/` | UML図8種の生成コード、レビュー記録、完成見本 |
 | `examples/package-plan/` | 構成案パッケージ図 2 種の生成コード、レビュー記録、完成見本 |
 
@@ -47,7 +47,7 @@ description: UML 図（配置・コンポーネント・ステートマシン・
    - 日本語フォントが使えることを確認する（Linux: `fc-list :lang=ja`、Windows: メイリオ / 游ゴシックが通常入っている。Noto Sans CJK JP を推奨）。
    - `pip install cairosvg pillow` でレンダラを入れる。`--break-system-packages` は、それを要求する Linux ディストリビューションでのみ付ける。
    - Windows では cairosvg に cairo のランタイム DLL が必要。`import cairosvg` が失敗する場合は、利用できる別のレンダラ（`rsvg-convert`、Inkscape CLI の `inkscape --export-type=png`、ヘッドレスブラウザなど）で SVG を PNG に変換する。`compare.py` と `montage.py` は cairosvg が必要。
-   - `${CLAUDE_PLUGIN_ROOT}/skills/diagram-svg/scripts/diagsvg.py` を作業ディレクトリへコピーするか、`${CLAUDE_PLUGIN_ROOT}/skills/diagram-svg/scripts` を `sys.path` に追加する。
+   - `${CLAUDE_PLUGIN_ROOT}/skills/uml-svg/scripts/diagsvg.py` を作業ディレクトリへコピーするか、`${CLAUDE_PLUGIN_ROOT}/skills/uml-svg/scripts` を `sys.path` に追加する。
 2. **分野ファイルを読む**：上の表に従う。
 3. **配置を決める**
    - **再現の場合**：キャンバスを元画像と同じピクセルサイズにする。元画像から、各要素の位置・大きさ・線の折れ点を読み取ってそのまま使う。
@@ -143,4 +143,4 @@ description: UML 図（配置・コンポーネント・ステートマシン・
 
 ## Origin
 
-Cowork 配下のプロトタイプ作成プロジェクト（diagram-svg）
+Cowork 配下のプロトタイプ作成プロジェクト（diagram-svg として作成、取り込み時に uml-svg へ改名）
