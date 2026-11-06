@@ -50,5 +50,6 @@ description: コードを書いた／変更した直後、共有ブランチへ�
 Before requesting review, ensure:
 
 - All automated checks (CI/CD) are passing
+- If CI does not run on the PR (the repository runs CI only after merge), the PR body must contain local test evidence instead, and the reviewer records CI as `NOT_CONFIGURED`. `NOT_CONFIGURED` and `UNKNOWN` are never treated as passing
 - Merge conflicts are resolved
 - Branch is up to date with target branch

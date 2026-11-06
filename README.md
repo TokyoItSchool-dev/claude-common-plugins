@@ -30,7 +30,7 @@
 | Skill | 用途 |
 | --- | --- |
 | `core-dev:api-design` | REST/HTTP API のリソース命名、HTTP メソッドとステータスコード、エラー応答、ページング、バージョニングの設計規範 |
-| `core-dev:changelog-commit` | CHANGELOG 更新・バージョンバンプ・コミット・タグ・push を一括実行する（原則 main ブランチ専用） |
+| `core-dev:changelog-commit` | CHANGELOG 更新・バージョンバンプ・コミット・タグ・push を一括実行する（原則 main ブランチ専用。main への直接 push を禁止するリポジトリではリリースブランチから PR を作成） |
 | `core-dev:code-review` | 変更差分を深刻度付きでレビューし、承認・警告・ブロックの可否を判断する |
 | `core-dev:config-sync` | HOME（`~/.claude`）・training-project-skills・claude-common-plugins の 3 拠点で CLAUDE.md / rules / skills / commands を同期し、差分を検査する |
 | `core-dev:coding-standards` | 命名、ファイル分割、エラー処理、入力検証など、コードを書く側の品質規約 |

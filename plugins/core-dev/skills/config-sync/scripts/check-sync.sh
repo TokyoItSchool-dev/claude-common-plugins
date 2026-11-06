@@ -12,6 +12,7 @@ MAP="$(dirname "$0")/../references/sync-map.tsv"
 
 fail=0
 hp=(); tp=(); cp=(); dp=()
+cdt_claude_class=variant
 
 compare() { # $1=src $2=dst $3=class -> prints status, returns 1 if mirror drift
   local a=$1 b=$2 cls=$3 n
@@ -50,12 +51,13 @@ while IFS=$'\t' read -r h t c ct cc d cd _note; do
   if [ "$c" != "-" ] && [ "$cc" != "-" ]; then
     cp+=("$c"); check CCP "$HOME_ROOT/$h" "$CCP_ROOT/$c" "$cc" "$h"
   fi
+  [ "$c" = "templates/CLAUDE.md" ] && [ "$d" = "CLAUDE.md" ] && [ "$cd" != "-" ] && cdt_claude_class=$cd
   if [ "$d" != "-" ] && [ "$cd" != "-" ]; then
     dp+=("$d"); check CDT "$HOME_ROOT/$h" "$CDT_ROOT/$d" "$cd" "$h"
   fi
 done < <(tr -d '\r' < "$MAP")
 
-check CDT "$CCP_ROOT/templates/CLAUDE.md" "$CDT_ROOT/CLAUDE.md" mirror "CLAUDE.md (CCP templates -> CDT)"
+check CDT "$CCP_ROOT/templates/CLAUDE.md" "$CDT_ROOT/CLAUDE.md" "$cdt_claude_class" "CLAUDE.md (CCP templates -> CDT)"
 
 show_status() { # $1=label $2=root, remaining args = pathspecs
   local label=$1 root=$2; shift 2
