@@ -7,12 +7,12 @@ description: HOME（~/.claude）・training-project-skills・claude-common-plugi
 
 ## 目的
 
-同じ内容を持つべき設定・スキル・コマンドを、HOME・TPS・CCP の3拠点の間で双方向に同期する。CDT だけは一方向で、CCP の `templates/CLAUDE.md` から CDT の `CLAUDE.md` へ同期する（HOME からはコピーしない）。
+同じ内容を持つべき設定・スキル・コマンドを、HOME・TPS・CCP の3拠点の間で双方向に同期する。CDT だけは一方向で、CCP の `templates/CLAUDE.md` から CDT の `CLAUDE.md` へ、意味編集で同期する（HOME からはコピーしない）。
 
 - HOME: `~/.claude`（git + jj 併置、bookmark `main`）
 - TPS: `training-project-skills`（git、`main`）
 - CCP: `claude-common-plugins`（git + jj 併置、`main`、プラグインマーケットプレイス）
-- CDT: `claude-dev-template`（git + jj 併置、`main`。チーム配布用リポジトリテンプレート。同期対象は CLAUDE.md のみで、CCP の `templates/CLAUDE.md` を同期元とする mirror）
+- CDT: `claude-dev-template`（git + jj 併置、`main`。チーム配布用リポジトリテンプレート。同期対象は CLAUDE.md のみで、CCP の `templates/CLAUDE.md` を共通部の同期元とする variant。CDT 固有のテンプレート節を持つ）
 
 実際のパスは `${CLAUDE_PLUGIN_ROOT}/skills/config-sync/scripts/check-sync.sh` の既定値、または環境変数 `CONFIG_SYNC_HOME` / `CONFIG_SYNC_TPS` / `CONFIG_SYNC_CCP` / `CONFIG_SYNC_CDT` で解決する。
 
@@ -34,11 +34,11 @@ description: HOME（~/.claude）・training-project-skills・claude-common-plugi
 
 1. `bash "${CLAUDE_PLUGIN_ROOT}/skills/config-sync/scripts/check-sync.sh"` を実行し、ペアごとのドリフト状況を得る（読み取り専用のためメインが直接実行してよい）。出力末尾の `git status --short` で各拠点の未コミット変更が見える。
 2. 同期方向を決める。未コミット変更がある側、または mtime が新しい側がソース。**両側に未コミット変更がある場合は作業を止めてユーザーに確認する。**
-3. mirror クラスのペアは `cp` でソースからターゲットへ上書きする（Haiku に委譲。CDT の CLAUDE.md は CCP の `templates/CLAUDE.md` から `cp` で上書きしてよい mirror で、HOME からはコピーしない。メインは `orchestration-core` スキルの方針どおり指示と受入判定のみ行う）。
-4. variant クラスのペアは、同じ意味の変更を当てつつ TSV の `notes` に記載された既知差分を保存する意味編集として Haiku / Sonnet に委譲する。**全文コピーで上書きしない。** CDT の CLAUDE.md は HOME の変種なので、HOME の CLAUDE.md を直接反映せず、CCP の `templates/CLAUDE.md` を更新してから CDT へ `cp` する（手順3）。 `skills/orchestration-core/` の委譲固定句を変更した場合は、CCP の `plugins/*/agents/*.md` の `## Output format` 節にも同等の行を手作業で入れる（HOME に対応物がないため自動同期されない）。
+3. mirror クラスのペアは `cp` でソースからターゲットへ上書きする（Haiku に委譲。CDT の CLAUDE.md は mirror ではなく variant のため、この手順の対象外。メインは `orchestration-core` スキルの方針どおり指示と受入判定のみ行う）。
+4. variant クラスのペアは、同じ意味の変更を当てつつ TSV の `notes` に記載された既知差分を保存する意味編集として Haiku / Sonnet に委譲する。**全文コピーで上書きしない。** CDT の CLAUDE.md は CCP の `templates/CLAUDE.md` の variant なので、HOME の CLAUDE.md を直接反映せず、CCP の `templates/CLAUDE.md` を更新してから、共通部の変更だけを意味編集で CDT へ反映し、CDT 固有のテンプレート節を保存する。`cp` で全文上書きしない。 `skills/orchestration-core/` の委譲固定句を変更した場合は、CCP の `plugins/*/agents/*.md` の `## Output format` 節にも同等の行を手作業で入れる（HOME に対応物がないため自動同期されない）。
 5. `bash "${CLAUDE_PLUGIN_ROOT}/skills/config-sync/scripts/check-sync.sh"` を再実行する。mirror ペアがすべて `IDENTICAL` になっていること。
 6. 変更した語句を各ターゲットで `grep` し、実際に反映されていることを確認する。
-7. 拠点ごとに `/changelog-commit` を提案する。CCP は触ったプラグインの `plugins/<plugin>/.claude-plugin/plugin.json` の `version` も手作業でバンプする。CDT は jj でコミットする。`docs/CHANGELOG.md` の先頭に `## [X.Y.Z]` 見出しを追加すると GitHub Release が作成されるため、CDT のコミットはユーザーへの提案にとどめ、自動では実行しない。
+7. 拠点ごとに `/changelog-commit` を提案する。CCP は触ったプラグインの `plugins/<plugin>/.claude-plugin/plugin.json` の `version` も手作業でバンプする。CDT は jj でコミットする。`docs/CHANGELOG.md` の先頭に `## [X.Y.Z]` 見出しを追加すると GitHub Release が作成される（CDT の `.github/workflows` で release.yml が有効な間）ため、CDT のコミットはユーザーへの提案にとどめ、自動では実行しない。
 
 ## 禁止事項
 

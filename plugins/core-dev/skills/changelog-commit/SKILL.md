@@ -1,6 +1,6 @@
 ---
 name: changelog-commit
-description: CHANGELOG 更新・バージョンバンプ・コミット・push を一括実行する（タグは major / minor または明示依頼時のみ）（原則 main ブランチ専用）。「リリースして」「CHANGELOG を更新してコミットして」「バージョンを上げて」と明示的に言われた時に使用。引数は `[major|minor|build] [説明(任意)]`。通常のコミットには使用不可 — `core-dev:git-workflow` を使用すること。他の作業の流れで暗黙に発動させない。
+description: CHANGELOG 更新・バージョンバンプ・コミット・push を一括実行する（タグは major / minor または明示依頼時のみ）（原則 main ブランチ専用。main への直接 push を禁止し統合ブランチを置くリポジトリでは、リリースブランチから PR を作成する）。「リリースして」「CHANGELOG を更新してコミットして」「バージョンを上げて」と明示的に言われた時に使用。引数は `[major|minor|build] [説明(任意)]`。通常のコミットには使用不可 — `core-dev:git-workflow` を使用すること。他の作業の流れで暗黙に発動させない。
 argument-hint: "[major|minor|build] [説明(任意)]"
 ---
 
@@ -13,6 +13,7 @@ git履歴から変更内容を収集し、機能単位でまとめた`docs/CHANG
 | モード | 発動条件 | 動作 |
 |--------|---------|------|
 | **mainモード（既定）** | mainブランチ | 実行時点までの未記録の変更（マージ済みブランチの変更を含む）を取り込み、CHANGELOG作成・バージョンバンプ（既定build）・コミット・push（major/minor・明示依頼時のみタグも作成） |
+| **リリースPRモード**（mainモード・ブランチモードより優先） | リポジトリの指示が main への直接 push を禁止している、または統合ブランチ（develop 等）を定めている | mainモードは実行しない。リリースブランチ（例: `claude/release-vX.Y.Z`）にCHANGELOG・バージョンのコミットを作成し、統合ブランチ（統合ブランチがなければmain）へのPRを作成する。タグは作成しない |
 | **ブランチモード** | main以外＋明示的な呼び出し | ユーザーに確認のうえ、(a) mainへマージして恒例のmainモード処理（CHANGELOG作成等）を実行、または (b) PR作成のみ（CHANGELOG処理なし） |
 
 ## 呼び出し方
@@ -41,7 +42,9 @@ jj root --ignore-working-copy
 
 履歴参照系コマンド（`git log`、`git branch --show-current`）はcolocatedリポジトリでもgitのまま使用する。書き込み系操作（ステージング・コミット・タグ・push）のみjjモードで切り替える。
 
-続いてブランチを判定する:
+続いて、リポジトリの指示（`CLAUDE.md`、`.claude/rules/`、`CONTRIBUTING.md`）が main への直接 push を禁止している、または統合ブランチ（develop 等）を定めているか確認する。該当する場合は、現在のブランチに関係なく「リリースPRモード」（次々節）で実行する。
+
+該当しない場合は、ブランチを判定する:
 
 ```bash
 git branch --show-current
@@ -51,6 +54,38 @@ jjモードでこれが空文字を返す場合（detached HEAD）は、`jj log 
 
 - **main** → mainモードで実行（Step 1 へ）
 - **main以外** → ユーザーが明示的に本スキルを呼び出した場合のみブランチモードへ（次節へ）。暗黙の呼び出しであれば「mainブランチ以外では実行しません」と報告して終了する
+
+---
+
+## リリースPRモード（mainへの直接pushを禁止するリポジトリ）
+
+リポジトリの指示（`CLAUDE.md`、`.claude/rules/`、`CONTRIBUTING.md` 等）が main への直接 push を禁止している、または統合ブランチ（develop 等）を定めている場合は、mainモードを実行しない。指示がないリポジトリでは本節を適用せず、従来どおりmainモードで実行する。
+
+1. 統合ブランチ（なければmain）の最新から、リリースブランチ（例: `claude/release-vX.Y.Z`）を作成する
+2. Step 1〜5 と同じ手順でCHANGELOG作成・バージョンバンプを行い、リリースブランチにコミットする（6-1・6-2）
+3. リリースブランチをpushし、統合ブランチ（統合ブランチがなければmain）を base にPRを作成する。マージはしない
+4. タグは作成しない。6-3（タグ）と 6-4（main を動かす push）の手順は実行しない。バンプ種別が major / minor でも同様
+
+gitモード:
+
+```bash
+git switch -c claude/release-vX.Y.Z origin/<統合ブランチ>
+# ... Step 1〜5 と 6-1・6-2 でコミット
+git push -u origin claude/release-vX.Y.Z
+gh pr create --base <統合ブランチ>
+```
+
+jjモード:
+
+```bash
+jj new <統合ブランチ>
+# ... Step 1〜5 と 6-1・6-2 でコミット
+jj bookmark create claude/release-vX.Y.Z -r @-
+jj git push --bookmark claude/release-vX.Y.Z
+gh pr create --base <統合ブランチ> --head claude/release-vX.Y.Z
+```
+
+統合ブランチからmainへ反映するPRやタグ・リリースの作成は、リポジトリの指示に従い人間が行う。
 
 ---
 
@@ -65,6 +100,8 @@ main以外のブランチです。どちらを実行しますか？
 ```
 
 ### 選択1: mainへマージ
+
+リポジトリの指示がmainへの直接pushを禁止している、または統合ブランチを定めている場合、この選択肢は提示せず、選択2（PR作成）のみを提示する。
 
 未コミットの変更があれば先にコミットするようユーザーに確認する。その後:
 
@@ -84,7 +121,7 @@ PRを作成して終了する（CHANGELOG・バージョン・タグの処理は
 
 ```bash
 git push -u origin {ブランチ名}
-gh pr create --base main
+gh pr create --base <統合ブランチ（リポジトリが定めている場合）、なければ main>
 ```
 
 PRタイトル・本文はブランチのコミット履歴から要約して生成する。作成したPRのURLを報告して終了する。
@@ -330,16 +367,16 @@ jj git push
 ```
 ## 完了
 
-- モード: main / ブランチ（マージ後にmain処理） / ブランチ（PR作成のみ）
+- モード: main / リリースPR / ブランチ（マージ後にmain処理） / ブランチ（PR作成のみ）
 - VCS: git / jj
 - バージョン: X.Y.Z → A.B.C
 - 更新ファイル: docs/CHANGELOG.md, package.json
 - 対象コミット数: N件
 - コミット: 完了 ✓
 - push: 完了 ✓ / スキップ（リモートなし）
-- タグ: vA.B.C（push済み・リモート到達確認済み） / vA.B.C（Actions の Release ワークフローで作成・run URL・リモート到達確認済み） / なし（buildのため未作成）
+- タグ: vA.B.C（push済み・リモート到達確認済み） / vA.B.C（Actions の Release ワークフローで作成・run URL・リモート到達確認済み） / なし（buildのため未作成） / なし（リリースPRモード）
 - リリース: タグpushによりGitHub ActionsのリリースワークフローがRelease作成を実行（該当ワークフローがある場合） / workflow_dispatch で起動した Release ワークフローの同一 run 内でRelease作成・ビルドを実行（run URL・結論 success） / なし（タグ未作成のためワークフロー未起動）
-- PR: {URL}（PR作成のみの場合）
+- PR: {URL}（リリースPRモード・PR作成のみの場合）
 ```
 
 ---
@@ -377,4 +414,6 @@ jj git push
 | jjモードでブランチ名が取得できない（detached HEAD） | bookmarkから特定するかユーザーに確認 |
 | タグの push が 403 で拒否される（クラウドセッション、タグ作成時） | Release ワークフローの workflow_dispatch でタグを作成（6-3 参照） |
 | release.yml が dispatch でのタグ作成に未対応 | ローカルからタグを push するよう案内して終了（6-3 のコマンドを提示） |
+| リリースブランチ（`claude/release-vX.Y.Z`）が既に存在する | 再利用するか別名にするかユーザーに確認する。force push はしない |
+| リリースPRモードのリポジトリでユーザーがタグを明示的に依頼した | 断る。タグとリリースは人間が作成する |
 | dispatch した run が失敗 | ログを確認して報告。同じ version で再 dispatch しない（既存タグは拒否される） |

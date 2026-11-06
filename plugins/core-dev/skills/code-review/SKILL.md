@@ -49,6 +49,7 @@ description: コードを書いた／変更した直後、共有ブランチへ�
 
 Before requesting review, ensure:
 
-- All automated checks (CI/CD) are passing
+- All automated checks (CI/CD) are passing (when CI runs on the PR). CI status values: `PASS`, `FAILED`, `UNKNOWN` (could not confirm), `NOT_CONFIGURED` (CI does not run on this PR). Only `PASS` counts as passing
+- If CI does not run on the PR (the repository runs CI only after merge), the PR body must contain local test results and the independent review result, and the reviewer records CI as `NOT_CONFIGURED`
 - Merge conflicts are resolved
 - Branch is up to date with target branch
