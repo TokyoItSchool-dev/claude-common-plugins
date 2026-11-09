@@ -1,0 +1,65 @@
+{
+  "title": "AIで会議の記録を早くする",
+  "css": ".ct-ex td { white-space: nowrap; }\n",
+  "slides": [
+    {
+      "type": "cover",
+      "title": "AIで会議の記録を早くする",
+      "sub": "部門課題に効くAIを見つけ、部下に検討を指示する",
+      "il": ["boss", "robot"]
+    },
+    {
+      "type": "flow",
+      "title": "議事録：部門課題とBefore / After",
+      "icon": "file",
+      "issue": {"il": ["staff", "docs"], "text": "議事録の作成に時間がかかる"},
+      "aria": "Before：担当者が録音を聞き直し、要点をまとめ、決定事項を整理し、議事録を配る。After：AIが要点と決定事項の下書きを作り、担当者が録音と照合して確定する",
+      "font": 28,
+      "rows": [
+        {"key": "before", "label": "Before", "sub": "導入前", "box_h": 130, "steps": [
+          {"kind": "hu", "lines": ["録音を聞き直す"]},
+          {"kind": "hu", "lines": ["要点をまとめる"]},
+          {"kind": "hu", "lines": ["決定事項を整理"]},
+          {"kind": "hu", "lines": ["議事録を配る"]}
+        ]},
+        {"key": "after", "label": "After", "sub": "導入後", "box_h": 130, "steps": [
+          {"kind": "hu", "lines": ["録音をAIに渡す"]},
+          {"kind": "ai", "lines": ["要点を", "下書きする"]},
+          {"kind": "ai", "lines": ["決定事項を", "一覧にする"]},
+          {"kind": "hu", "lines": ["録音と照合して", "確定する"], "em": true}
+        ]}
+      ]
+    },
+    {
+      "type": "html",
+      "title": "チャットAIとAIエージェントの違い",
+      "icon": "bot",
+      "cls": "split-b",
+      "body": "<p class=\"msg fx-in\"><svg class=\"ico\" aria-hidden=\"true\"><use href=\"#i-bot\"/></svg><span>回答から、<b>作業</b>へ</span></p>\n<table class=\"ct ct-ex fx-in\" style=\"--d:.15s\"><thead><tr><th>観点</th><th>チャットAI</th><th class=\"ag\">AIエージェント</th></tr></thead><tbody>\n<tr><th>何をするか</th><td>質問に回答する</td><td class=\"ag\">作業を進める</td></tr>\n<tr><th>人間の関わり</th><td>結果を読む</td><td class=\"ag\">承認の工程で確認する</td></tr>\n<tr><th>リスクの管理</th><td>回答を確認する</td><td class=\"ag\">権限と承認で制限する</td></tr></tbody></table>\n<div class=\"card-hu fx-in\" style=\"--d:.3s\" data-hl=\"hu\" data-hl-btn=\"hu\" role=\"button\" tabindex=\"0\" aria-pressed=\"false\" aria-label=\"人間（担当者）の確認を強調\"><h3><svg class=\"av\" aria-hidden=\"true\"><use href=\"#il-staff\"/></svg>人間（担当者）の確認</h3><p>送信の前に、宛先と内容を確認して承認</p></div>\n<p class=\"hint\"><svg class=\"ico\" aria-hidden=\"true\"><use href=\"#i-pointer\"/></svg>人間の確認をクリックすると強調</p>"
+    },
+    {
+      "type": "q",
+      "title": "議事録：問いかけ・回答例",
+      "icon": "file",
+      "theme": {"label": "① 会議の記録", "sub": "例：定例会議の議事録", "icon": "file"},
+      "qs": ["記録づくりに時間がかかる会議は？", "AIが下書きしたら、流れと役割はどう変わる？", "組織に何が良い？ 部下に何を検討させる？"],
+      "ans": [["対象課題", "定例会議の議事録が配布まで3日かかる"], ["AIの能力", "要約と決定事項の抽出"], ["誰に・何を・いつまでに", "〇〇課長に、下書きさせる範囲と確定する担当者を〇月までに整理させる"]],
+      "bad": "「議事録をAIで自動化して」",
+      "adds": ["AIに下書きさせる範囲", "録音と照合して確定する担当者"],
+      "closing": "<span class=\"tag tag-pa\">参加者（判断者）</span>自部門に最も効くテーマを1件選ぶ"
+    }
+  ],
+  "worksheet": {
+    "title": "AI導入を検討させるテーマ候補",
+    "inst": "<b>1</b>スライドの Q1〜Q3 に答える<b>2</b>回答例と比べて1か所直す<b>3</b>1件を○で選ぶ",
+    "cols": [
+      {"q": "Q1", "icon": "pin", "head": "どの業務の課題か", "small": "対象課題", "w": 16},
+      {"q": "Q2", "icon": "repeat", "head": "流れと役割はどう変わる？", "small": "AIがすること・人に残ること", "w": 21},
+      {"group": "<svg class=\"wi\" aria-hidden=\"true\"><use href=\"#i-trend\"/></svg><span class=\"qn\">Q3</span>組織に何が良い？ 部下に何を検討させる？", "head": "組織に何が良い？", "w": 14},
+      {"group": "<svg class=\"wi\" aria-hidden=\"true\"><use href=\"#i-trend\"/></svg><span class=\"qn\">Q3</span>組織に何が良い？ 部下に何を検討させる？", "head": "部下に何を検討させる？", "small": "誰に・何を・いつまでに", "w": 15},
+      {"icon": "shield", "head": "判断前の確認事項", "small": "情報管理・権限・承認・費用", "w": 13}
+    ],
+    "check": ["Q1 対象の業務と課題が具体的", "Q2 AIと人の役割の変化が分かる", "Q3 組織として良くなることがある", "指示が「誰に・何を・いつまでに」", "AIに任せる範囲と、確認する担当者を書いた", "判断前の確認事項を挙げた"],
+    "footer": "研修内では導入承認を行わない。回収しない。持ち帰り、部下への検討指示に使う。"
+  }
+}

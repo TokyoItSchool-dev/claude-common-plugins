@@ -71,6 +71,7 @@
 | `docs:markdown-conventions` | Markdown 出力時に必ず適用する記述規範（HTML 変換を前提とした空行ルール等） |
 | `docs:officecli` | `officecli` CLI による Office 文書（.docx/.xlsx/.pptx）の作成・解析・校正・修正 |
 | `docs:uml-svg` | UML 8 種を、編集できて拡大しても劣化しない手書き SVG で作図する（PNG 描画と記法チェックリストで検証）。構成案パッケージ図・画像からの SVG 再現・UML 以外の図は `/docs:uml-svg` の明示呼び出し時のみ |
+| `docs:workshop-slides` | 研修設計書から、段階表示・クリック強調・回答例表示・タイマー付きのインタラクティブな HTML スライド、手書き用ワークシート、概要 HTML を作って検証する |
 
 ## Available Agents
 
