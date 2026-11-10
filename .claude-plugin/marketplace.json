@@ -23,7 +23,7 @@
     {
       "name": "docs",
       "source": "./plugins/docs",
-      "description": "Technical writing and documentation workflows: Japanese tech writing, Markdown conventions, HTML design docs, Office document tooling, HTML slides, hand-written SVG diagrams (UML, package plans), workshop slides"
+      "description": "Technical writing and documentation workflows: Japanese tech writing, Markdown conventions, HTML design docs, Office document tooling, HTML slides, hand-written SVG diagrams (UML, package plans)"
     }
   ]
 }
