@@ -92,6 +92,8 @@ def get_repository(request: Request) -> InMemoryProjectRepository:
     return repository
 ```
 
+The example shows only the dependencies. A path operation takes settings the same way as the others: `Annotated[Settings, Depends(get_settings)]`.
+
 - Declare dependencies with `Annotated[T, Depends(fn)]`, which the FastAPI documentation prefers, and give repeated ones a name (`Now = Annotated[datetime, Depends(get_now)]`).
 - Read settings with `pydantic-settings` through a cached `get_settings()` dependency, not with `os.environ` in handlers. Settings classes validate types, so a non-numeric `APP_STALE_THRESHOLD_DAYS` raises a validation error when the settings are first read instead of producing a wrong value. To fail at startup, call `get_settings()` in `lifespan`.
 - Do not put secrets as default values in the settings class or in a committed `.env` file. Keep `.env` in `.gitignore`.
@@ -185,7 +187,7 @@ Follow the FastAPI documentation on concurrency:
 - The stack design uses SQLite by default (including for tests) and PostgreSQL as an option.
 - Build SQL with bound parameters (`cursor.execute("SELECT ... WHERE id = ?", (project_id,))` for `sqlite3`, `%s` for psycopg), never with f-strings or `+`.
 - Provide the connection or session through a dependency created from the lifespan's resources, so that tests can replace it.
-- PostgreSQL is installed but not started in a Claude Code cloud session. When the project uses it, start it with `service postgresql start` before tests (the stack design puts this in the SessionStart hook and in the preparation line of `.claude/rules/stack.md`).
+- PostgreSQL is installed but not started in a Claude Code cloud session. When the project uses it, start it with `service postgresql start` before tests (if the project defines them, the stack design puts this in the SessionStart hook and in the preparation line of `.claude/rules/stack.md`).
 
 ## Anti-Patterns to Avoid
 

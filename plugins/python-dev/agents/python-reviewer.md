@@ -14,7 +14,7 @@ Review the diff or files you are given: `*.py`, `pyproject.toml`, `uv.lock`, `.p
 When invoked without a file list:
 
 1. Run `git diff -- '*.py' 'pyproject.toml' 'uv.lock' '.python-version'` to see recent changes.
-2. If `pyproject.toml` exists, run `uv run --locked ruff check .`, `uv run --locked ruff format --check .`, `uv run --locked mypy .`, and `uv run --locked pytest`, and include failures as findings. Run `uv run --locked pip-audit --skip-editable` when dependencies changed. Do not run `uv add`, `uv lock`, `ruff --fix`, `ruff format` without `--check`, or any other command that changes files.
+2. If `pyproject.toml` exists, run `uv run --locked ruff check .`, `uv run --locked ruff format --check .`, `uv run --locked mypy .`, and `uv run --locked pytest`, and include failures as findings. Run `uv run --locked pip-audit --skip-editable` when dependencies changed. Do not run `uv add`, `uv lock`, `ruff --fix`, `ruff format` without `--check`, or any other command that changes source files. Writes to `.venv/` and to tool cache directories by the check commands above are allowed.
 
 ## Checklist
 
@@ -24,7 +24,7 @@ When invoked without a file list:
 - Request input used without a Pydantic model or `Path`/`Query` constraints; request models without `extra="forbid"`
 - Response models that expose internal fields (password hashes, tokens), or the input model or database row returned as the response
 - Stack traces, exception text, SQL errors, or internal paths in API responses; secrets or request bodies written to logs
-- `subprocess` with `shell=True` or `pickle`/`yaml.load` on untrusted data
+- `subprocess` with `shell=True` or `pickle`/`yaml.load` on untrusted data (`python-dev:python-conventions`)
 
 ### HIGH — Types and Errors
 - Missing annotations, `Any` on external data, or bare `# type: ignore` (`python-dev:python-conventions`)

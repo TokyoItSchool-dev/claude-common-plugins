@@ -62,7 +62,7 @@ The stack check script (`scripts/stack-check.sh` in a repository made from the t
 #!/bin/bash
 set -euo pipefail
 if [ ! -f pyproject.toml ]; then
-  echo "::warning::pyproject.toml がないため検査を省略します"
+  echo "::warning::pyproject.toml not found; skipping checks"
   exit 0
 fi
 uv run --locked ruff check .
@@ -71,6 +71,8 @@ uv run --locked mypy .
 uv run --locked pytest
 uv run --locked pip-audit --skip-editable
 ```
+
+The script name comes from the project template. A project without it runs the same commands directly.
 
 - `ruff format --check` and `--locked` are additions to the design's example; `--skip-editable` stops pip-audit from reporting the project itself, which uv installs as an editable package and which is not on PyPI (checked with pip-audit 2.10.1).
 - With no arguments, `pip-audit` audits the environment it runs in, so `uv run pip-audit` audits the project's `.venv/`. It exits with code 1 when it finds a known vulnerability.
@@ -96,6 +98,7 @@ plugins = ["pydantic.mypy"]
 - Annotate the parameters and return type of every function, including tests (`-> None`) and fixtures.
 - Write `X | None`, `list[str]`, and `dict[str, int]`, not `Optional[X]`, `List`, or `Dict`. Import abstract types from `collections.abc` (`Iterator`, `Callable`, `Sequence`).
 - Do not use `Any` for data whose shape you know. Data from outside the process (request bodies, JSON files, environment variables, responses from other services) is validated with a Pydantic model or `TypeAdapter` before use; see `fastapi-patterns`.
+- Do not pass untrusted input to `subprocess` with `shell=True`. Do not load untrusted data with `pickle` or `yaml.load`; use `yaml.safe_load`.
 - Do not use a bare `# type: ignore`. When an ignore is unavoidable, name the error code and the reason on the same line: `# type: ignore[attr-defined]  # library has no stubs`.
 - Use `datetime` values with a time zone (`datetime.now(UTC)`, `datetime(2026, 1, 1, tzinfo=UTC)`). A naive `datetime` cannot be compared with an aware one.
 
@@ -150,6 +153,7 @@ def is_stale(last_updated_at: datetime, now: datetime, threshold_days: int) -> b
 | `json.loads(...)` result used as a dict without validation | Validate with a Pydantic model or `TypeAdapter` |
 | `datetime.now()` inside business logic, or naive datetimes | Pass `now: datetime`; use `UTC` |
 | `except Exception: pass` | Catch specific exceptions; let others reach the handler |
+| `subprocess` with `shell=True` on untrusted input, or `pickle` / `yaml.load` on untrusted data | Pass an argument list without `shell=True`; use `yaml.safe_load`, or a Pydantic-validated format such as JSON |
 | Bare `# type: ignore` | `# type: ignore[code]` with a reason |
 
 ## Recommended Hooks (configure in your project settings)
