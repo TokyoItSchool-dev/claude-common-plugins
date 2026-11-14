@@ -92,7 +92,7 @@ app.onError((error, c) => {
 
 - Run D1 migrations locally with `wrangler d1 migrations apply <db> --local`. Without `--local`, the command changes the remote database.
 - Regenerate binding types with `wrangler types` after changing `wrangler.jsonc`.
-- Do not deploy from a Claude Code cloud session. The deployment hosts are not on the session's network allowlist; deploy from outside the cloud session.
+- Do not deploy from a Claude Code cloud session. `wrangler deploy` needs Cloudflare's API hosts, which a cloud session's default network allowlist does not include, and deployment is not an automatic AI action. Deploy after the merge, as a human operation or from an external pipeline, outside the cloud session.
 
 ## Anti-Patterns to Avoid
 
@@ -109,4 +109,4 @@ app.onError((error, c) => {
 
 ## Origin
 
-Written for this plugin (no `~/.claude` source was available). Rules come from the TypeScript web stack (S1, Hono) in the claude-portfolio-dashboard design documents (`docs/design/otw-tech-stack-research.md` 4.2, 5.2, 6.2; `docs/design/otw-template-stack-design.md` 4.4 for "do not deploy from the cloud session") and from the claude-portfolio-dashboard Worker (`src/worker/index.ts`, `src/worker/admin/routes.ts`, `src/worker/admin/validation.ts`, `eslint.config.js`). The section layout follows `dotnet-dev:aspnet-patterns`.
+Written for this plugin (no `~/.claude` source was available). Rules come from the stack design for the TypeScript web stack (S1, Hono) and from the Worker of the TypeScript / React / Hono / Vitest codebase of claude-portfolio-dashboard (routes, validation, and ESLint configuration). The section layout follows `dotnet-dev:aspnet-patterns`.

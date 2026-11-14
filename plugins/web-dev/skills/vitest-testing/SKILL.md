@@ -11,21 +11,21 @@ The TDD cycle and the coverage target (80%) are in `core-dev:tdd-testing`. How t
 
 | Tool | Purpose |
 |---|---|
-| **Vitest** | Test runner and assertions (`describe`, `it`, `expect`, `vi`). Needs Node 22.12.0 or later |
+| **Vitest** | Test runner and assertions (`describe`, `it`, `expect`, `vi`). Node version floor: see `typescript-conventions` |
 | **Hono `app.request`** | API tests without starting a server |
 | **@testing-library/react** + **jsdom** | React component tests |
-| **@cloudflare/vitest-plugin** | Tests that run inside the Workers runtime with local D1 (Miniflare) |
+| **@cloudflare/vitest-plugin** | Tests that run inside the Workers runtime with local D1 (Miniflare). The `cloudflareTest` plugin below is the API of version 1.8.0 (the version the source codebase uses); check the installed version's documentation when it differs |
 
 ## Test Organization
 
 - Put the test next to the code it tests: `stale.ts` and `stale.test.ts`, `App.tsx` and `App.test.tsx`.
 - Put shared builders and helpers in a `test-helpers.ts` or a `test/` directory next to the code, and JSON fixtures under `test/fixtures/`.
 - Name `describe` after the unit under test, and name each `it` after the behavior it checks, not after the implementation.
-- When a test checks an acceptance criterion, start the test name with its ID (`AC-033: ...`) so that the criterion can be traced to the test.
+- When a test checks an acceptance criterion, start the test name with its ID (`AC-001: ...`) so that the criterion can be traced to the test.
 
 ```ts
 describe("isStale", () => {
-  it("AC-033: becomes stale when the last update is at least the threshold old", () => {
+  it("AC-001: becomes stale when the last update is at least the threshold old", () => {
     // Arrange
     const now = new Date("2026-11-20T00:00:00Z");
 
@@ -177,11 +177,11 @@ vi.mock("./navigation", async (importOriginal) => ({
 npm test                                   # vitest run (all projects, once)
 npx vitest run src/domain/stale.test.ts    # one file
 npx vitest run --project web               # one project
-npx vitest run -t "AC-033"                 # tests whose name matches
+npx vitest run -t "AC-001"                 # tests whose name matches
 ```
 
 Run them through `core-dev:test-run-discipline` (`run-tests.sh npm test`) and report the result as that skill specifies.
 
 ## Origin
 
-Written for this plugin (no `~/.claude` source was available). Rules come from the TypeScript web stack (S1, Vitest and Hono testing) in the claude-portfolio-dashboard design documents (`docs/design/otw-tech-stack-research.md` 4.2 and 6.2; `docs/design/otw-template-stack-design.md` 4.4 and 5.1) and from the claude-portfolio-dashboard tests (`vitest.config.ts`, `src/domain/*.test.ts`, `src/worker/admin/routes.test.ts`, `src/web/ErrorBoundary.test.tsx`, `src/web/auth/AccountMenu.test.tsx`, `src/web/test/render.tsx`). AC IDs in test names follow the `AC-001` numbering of `.claude/rules/dashboard-contract.md` 4. The section layout follows `dotnet-dev:dotnet-testing`.
+Written for this plugin (no `~/.claude` source was available). Rules come from the stack design for the TypeScript web stack (S1, Vitest and Hono testing) and from the tests and Vitest configuration of the TypeScript / React / Hono / Vitest codebase of claude-portfolio-dashboard (Vitest 5.1, `@cloudflare/vitest-plugin` 1.8.0). AC IDs in test names follow the `AC-001` numbering used in Issues. The section layout follows `dotnet-dev:dotnet-testing`.

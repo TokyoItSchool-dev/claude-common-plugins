@@ -62,6 +62,7 @@ export function useApiData<T>(load: (signal: AbortSignal) => Promise<T>, key: st
           setState({ key, value: { kind: "failed", message } });
         }
       });
+    // `load` is left out on purpose: callers pass a new function on every render, so listing it would refetch on every render. The request is keyed by `key`.
     return () => controller.abort();
   }, [key]);
 
@@ -125,4 +126,4 @@ class Boundary extends Component<BoundaryProps, BoundaryState> {
 
 ## Origin
 
-Written for this plugin (no `~/.claude` source was available). Rules come from the TypeScript web stack (S1, React + Vite) in the claude-portfolio-dashboard design documents (`docs/design/otw-tech-stack-research.md` 5.2) and from the claude-portfolio-dashboard SPA (`src/web/main.tsx`, `src/web/useApiData.ts`, `src/web/api.ts`, `src/web/ErrorBoundary.tsx`, `tsconfig.web.json`, `vite.config.ts`, and `.claude/rules/dashboard-contract.md` 6.2 for status display). The security items follow the output-encoding and secret-management items of `dotnet-dev:dotnet-security` and `dotnet-dev:dotnet-reviewer`. The research document notes that the React official documentation was not retrieved; the rules here are limited to what the reference codebase does.
+Written for this plugin (no `~/.claude` source was available). Rules come from the stack design for the TypeScript web stack (S1, React + Vite) and from the SPA of the TypeScript / React / Hono / Vitest codebase of claude-portfolio-dashboard (entry point, data-loading hook, API client, error boundary, and the TypeScript and Vite configuration). The security items follow the output-encoding and secret-management items of `dotnet-dev:dotnet-security` and `dotnet-dev:dotnet-reviewer`. The research document notes that the React official documentation was not retrieved; the rules here are limited to what the reference codebase does.

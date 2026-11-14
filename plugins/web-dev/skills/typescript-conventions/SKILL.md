@@ -10,9 +10,9 @@ Language-agnostic rules (naming, file size, immutability, error handling, input 
 ## Package and Tooling
 
 - Use npm. Commit `package-lock.json` and install with `npm ci`.
-- Do not use bun. Claude Code cloud sessions route traffic through a proxy that bun does not work with.
+- Do not use bun in a Claude Code cloud session. The Claude Code documentation reviewed for the stack design lists a known proxy compatibility problem between bun and the session's network proxy; recheck it against the current documentation before relaxing this rule.
 - Set `"type": "module"` in `package.json` and write ES modules only.
-- Declare the Node version in `engines.node`. Vitest needs Node 22.12.0 or later; check with `node -v`.
+- Declare the Node version in `engines.node`. Vitest needs Node 22.12.0 or later (the requirement recorded in the stack design; a newer Vitest major version can raise it); check with `node -v`.
 - Put every check command in `package.json` scripts so that local runs and CI call the same commands:
 
 ```json
@@ -172,4 +172,4 @@ These are suggestions to wire up as PostToolUse/Stop hooks in your own settings,
 
 ## Origin
 
-Written for this plugin (no `~/.claude` source was available). Rules come from the TypeScript web stack (S1) in the claude-portfolio-dashboard design documents (`docs/design/otw-template-stack-design.md` 4.4 and 5.1, `docs/design/otw-tech-stack-research.md` 4.2 and 6.2) and from the configuration of the claude-portfolio-dashboard repository (`tsconfig*.json`, `eslint.config.js`, `.prettierrc.json`, `package.json`, `src/web/api.ts`, `src/web/useApiData.ts`). The section layout follows `dotnet-dev:dotnet-conventions`.
+Written for this plugin (no `~/.claude` source was available). Rules come from the stack design for the TypeScript web stack (S1) and from the TypeScript / React / Hono / Vitest codebase of claude-portfolio-dashboard (its tsconfig, ESLint, Prettier, and package configuration and its API client code). The section layout follows `dotnet-dev:dotnet-conventions`.
