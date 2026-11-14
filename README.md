@@ -6,7 +6,7 @@
 
 このリポジトリは、これまで各自の `~/.claude` に置かれていた開発規約・レビュー観点・文書作成規範を、Claude Code のプラグインとして再構成し、チームで共有できるようにしたものである。
 
-配布単位は 5 プラグイン。いずれも skills と agents だけで構成され、hooks・MCP サーバー・実行バイナリは同梱していない。したがってインストールしてもローカル環境で勝手にコマンドが走ることはなく、Windows 固有の実行系にも依存しない。
+配布単位は 6 プラグイン。いずれも skills と agents だけで構成され、hooks・MCP サーバー・実行バイナリは同梱していない。したがってインストールしてもローカル環境で勝手にコマンドが走ることはなく、Windows 固有の実行系にも依存しない。
 
 移行の経緯・出典・既知の劣化については [MIGRATION.md](MIGRATION.md) を参照。
 
@@ -18,6 +18,7 @@
 | `java-dev` | 5 | 1 | Java / Spring Boot の規約・パターン・セキュリティ・テスト・検証ループ |
 | `dotnet-dev` | 4 | 1 | C# / .NET / ASP.NET Core / EF Core の規約・パターン・セキュリティ・テスト |
 | `web-dev` | 4 | 1 | TypeScript / React + Vite / Hono の規約・パターン、Vitest のテスト |
+| `python-dev` | 3 | 1 | Python / uv / FastAPI / Pydantic の規約・パターン、pytest のテスト |
 | `docs` | 8 | 1 | 技術文書作成（日本語ライティング、Markdown、HTML 設計書、Office 文書、HTML スライド） |
 
 プラグインは個別にインストールでき、必要なものだけを有効化してよい。
@@ -69,6 +70,14 @@
 | `web-dev:hono-patterns` | Hono の依存を注入するアプリのファクトリ、型付きの Bindings と Variables、ルーターとミドルウェアの順序、入力の検証、エラー応答、Web 標準の API だけを使う制約、Cloudflare Workers と D1 |
 | `web-dev:vitest-testing` | Vitest のテストの配置、実行環境ごとの projects、`app.request` による Hono のテスト、Testing Library と jsdom による React のテスト、モック、時刻の固定、テストの実行 |
 
+### python-dev
+
+| Skill | 用途 |
+| --- | --- |
+| `python-dev:python-conventions` | Python の最低バージョン、uv のプロジェクトとロックファイル、pyproject.toml、検査コマンド（ruff、mypy、pytest、pip-audit）、型ヒント、I/O と現在時刻を持たないドメイン層、例外の扱い、クラウドセッションでのパッケージの取得 |
+| `python-dev:fastapi-patterns` | FastAPI のアプリのファクトリと lifespan、`Depends` と `Annotated` による依存、pydantic-settings による設定、ルーター、入力と出力で分けた Pydantic モデル、入力の検証、エラー応答、`def` と `async def` の使い分け、データベースへのアクセス |
+| `python-dev:pytest-testing` | pytest のテストの配置と pyproject.toml の設定、fixture と conftest.py、`TestClient` による FastAPI のテスト、`dependency_overrides` による依存の差し替え、parametrize、時刻と環境変数の固定、SQLite のテスト用データベース、uv によるテストの実行 |
+
 ### docs
 
 | Skill | 用途 |
@@ -84,7 +93,7 @@
 
 ## Available Agents
 
-7 エージェントはいずれもこのリポジトリで新規に作成したものである（`~/.claude/agents` は存在せず、移行元のエージェント資産はない）。レビュー系の 6 つは `disallowedTools: Write, Edit` を指定しており、レビュー中にファイルを書き換えない。
+8 エージェントはいずれもこのリポジトリで新規に作成したものである（`~/.claude/agents` は存在せず、移行元のエージェント資産はない）。レビュー系の 7 つは `disallowedTools: Write, Edit` を指定しており、レビュー中にファイルを書き換えない。
 
 | Agent | Model | 用途 |
 | --- | --- | --- |
@@ -94,6 +103,7 @@
 | `java-dev:java-reviewer` | sonnet | Java / Spring Boot の変更（コントローラ、サービス、リポジトリ、DTO、テスト、ビルドファイル）のレビュー |
 | `dotnet-dev:dotnet-reviewer` | sonnet | C# / .NET の変更（ASP.NET Core、EF Core、xUnit/NUnit テストプロジェクト）のレビュー |
 | `web-dev:web-reviewer` | sonnet | TypeScript の Web の変更（React + Vite、Hono、Vitest のテスト、tsconfig・ESLint・package.json）のレビュー |
+| `python-dev:python-reviewer` | sonnet | Python の変更（FastAPI、Pydantic、pytest のテスト、pyproject.toml・uv.lock）のレビュー |
 | `docs:doc-reviewer` | sonnet | 日本語技術文書・Markdown 成果物を、このプラグインのライティング規範に照らしてレビュー |
 
 ## Team CLAUDE.md template
@@ -118,6 +128,7 @@ claude plugin install core-dev@mori-claude-tools --scope project
 claude plugin install java-dev@mori-claude-tools --scope project
 claude plugin install dotnet-dev@mori-claude-tools --scope project
 claude plugin install web-dev@mori-claude-tools --scope project
+claude plugin install python-dev@mori-claude-tools --scope project
 claude plugin install docs@mori-claude-tools --scope project
 ```
 
@@ -169,13 +180,14 @@ claude --plugin-dir ./plugins/core-dev --plugin-dir ./plugins/docs
 
 ## Validation
 
-以下 16 コマンドがすべて終了コード 0 であることを確認する。
+以下 19 コマンドがすべて終了コード 0 であることを確認する。
 
 ```
 claude plugin validate ./plugins/core-dev --strict
 claude plugin validate ./plugins/java-dev --strict
 claude plugin validate ./plugins/dotnet-dev --strict
 claude plugin validate ./plugins/web-dev --strict
+claude plugin validate ./plugins/python-dev --strict
 claude plugin validate ./plugins/docs --strict
 claude plugin validate . --strict
 claude plugin validate ./plugins/core-dev/skills --strict
@@ -186,11 +198,13 @@ claude plugin validate ./plugins/dotnet-dev/skills --strict
 claude plugin validate ./plugins/dotnet-dev/agents --strict
 claude plugin validate ./plugins/web-dev/skills --strict
 claude plugin validate ./plugins/web-dev/agents --strict
+claude plugin validate ./plugins/python-dev/skills --strict
+claude plugin validate ./plugins/python-dev/agents --strict
 claude plugin validate ./plugins/docs/skills --strict
 claude plugin validate ./plugins/docs/agents --strict
 ```
 
-重要な注意点として、プラグインディレクトリを指定した `claude plugin validate ./plugins/core-dev --strict` は **`plugin.json` マニフェストしか検証しない**（出力も `Validating plugin manifest:` となる）。skills と agents の内容を検証するには、`skills` / `agents` サブディレクトリを明示的に指定する必要がある（出力は `Validating components in:`）。CI を組む際は、上記 16 コマンドをすべて回すこと。
+重要な注意点として、プラグインディレクトリを指定した `claude plugin validate ./plugins/core-dev --strict` は **`plugin.json` マニフェストしか検証しない**（出力も `Validating plugin manifest:` となる）。skills と agents の内容を検証するには、`skills` / `agents` サブディレクトリを明示的に指定する必要がある（出力は `Validating components in:`）。CI を組む際は、上記 19 コマンドをすべて回すこと。
 
 JSON の構文チェックは次のようにする。
 
@@ -198,7 +212,7 @@ JSON の構文チェックは次のようにする。
 python -c "import json,os; fs=[os.path.join(r,n) for r,d,f in os.walk('.') if '.git' not in r.split(os.sep) for n in f if n.endswith('.json')]; [json.load(open(p,encoding='utf-8')) for p in fs]; print('OK',len(fs))"
 ```
 
-`glob.glob('**/*.json', recursive=True)` は使わないこと。glob は既定で先頭がドットのパスにマッチしないため、`.claude-plugin/` 配下のマニフェスト 6 件を 1 つも拾わず、検査対象 0 件のまま成功してしまう。Python 3.11 以降であれば `glob.glob(..., include_hidden=True)` でも代替できる。
+`glob.glob('**/*.json', recursive=True)` は使わないこと。glob は既定で先頭がドットのパスにマッチしないため、`.claude-plugin/` 配下のマニフェスト 7 件を 1 つも拾わず、検査対象 0 件のまま成功してしまう。Python 3.11 以降であれば `glob.glob(..., include_hidden=True)` でも代替できる。
 
 ## Update policy
 
