@@ -1,6 +1,6 @@
 {
   "name": "mori-claude-tools",
-  "description": "Shared Claude Code plugins for development, Java, .NET, TypeScript web and documentation workflows (mori-claude-tools)",
+  "description": "Shared Claude Code plugins for development, Java, .NET, TypeScript web, Python and documentation workflows (mori-claude-tools)",
   "owner": {
     "name": "Mori"
   },
@@ -24,6 +24,11 @@
       "name": "web-dev",
       "source": "./plugins/web-dev",
       "description": "TypeScript web conventions: TypeScript coding style, React + Vite patterns, Hono API patterns, testing (Vitest, Testing Library, Hono app.request)"
+    },
+    {
+      "name": "python-dev",
+      "source": "./plugins/python-dev",
+      "description": "Python API conventions: Python coding style with uv, ruff and mypy, FastAPI and Pydantic patterns, testing (pytest, FastAPI TestClient)"
     },
     {
       "name": "docs",

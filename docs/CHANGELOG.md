@@ -4,6 +4,11 @@
 
 <!-- 新しいエントリはこの行の直下に追加 -->
 
+## [0.1.14] - 2026-11-14
+
+### 追加
+- python-dev プラグイン: Python の API スタック（FastAPI、Pydantic、pytest、uv）向けに、python-conventions、fastapi-patterns、pytest-testing の 3 スキルと、python-reviewer エージェントを追加（python-dev 0.1.0）
+
 ## [0.1.13] - 2026-11-14
 
 ### 追加

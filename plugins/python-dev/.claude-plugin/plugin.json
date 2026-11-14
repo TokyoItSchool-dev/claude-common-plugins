@@ -1,0 +1,7 @@
+{
+  "name": "python-dev",
+  "version": "0.1.0",
+  "displayName": "Python Development",
+  "description": "Python, uv, FastAPI, Pydantic and pytest development conventions and reviewer agent",
+  "author": { "name": "Mori" }
+}
