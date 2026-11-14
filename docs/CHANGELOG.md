@@ -4,6 +4,11 @@
 
 <!-- 新しいエントリはこの行の直下に追加 -->
 
+## [0.1.13] - 2026-11-14
+
+### 追加
+- web-dev プラグイン: TypeScript の Web スタック（React + Vite、Hono、Vitest）向けに、typescript-conventions、react-patterns、hono-patterns、vitest-testing の 4 スキルと、web-reviewer エージェントを追加（web-dev 0.1.0）
+
 ## [0.1.12] - 2026-11-10
 
 ### 削除
