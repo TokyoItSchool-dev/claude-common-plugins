@@ -1,6 +1,6 @@
 {
   "name": "mori-claude-tools",
-  "description": "Shared Claude Code plugins for development, Java, .NET and documentation workflows (mori-claude-tools)",
+  "description": "Shared Claude Code plugins for development, Java, .NET, TypeScript web and documentation workflows (mori-claude-tools)",
   "owner": {
     "name": "Mori"
   },
@@ -19,6 +19,11 @@
       "name": "dotnet-dev",
       "source": "./plugins/dotnet-dev",
       "description": "C# and .NET conventions: coding style, ASP.NET Core and EF Core patterns, security, testing (xUnit/NUnit)"
+    },
+    {
+      "name": "web-dev",
+      "source": "./plugins/web-dev",
+      "description": "TypeScript web conventions: TypeScript coding style, React + Vite patterns, Hono API patterns, testing (Vitest, Testing Library, Hono app.request)"
     },
     {
       "name": "docs",
