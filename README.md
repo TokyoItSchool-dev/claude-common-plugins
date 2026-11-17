@@ -21,7 +21,7 @@
 | `dotnet-dev` | 4 | 1 | C# / .NET / ASP.NET Core / EF Core の規約・パターン・セキュリティ・テスト |
 | `web-dev` | 4 | 1 | TypeScript / React + Vite / Hono の規約・パターン、Vitest のテスト |
 | `python-dev` | 3 | 1 | Python / uv / FastAPI / Pydantic の規約・パターン、pytest のテスト |
-| `repo-workflow` | 4 | 0 | テンプレートから作ったリポジトリの Issue -> PR -> develop の手順（着手、PR の引き渡しと develop へのマージ、リリース準備、自動着手）、マージとロックのスクリプト、push のガードのフック |
+| `repo-workflow` | 5 | 0 | テンプレートから作ったリポジトリの Issue -> PR -> develop の手順（着手、PR の引き渡しと develop へのマージ、リリース準備、親セッションによる子のセッションの起動。凍結した自動着手の手順書を含む）、マージのスクリプト（と凍結したロックのスクリプト）、push のガードのフック |
 | `docs` | 8 | 1 | 技術文書作成（日本語ライティング、Markdown、HTML 設計書、Office 文書、HTML スライド） |
 
 プラグインは個別にインストールでき、必要なものだけを有効化してよい。
@@ -88,7 +88,8 @@
 | `repo-workflow:issue-to-pr` | Issue の着手条件を確かめ、実装・テスト・独立レビューを行い、base が develop の Draft PR を作り、`repo-workflow:pr-handoff` へ進める |
 | `repo-workflow:pr-handoff` | PR の差分・テスト証跡・独立レビューを確かめ、本文を必須項目にそろえて Ready にし、条件を満たせば `merge-pr.sh` で develop へマージする |
 | `repo-workflow:release-prep` | リリースブランチ、CHANGELOG、受入テスト手順書、develop 宛てのリリース PR、develop -> main の PR 用の Closes 一覧と人間が確認する変更の一覧を作る |
-| `repo-workflow:issue-pickup` | `ai:ready` を起点とするスケジュールタスク（自動着手）の手順書。ロック、キュー、着手、develop へのマージと、`plugin_sha` からのスクリプトの取得（2.0）を定める |
+| `repo-workflow:issue-launch` | ワーカープールがセッションを起動できるまでの暫定の起動。人間が起動した親セッションが、`ai:ready` の Issue ごとに子のクラウドセッションを固定の指示で 1 件ずつ起動し、起動の前と子の完了の後に状態を確かめる。ロックは使わない（#8 D4） |
+| `repo-workflow:issue-pickup` | **凍結**。新しい作業には使わず、ワーカープールへの移行で削除する（#8 D4）。`scripts/pickup.sh` も凍結し、使ってよいのは親セッションが次の Issue を選ぶための `pickup.sh queue`（読み取りだけ）に限る。2.0（`plugin_sha` からのスクリプトの取得）と 2.0.1（`pre_check_commands`）は、ほかのスキルが参照する手順として引き続き有効 |
 
 ### docs
 
@@ -178,7 +179,7 @@ cp ~/.claude/plugins/marketplaces/mori-claude-tools/templates/CLAUDE.md ./CLAUDE
 - 確認できている: クラウドセッションは、接続された GitHub アカウントが参照できるリポジトリにアクセスできる。
 - 確認できていない: Web セッションでプラグインが自動的にインストールされるかどうかは、ドキュメントに明示されていない。
 
-`TokyoItSchool-dev/claude-common-plugins` は公開リポジトリである。`repo-workflow:issue-pickup` の 2.0（スクリプトの取得）は、このリポジトリを認証なしの https で `git fetch` するため、公開であることを前提にしている。非公開に変えると、この取得が失敗し、2.0 の「取得に失敗したとき」のとおり、無人実行はロックにもキューにも触れずに終了し、対話のセッションはマージせずに止まる。プラグインのインストールが Web セッションで動くかどうかは、最初の Web セッションで確認すること。
+`TokyoItSchool-dev/claude-common-plugins` は公開リポジトリである。`repo-workflow:issue-pickup` の 2.0（スクリプトの取得）は、このリポジトリを認証なしの https で `git fetch` するため、公開であることを前提にしている。非公開に変えると、この取得が失敗し、2.0 の「取得に失敗したとき」のとおり、セッション（対話のセッションと `repo-workflow:issue-launch` の子のセッション）はマージせずに止まる。プラグインのインストールが Web セッションで動くかどうかは、最初の Web セッションで確認すること。
 
 `repo-workflow` を除くプラグインは hooks を同梱していないため、Windows 固有のシェルやスクリプトを実行しない。`repo-workflow` のフックとスクリプトは bash 4.2 以降、git、jq（`merge-pr.sh` と `pickup.sh` は gh も）を使う。
 
@@ -188,9 +189,9 @@ cp ~/.claude/plugins/marketplaces/mori-claude-tools/templates/CLAUDE.md ./CLAUDE
 
 | パス | 内容 |
 | --- | --- |
-| `skills/` | `issue-to-pr`、`pr-handoff`、`release-prep`、`issue-pickup` |
+| `skills/` | `issue-to-pr`、`pr-handoff`、`release-prep`、`issue-launch`、`issue-pickup`（凍結） |
 | `scripts/merge-pr.sh` | develop へのマージの直前の条件を確かめてマージする |
-| `scripts/pickup.sh` | 自動着手のロック（`claude/active-work`）とキューを操作する |
+| `scripts/pickup.sh` | **凍結**。自動着手のロック（`claude/active-work`）とキューを操作する。新しい作業には使わず、ワーカープールへの移行で削除する。使ってよいのは `pickup.sh queue`（読み取りだけ）に限る |
 | `scripts/pre-push-guard.sh`、`scripts/mcp-branch-guard.sh` | PreToolUse のガード（`hooks/hooks.json` で登録する） |
 | `tests/` | 上のスクリプトのテスト。`bash plugins/repo-workflow/tests/run-all.sh` で全件を実行する |
 | `config/repo-workflow.example.json` | consumer の設定ファイルの例 |
@@ -271,7 +272,7 @@ git -C "$d/plugin.git" show <plugin_sha>:plugins/repo-workflow/scripts/pickup.sh
 
 `hooks/hooks.json` は、`pre-push-guard.sh`（matcher `Bash`）と `mcp-branch-guard.sh`（matcher `mcp__github__push_files|mcp__github__create_or_update_file|mcp__github__delete_file`）を `"${CLAUDE_PLUGIN_ROOT}"/scripts/...` で登録する。
 
-#8 D2-B により、consumer は、プラグインのフックがスケジュールタスクの実行で最初のツール呼び出しから動くと確かめるまで、自分の `.claude/hooks/` のガードの写しを `.claude/settings.json` から呼び続ける。その間は、プラグインを有効にしたセッションで同じガードが 2 回動く。2 つは同じ操作を拒否するため、重複してもよい。
+#8 D2-B（D4 で基準を改めた）により、consumer は、プラグインのフックが新しい無人のクラウドセッションで最初のツール呼び出しから動くと確かめるまで、自分の `.claude/hooks/` のガードの写しを `.claude/settings.json` から呼び続ける。その間は、プラグインを有効にしたセッションで同じガードが 2 回動く。2 つは同じ操作を拒否するため、重複してもよい。
 
 プラグインは `permissions` を持てない。`mcp__github__merge_pull_request`、`mcp__github__enable_pr_auto_merge`、`mcp__github__update_pull_request_branch` の拒否は、consumer の `.claude/settings.json` の `permissions.deny` に残す。
 

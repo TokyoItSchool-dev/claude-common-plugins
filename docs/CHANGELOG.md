@@ -4,6 +4,16 @@
 
 <!-- 新しいエントリはこの行の直下に追加 -->
 
+## [0.1.16] - 2026-11-17
+
+### 追加
+- repo-workflow プラグイン: issue-launch スキル（ワーカープールがセッションを起動できるまでの暫定の起動。人間が起動した親セッションが、ai:ready の Issue ごとに子のクラウドセッションを固定の指示で 1 件ずつ起動し、起動の前と子の完了の後に状態を確かめる。ロック claude/active-work は使わない）（repo-workflow 0.1.1）
+
+### 変更
+- repo-workflow プラグイン: スケジュールタスクを使わない決定（#8 の D4）により、issue-pickup スキルと pickup.sh を凍結した（新しい作業には使わず、ワーカープールへの移行で削除する。pickup.sh queue は親セッションが読み取りだけで使ってよい。issue-pickup の 2.0 と 2.0.1 はほかのスキルが参照する手順として残す）
+- repo-workflow プラグイン: issue-to-pr、pr-handoff、release-prep で、クラウドセッションで拒否される GraphQL の gh pr / gh issue のサブコマンドの代わりに、REST（gh api）と GitHub MCP の手段を先に書き、gh のサブコマンドはローカルのセッションの別の手段として併記した。issue-to-pr の着手条件に、最後に ai:ready を付けた人の権限の確認を加えた
+- README: repo-workflow の説明を、スケジュールタスクから暫定の起動（issue-launch）と凍結の記述に改めた
+
 ## [0.1.15] - 2026-11-17
 
 ### 追加
