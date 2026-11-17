@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# 【凍結】claude-common-plugins#8 の決定 D4（2026-11-17）により、このスクリプトは凍結した。新しい作業には使わない。
+# ワーカープールへの移行で削除する。スケジュールタスクは使わず、ロック claude/active-work も使わない
+# （acquire と release は呼ばない）。使ってよいのは、repo-workflow:issue-launch の親セッションが次の Issue を
+# 選ぶための pickup.sh queue（読み取りだけ）に限る。凍結の間も動作は変えない。
+#
 # 自動着手のロック（refs/heads/claude/active-work）とキューを操作する。
 # 手順書: repo-workflow:issue-pickup（1 章、2 章、3.1、3.3）。設計: ベーステンプレート（TokyoItSchool-dev/claude-dev-template）の
 # docs/template/portfolio-integration-design.md 5.5。
