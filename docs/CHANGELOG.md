@@ -4,6 +4,15 @@
 
 <!-- 新しいエントリはこの行の直下に追加 -->
 
+## [0.1.15] - 2026-11-17
+
+### 追加
+- repo-workflow プラグイン: テンプレートから作ったリポジトリの issue-to-pr、pr-handoff、release-prep、issue-pickup の 4 スキル、merge-pr.sh と pickup.sh、push のガードのフック（hooks/hooks.json）とそのテストを、claude-dev-template から移して追加（repo-workflow 0.1.0）
+- repo-workflow プラグイン: リポジトリごとの値を consumer の設定ファイル `.claude/repo-workflow.json`（`plugin_sha`、`gated_paths`、`pre_check_commands`）に書く形にした。merge-pr.sh は `gated_paths` を origin の main の設定ファイルから読み、ないか形が正しくないときは止める。スキルと手順書は、merge-pr.sh と pickup.sh を `plugin_sha` のコミットから一時ディレクトリへ取得して使う
+
+### 変更
+- README: repo-workflow がフックとスクリプトを同梱することと、設定ファイルと sha の固定の手順を記載
+
 ## [0.1.14] - 2026-11-14
 
 ### 追加
