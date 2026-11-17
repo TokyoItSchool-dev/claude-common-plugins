@@ -213,6 +213,26 @@ run "${D}/a" status extra; expect_rc 2; done_case
 
 # ---------------------------------------------------------------- acquire
 
+# develop がなく、refs/heads/refs/heads/develop というブランチがある。git fetch の取得元の名前は省略形としても
+# 解決されるため、完全一致で読まないとこのブランチを develop として使う。
+new_case acquire-develop-absent-decoy
+ready_issue 9
+git --git-dir="${ORIGIN}" update-ref refs/heads/refs/heads/develop "${DEVELOP}"
+git --git-dir="${ORIGIN}" update-ref -d refs/heads/develop
+run "${D}/a" acquire --issue 9 --slug fix-lock --session "${SESSION}" --writers "${WRITERS}"
+expect_rc 3; expect_out "result=unknown step=develop"; expect_lock none
+done_case
+
+# develop があり、名前の末尾が refs/heads/develop の別のブランチ（並びで develop より前）が別のコミットを指す。
+new_case acquire-develop-suffix-decoy
+ready_issue 9
+git --git-dir="${ORIGIN}" update-ref refs/heads/claude/1-x/refs/heads/develop "$(lock_commit "decoy")"
+[ "$(git -C "${D}/a" ls-remote origin refs/heads/develop | head -n 1 | cut -f 2)" = "refs/heads/claude/1-x/refs/heads/develop" ] \
+  || fail "setup: the decoy branch is not listed first"
+run "${D}/a" acquire --issue 9 --slug fix-lock --session "${SESSION}" --writers "${WRITERS}"
+expect_rc 0; expect_out_re "^result=acquired issue=9 branch=claude/9-fix-lock sha=$(lock_sha) develop=${DEVELOP} ci=success$"
+done_case
+
 new_case acquire-absent
 ready_issue 9
 run "${D}/a" acquire --issue 9 --slug fix-lock --session "${SESSION}" --writers "${WRITERS}"

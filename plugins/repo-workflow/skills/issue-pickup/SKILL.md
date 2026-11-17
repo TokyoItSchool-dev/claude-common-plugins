@@ -209,7 +209,7 @@ bash <複製> acquire --issue <head の n> --slug <slug> --session <セッショ
 1. 引数を確かめる（`<n>` は数字、`<slug>` は 2.1 の形、セッション URL は `https://` で始まり空白を含まない）。満たさなければ終了コード 2。
 2. ロックを読む。`free` または `absent` でなければ `result=busy`。
 3. キューを求め直し、先頭が `<n>` でなければ `result=not-head`。
-4. `develop` の先頭コミットに対する `ci.yml` の手動実行を確認する（3.3）。FAILED なら `result=ci-failed`。`gh` が失敗して CI の結果を取得できないときは `result=unknown step=ci`（終了コード 3）。
+4. `develop` の先頭コミットを、`git ls-remote` で名前が `refs/heads/develop` と完全に一致する行から読み、取得したコミットがその sha と同じことを確かめる。`develop` がない、一致する行が 2 行以上、`ls-remote` か `fetch` の失敗、取得したコミットが違うときは `result=unknown step=develop`（終了コード 3）。続けて、そのコミットに対する `ci.yml` の手動実行を確認する（3.3）。FAILED なら `result=ci-failed`。`gh` が失敗して CI の結果を取得できないときは `result=unknown step=ci`（終了コード 3）。
 5. 2. で読んだ先頭を親にした（`absent` なら親なしの）保持のコミットを、固定の作成者と空の tree で作り、force なしで push する。
 6. push の終了コードにかかわらずロックを読み直し、先頭が自分のコミットかどうかで結果を決める。
 
@@ -220,7 +220,7 @@ bash <複製> acquire --issue <head の n> --slug <slug> --session <セッショ
 | `result=not-head head=<m\|none>` | `<n>` がキューの先頭でなくなった | 着手しない |
 | `result=ci-failed issue=<n> run=<url>` | `develop` の先頭コミットに対する `ci.yml` の手動実行が FAILED | 着手しない。3.3 のとおり扱う |
 | `result=lost sha=<先頭>` | push の後の先頭が自分のコミットでない（他の実行が先に取得した） | 着手しない。この実行は取得していないため、想定外の結果ではない |
-| `result=unknown step=<段階>`（終了コード 3） | push の前に `gh` または `git` が失敗した（キュー、`develop` の CI の結果の取得（`step=ci`）、コミットの作成など）。push していない | 想定外の結果（2.0） |
+| `result=unknown step=<段階>`（終了コード 3） | push の前に `gh` または `git` が失敗した（キュー、`develop` の先頭の読み取り（`step=develop`）、`develop` の CI の結果の取得（`step=ci`）、コミットの作成など）。push していない | 想定外の結果（2.0） |
 | `result=unknown sha=<C>`（終了コード 3） | push の後に読み直せない | 想定外の結果（2.0） |
 | `result=invalid-args detail=<内容>`（終了コード 2） | 引数の誤り。何も変えていない | 2.0 のとおり 1 回だけ呼び直す |
 

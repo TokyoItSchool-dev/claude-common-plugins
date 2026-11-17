@@ -70,24 +70,42 @@ bad_args() {
 
 # ---------------------------------------------------------------- ロックの読み取り（git だけ）
 
+# remote_ref_sha <完全な ref の名前>: origin のその ref の sha を出す。名前が完全に一致する行だけを使う
+# （ls-remote のパターンは名前の末尾でも一致するため。claude/1-x/refs/heads/claude/active-work など）。
+# ref がなければ空を出す。ls-remote の失敗は 1、一致する行が 2 行以上は 2 を返す。
+remote_ref_sha() {
+  local out sha ref found="" n=0
+  out=$(git ls-remote "${REMOTE}" "$1" 2>/dev/null) || return 1
+  while IFS=$'\t' read -r sha ref; do
+    [ "${ref}" = "$1" ] || continue
+    n=$((n + 1))
+    found="${sha}"
+  done <<< "${out}"
+  [ "${n}" -le 1 ] || return 2
+  printf '%s' "${found}"
+}
+
+# fetch_exact <完全な ref の名前> <sha>: その ref を取得し、取得したコミットが sha と同じことを確かめる。
+# git fetch の取得元の名前は省略形としても解決される（ref がないと refs/heads/refs/heads/... に当たりうる）ため、
+# ls-remote で完全一致で読んだ sha と比べる。違えば、または取得できなければ 1 を返す。
+fetch_exact() {
+  local got
+  git fetch --quiet --no-tags "${REMOTE}" "$1" >&2 || return 1
+  got=$(git rev-parse --verify --quiet 'FETCH_HEAD^{commit}' 2>/dev/null) || return 1
+  [ "${got}" = "$2" ]
+}
+
 # read_lock: ロックを読み、L_STATE（held|free|absent|unreadable|unknown）と L_* を設定する。
+# 名前が LOCK_REF と完全に一致する ref がなければ absent、2 行以上か ls-remote の失敗は unknown とする。
 read_lock() {
   L_STATE="unknown" L_SHA="" L_TIME="" L_ISSUE="" L_BRANCH="" L_SESSION="" L_LINE=""
-  # ls-remote のパターンは名前の末尾でも一致する（claude/1-x/refs/heads/claude/active-work など）。
-  # 名前が LOCK_REF と完全に一致する行だけを数え、0 行なら absent、2 行以上なら unknown とする。
-  local out s r n=0
-  out=$(git ls-remote "${REMOTE}" "${LOCK_REF}" 2>/dev/null) || return 0
-  while IFS=$'\t' read -r s r; do
-    [ "${r}" != "${LOCK_REF}" ] || n=$((n + 1))
-  done <<< "${out}"
-  if [ "${n}" -eq 0 ]; then
+  local sha time body
+  sha=$(remote_ref_sha "${LOCK_REF}") || return 0
+  if [ -z "${sha}" ]; then
     L_STATE="absent"
     return 0
   fi
-  [ "${n}" -eq 1 ] || return 0
-  git fetch --quiet --no-tags "${REMOTE}" "${LOCK_REF}" >&2 || return 0
-  local sha time body
-  sha=$(git rev-parse --verify --quiet 'FETCH_HEAD^{commit}' 2>/dev/null) || return 0
+  fetch_exact "${LOCK_REF}" "${sha}" || return 0
   time=$(git log -1 --format=%cI "${sha}" 2>/dev/null) || return 0
   body=$(git log -1 --format=%B "${sha}" 2>/dev/null) || return 0
   L_SHA="${sha}" L_TIME="${time}"
@@ -398,9 +416,11 @@ cmd_acquire() {
   fi
 
   # 4. develop の CI
+  # develop の sha は名前が refs/heads/develop と完全に一致する ref から読み、取得したコミットがそれと同じことを
+  # 確かめる。develop がない、2 行以上、ls-remote か fetch の失敗、取得したコミットが違うときは unknown。
   local develop
-  git fetch --quiet --no-tags "${REMOTE}" refs/heads/develop >&2 \
-    && develop=$(git rev-parse --verify --quiet 'FETCH_HEAD^{commit}' 2>/dev/null) \
+  develop=$(remote_ref_sha refs/heads/develop) && [ -n "${develop}" ] \
+    && fetch_exact refs/heads/develop "${develop}" \
     || { echo "result=unknown step=develop"; exit 3; }
   if ! check_ci "${develop}"; then
     echo "result=unknown step=ci"
