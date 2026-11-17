@@ -181,6 +181,25 @@ new_case status-unknown
 git -C "${D}/a" remote set-url origin "${D}/missing.git"
 run "${D}/a" status; expect_rc 3; expect_out "state=unknown"; done_case
 
+# ls-remote のパターンは名前の末尾でも一致する。名前の末尾が refs/heads/claude/active-work のブランチ（偽のロック）は
+# ロックとして読まない。
+DECOY_LOCK_REF="refs/heads/claude/1-x/refs/heads/claude/active-work"
+new_case status-decoy-lock-absent
+git --git-dir="${ORIGIN}" update-ref "${DECOY_LOCK_REF}" "$(lock_commit "$(held_msg 7 decoy)")"
+run "${D}/a" status; expect_rc 0; expect_out "state=absent"; done_case
+
+new_case status-decoy-lock-free
+set_free
+git --git-dir="${ORIGIN}" update-ref "${DECOY_LOCK_REF}" "$(lock_commit "$(held_msg 7 decoy)")"
+run "${D}/a" status; expect_rc 0; expect_out "state=free sha=$(lock_sha)"; done_case
+
+new_case acquire-decoy-lock
+ready_issue 9
+git --git-dir="${ORIGIN}" update-ref "${DECOY_LOCK_REF}" "$(lock_commit "$(held_msg 7 decoy)")"
+run "${D}/a" acquire --issue 9 --slug fix-lock --session "${SESSION}" --writers "${WRITERS}"
+expect_rc 0; expect_out_re "^result=acquired issue=9 branch=claude/9-fix-lock sha=$(lock_sha) "
+done_case
+
 new_case status-extra-arg
 run "${D}/a" status extra; expect_rc 2; done_case
 

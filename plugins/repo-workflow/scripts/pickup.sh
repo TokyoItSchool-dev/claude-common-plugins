@@ -73,13 +73,18 @@ bad_args() {
 # read_lock: ロックを読み、L_STATE（held|free|absent|unreadable|unknown）と L_* を設定する。
 read_lock() {
   L_STATE="unknown" L_SHA="" L_TIME="" L_ISSUE="" L_BRANCH="" L_SESSION="" L_LINE=""
-  local rc=0
-  git ls-remote --exit-code "${REMOTE}" "${LOCK_REF}" >/dev/null 2>&1 || rc=$?
-  if [ "${rc}" -eq 2 ]; then
+  # ls-remote のパターンは名前の末尾でも一致する（claude/1-x/refs/heads/claude/active-work など）。
+  # 名前が LOCK_REF と完全に一致する行だけを数え、0 行なら absent、2 行以上なら unknown とする。
+  local out s r n=0
+  out=$(git ls-remote "${REMOTE}" "${LOCK_REF}" 2>/dev/null) || return 0
+  while IFS=$'\t' read -r s r; do
+    [ "${r}" != "${LOCK_REF}" ] || n=$((n + 1))
+  done <<< "${out}"
+  if [ "${n}" -eq 0 ]; then
     L_STATE="absent"
     return 0
   fi
-  [ "${rc}" -eq 0 ] || return 0
+  [ "${n}" -eq 1 ] || return 0
   git fetch --quiet --no-tags "${REMOTE}" "${LOCK_REF}" >&2 || return 0
   local sha time body
   sha=$(git rev-parse --verify --quiet 'FETCH_HEAD^{commit}' 2>/dev/null) || return 0

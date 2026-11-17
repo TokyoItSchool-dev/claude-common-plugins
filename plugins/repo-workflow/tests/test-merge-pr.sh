@@ -272,6 +272,14 @@ tgit -C "${D}/seed" commit -q --allow-empty -m "next"
 tgit -C "${D}/seed" push -q "${ORIGIN}" HEAD:refs/heads/develop
 expect_stop "develop-moved actual=$(git --git-dir="${ORIGIN}" rev-parse refs/heads/develop)"; done_case
 
+# 名前の末尾が refs/heads/develop のブランチを develop として読まない（develop-moved にしない）。
+new_case check-develop-decoy-branch
+tgit -C "${D}/seed" commit -q --allow-empty -m "decoy"
+tgit -C "${D}/seed" push -q "${ORIGIN}" HEAD:refs/heads/claude/1-x/refs/heads/develop
+[ "$(git -C "${D}/a" ls-remote origin refs/heads/develop | head -n 1 | cut -f 2)" = "refs/heads/claude/1-x/refs/heads/develop" ] \
+  || fail "setup: the decoy branch is not listed first"
+check; expect_rc 0; expect_out "result=ok"; done_case
+
 new_case stop-develop-missing
 git --git-dir="${ORIGIN}" update-ref -d refs/heads/develop
 expect_stop "develop-moved actual=none"; done_case
@@ -527,10 +535,24 @@ mkdir -p "${D}/a/.claude"
 config_json '[]' > "${D}/a/.claude/repo-workflow.json"
 expect_stop "config-missing"; done_case
 
-# origin に main がない。
-new_case stop-config-no-main
+# origin に main がない（main を読めないものとして扱う）。
+new_case unknown-config-no-main
 git --git-dir="${ORIGIN}" update-ref -d refs/heads/main
-expect_stop "config-missing"; done_case
+check; expect_rc 3; expect_out "result=unknown step=config"
+merge; expect_rc 3; expect_out "result=unknown step=config"; expect_no_put; done_case
+
+# ls-remote のパターンは名前の末尾でも一致する。名前が refs/heads/main と完全に一致する ref だけを main とする。
+# claude/1-x/refs/heads/main のブランチ（並びで main より前に来る）が gated_paths を空にしていても止まる。
+new_case stop-config-decoy-main-branch
+main_config "${GATED_GAS}"
+tgit -C "${D}/seed" checkout -q -b decoy
+config_json '[]' > "${D}/seed/.claude/repo-workflow.json"
+tgit -C "${D}/seed" commit -q -am "decoy"
+tgit -C "${D}/seed" push -q "${ORIGIN}" HEAD:refs/heads/claude/1-x/refs/heads/main
+[ "$(git -C "${D}/a" ls-remote origin refs/heads/main | head -n 1 | cut -f 2)" = "refs/heads/claude/1-x/refs/heads/main" ] \
+  || fail "setup: the decoy branch is not listed first"
+fixture files-7 '[{"filename":"app/src/appsscript.json"}]'
+expect_stop "gated-path path=app/src/appsscript.json"; done_case
 
 # 形が正しくない設定ファイル。
 for bad in 'not json' '' '[]' '{"plugin_sha":"0123456789abcdef0123456789abcdef01234567"}' \

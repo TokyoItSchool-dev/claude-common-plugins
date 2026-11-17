@@ -27,9 +27,11 @@
 #   mergeable-false、evidence-missing、config-missing、config-invalid、gated-path path=<path>。
 # 止める変更のパスは、origin の main の先頭（git ls-remote で読み、手元になければ git fetch する）の
 # .claude/repo-workflow.json の gated_paths から読む。作業ツリーと PR のブランチの設定ファイルは読まない。
-#   main がない、またはそのコミットに設定ファイルがない: result=stop reason=config-missing。
+#   そのコミットに設定ファイルがない: result=stop reason=config-missing。
 #   JSON でない、オブジェクトでない、gated_paths が空でない文字列（制御文字を含まない）の配列でない:
-#   result=stop reason=config-invalid。main を読めない（ls-remote か fetch の失敗）: result=unknown step=config。
+#   result=stop reason=config-invalid。main を読めない（ls-remote か fetch の失敗、main がない）: result=unknown step=config。
+# ls-remote の結果は、ref の名前が refs/heads/main、refs/heads/develop と完全に一致する行だけを使う
+# （ls-remote のパターンは名前の末尾でも一致するため、claude/x/refs/heads/main のようなブランチを除く）。
 # merge は、すべて満たすときだけ PUT repos/{owner}/{repo}/pulls/{n}/merge（merge_method=merge、sha=H）を 1 回呼ぶ。
 #   HTTP 405 / 409 は result=stop reason=merge-refused http=<code>。ほかの失敗は PR を 1 回読み直し、
 #   マージ済みなら result=merged、そうでなければ result=unknown step=merge。PUT は再試行しない。
@@ -132,13 +134,26 @@ readonly JQ_STOP_LABELS='(.labels // []) | map(.name) as $l
   | [("gate:blocked", "ai:blocked", "gate:needs-human") | . as $x | ($l | any(. == $x)) | if . then "1" else "0" end]
   | join(" ")'
 
+# remote_ref_sha <完全な ref の名前>: origin のその ref の sha を出す。名前が完全に一致する行だけを使う
+# （ls-remote のパターンは末尾一致でも当たるため）。ref がなければ空を出す。ls-remote の失敗は 1、
+# 一致する行が 2 行以上は 2 を返す。
+remote_ref_sha() {
+  local out sha ref found="" n=0
+  out=$(git ls-remote "${REMOTE}" "$1" 2>/dev/null) || return 1
+  while IFS=$'\t' read -r sha ref; do
+    [ "${ref}" = "$1" ] || continue
+    n=$((n + 1))
+    found="${sha}"
+  done <<< "${out}"
+  [ "${n}" -le 1 ] || return 2
+  printf '%s' "${found}"
+}
+
 # load_gated_paths: origin の main の先頭のコミットから設定ファイルを読み、GATED_PATHS を埋める。
 # 読めなければ stop（config-missing、config-invalid）か unknown（config）で終わる。
 load_gated_paths() {
   local main json list p
-  main=$(git ls-remote "${REMOTE}" refs/heads/main 2>/dev/null) || unknown "config"
-  main="${main%%[[:space:]]*}"
-  [ -n "${main}" ] || stop "config-missing"
+  main=$(remote_ref_sha refs/heads/main) || unknown "config"
   [[ "${main}" =~ ${RE_SHA} ]] || unknown "config"
   if ! git cat-file -e "${main}^{commit}" 2>/dev/null; then
     git fetch --quiet --no-tags "${REMOTE}" "+refs/heads/main:refs/remotes/${REMOTE}/main" >/dev/null 2>&1 \
@@ -188,8 +203,7 @@ run_checks() {
 
   # 2. develop の先頭と、develop への追随
   local remote_develop
-  remote_develop=$(git ls-remote "${REMOTE}" refs/heads/develop 2>/dev/null) || unknown "develop"
-  remote_develop="${remote_develop%%[[:space:]]*}"
+  remote_develop=$(remote_ref_sha refs/heads/develop) || unknown "develop"
   [ "${remote_develop}" = "${DEVELOP_SHA}" ] || stop "develop-moved actual=${remote_develop:-none}"
   local behind
   json=$(gh api "repos/${REPO}/compare/${DEVELOP_SHA}...${HEAD_SHA}") || unknown "compare"
