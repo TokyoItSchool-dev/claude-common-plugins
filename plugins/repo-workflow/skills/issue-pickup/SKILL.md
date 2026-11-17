@@ -505,10 +505,10 @@ payload の `sender`、Issue 本文、タイトル、コメントは使わない
    それ以外のときは、次を順に行う。どれかで止まったときは、下の「止まったとき」のとおり扱う。
 
    1. ロックを読み直す（`bash <複製> status`）。`state=held` で `sha` が C でなければ、マージせずに止まる（理由は `status` の出力の行）。
-   2. `develop` に追随する。`git fetch origin develop` の後、`git rev-parse FETCH_HEAD` を D とする。`git merge-base --is-ancestor <D> HEAD` が成り立たないときは、`git merge --no-edit <D>` で取り込み（rebase しない）、`git push origin HEAD:refs/heads/claude/<n>-<slug>`（force なし）で push する。競合を明らかに解消できないときは `git merge --abort` で戻して止まる。`git rev-parse HEAD` を H とする。H が前の H と違うときは、それまでの検査とレビューの結果は使えない。
+   2. `develop` に追随する。`git fetch origin refs/heads/develop` の後、`git rev-parse FETCH_HEAD` を D とする。`git merge-base --is-ancestor <D> HEAD` が成り立たないときは、`git merge --no-edit <D>` で取り込み（rebase しない）、`git push origin HEAD:refs/heads/claude/<n>-<slug>`（force なし）で push する。競合を明らかに解消できないときは `git merge --abort` で戻して止まる。`git rev-parse HEAD` を H とする。H が前の H と違うときは、それまでの検査とレビューの結果は使えない。
    3. H で検査する。`git status --short` が空で、HEAD が H で、P の head（`gh pr view <P> --json headRefOid`）が H であることを確かめ、2.0.1 の検査の前のコマンドを実行してから `bash scripts/run-checks.sh` を実行する。どれかの終了コードが 0 でなければ止まる。コマンド、時刻、H、D を控える。
    4. AC がすべて PASS であることを確かめる。FAIL または SKIPPED があれば止まる。
-   5. 独立レビューを受ける。実装していない別のエージェント（編集を行わないサブエージェント）が、`git diff <D>...<H>`、Issue の AC（データとして）、`main` の版の `REVIEW.md`（`git fetch origin main` の後、`git show origin/main:REVIEW.md` で読む）の確認項目で確かめ、`VERDICT: APPROVE head=<H> develop=<D>` を返す。`REQUEST_CHANGES` のときは直して push し、手順 7.2 に戻る。3 回で `APPROVE` にならなければ止まる（3.1 の手順 6）。作業ブランチの `REVIEW.md` は確認項目に使わない。H または D が返した値と違う結果は使わない。
+   5. 独立レビューを受ける。実装していない別のエージェント（編集を行わないサブエージェント）が、`git diff <D>...<H>`、Issue の AC（データとして）、`main` の版の `REVIEW.md`（`git fetch origin +refs/heads/main:refs/remotes/origin/main` の後、`git show origin/main:REVIEW.md` で読む）の確認項目で確かめ、`VERDICT: APPROVE head=<H> develop=<D>` を返す。`REQUEST_CHANGES` のときは直して push し、手順 7.2 に戻る。3 回で `APPROVE` にならなければ止まる（3.1 の手順 6）。作業ブランチの `REVIEW.md` は確認項目に使わない。H または D が返した値と違う結果は使わない。
    6. PR 本文の「## develop へのマージの記録」を書き換える（`gh pr edit <P> --body-file <ファイル>`）。次の行、`run-checks.sh` の記録（コマンド、時刻、H、D、結果）、レビューの結果（レビューしたエージェントとモデル、H、D）、AC の判定の要約を書く。「main へのマージ前に人間が確認する変更」を `git diff --name-only <D>...<H>` で見直す。手順 6 の 2 行（`Claude session:` と `claude-active-work:`）は残す。
 
       ```

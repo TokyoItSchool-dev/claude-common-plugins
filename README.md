@@ -178,7 +178,7 @@ cp ~/.claude/plugins/marketplaces/mori-claude-tools/templates/CLAUDE.md ./CLAUDE
 - 確認できている: クラウドセッションは、接続された GitHub アカウントが参照できるリポジトリにアクセスできる。
 - 確認できていない: Web セッションでプラグインが自動的にインストールされるかどうかは、ドキュメントに明示されていない。
 
-前提条件として、GitHub App / 連携アカウントがプライベートリポジトリ `TokyoItSchool-dev/claude-common-plugins` へのアクセス権を持っている必要がある。実際に動くかどうかは最初の Web セッションで確認すること。
+`TokyoItSchool-dev/claude-common-plugins` は公開リポジトリである。`repo-workflow:issue-pickup` の 2.0（スクリプトの取得）は、このリポジトリを認証なしの https で `git fetch` するため、公開であることを前提にしている。非公開に変えると、この取得が失敗し、2.0 の「取得に失敗したとき」のとおり、無人実行はロックにもキューにも触れずに終了し、対話のセッションはマージせずに止まる。プラグインのインストールが Web セッションで動くかどうかは、最初の Web セッションで確認すること。
 
 `repo-workflow` を除くプラグインは hooks を同梱していないため、Windows 固有のシェルやスクリプトを実行しない。`repo-workflow` のフックとスクリプトは bash 4.2 以降、git、jq（`merge-pr.sh` と `pickup.sh` は gh も）を使う。
 
@@ -226,7 +226,7 @@ consumer のリポジトリのルートの `.claude/repo-workflow.json` に置�
 | --- | --- | --- |
 | claude-dev-template、claude-dev-template-test | `[]` | `[]` |
 | claude-dev-template-gas | `["app/src/appsscript.json"]` | `[]` |
-| kintone-ai-dev-template | 今の `GATED_PATHS` の 28 個のパターン（`tests/test-merge-pr.sh` の `GATED_KINTONE`） | `["npm ci"]` |
+| kintone-ai-dev-template | 今の `GATED_PATHS` の 28 個のパターン（`tests/test-merge-pr.sh` の `GATED_KINTONE`）と `.claude/repo-workflow.json`（今の `GATED_PATHS` が持つ `.claude/routines/merge-pr.sh` に代わり、`plugin_sha` と `gated_paths` の変更を止める） | `["npm ci"]` |
 | claude-portfolio-dashboard | `[]` | `["npm ci"]` |
 
 ### スクリプトの取得と sha の固定

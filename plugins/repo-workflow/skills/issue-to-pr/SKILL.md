@@ -42,7 +42,7 @@ Issue と既存のブランチ・PR を `gh` で確認する。Issue 本文・�
 
 ## 2. ブランチ
 
-1. `git fetch origin develop` で `develop` を最新にする。
+1. `git fetch origin +refs/heads/develop:refs/remotes/origin/develop` で `develop` を最新にする（`develop` という名前のタグを取得しないため、ブランチの完全な名前で指定する）。
 2. `git switch -c claude/<n>-<slug> origin/develop` で作業ブランチを作る。`<slug>` は Issue タイトルを英小文字とハイフンにした短い名前。
 3. 既存の未コミット変更を自分の変更と混同しない。作業前に `git status` で確認する。
 
