@@ -36,6 +36,6 @@ case "$REF" in
   *) exit 0 ;;
 esac
 
-MSG="GitHub MCP の $TOOL による ${REF:-デフォルトブランチ(branch の指定なし)} への書き込みは禁止です。main / develop への直接のコミットは行いません。claude/active-work はロックであり .claude/routines/pickup.sh だけで操作します。作業ブランチ(claude/<issue-number>-<slug>)に書き込み、develop 宛の PR を作成してください。"
+MSG="GitHub MCP の $TOOL による ${REF:-デフォルトブランチ(branch の指定なし)} への書き込みは禁止です。main / develop への直接のコミットは行いません。claude/active-work はロックであり repo-workflow の pickup.sh(plugin_sha から一時ディレクトリに写したもの)だけで操作します。作業ブランチ(claude/<issue-number>-<slug>)に書き込み、develop 宛の PR を作成してください。"
 jq -n --arg r "$MSG" '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $r}}'
 exit 0

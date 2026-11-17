@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # pickup.sh のテスト（オフライン）。ローカルの bare リポジトリを origin にし、gh は PATH 上の偽物（fake-gh.sh）にする。
-# 実行: bash .claude/routines/tests/test-pickup.sh（git と jq が必要）
+# 実行: bash plugins/repo-workflow/tests/test-pickup.sh（git と jq が必要）
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-pickup="${here}/../pickup.sh"
+pickup="${here}/../scripts/pickup.sh"
 work="$(mktemp -d)"
 trap 'rm -rf "${work}"' EXIT
 

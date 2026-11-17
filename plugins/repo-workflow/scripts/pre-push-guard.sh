@@ -52,12 +52,13 @@
 #
 # 自動着手のロック claude/active-work: 宛先がこの ref の git push(<src>:claude/active-work、
 # <src>:refs/heads/claude/active-work、<src>:heads/claude/active-work、ブレース展開を含む)と、
-# jj git push の bookmark 指定はすべて拒否する。ロックは .claude/routines/pickup.sh だけで操作する。
+# jj git push の bookmark 指定はすべて拒否する。ロックは pickup.sh(repo-workflow の scripts/ にあり、
+# consumer の .claude/repo-workflow.json の plugin_sha から一時ディレクトリに写したもの)だけで操作する。
 # hook はコマンド行だけを調べ、bash -c / sh -c / eval 以外の bash <ファイル> の中身は再判定しないため、
-# bash .claude/routines/pickup.sh ... は許可される。
+# bash <一時ディレクトリ>/pickup.sh ... は許可される。
 #
-# PR のマージ: develop へのマージは main から写した .claude/routines/merge-pr.sh だけで行う
-# (.claude/rules/repository-workflow.md 3.1)。次の gh のコマンドを拒否する。
+# PR のマージ: develop へのマージは、plugin_sha から一時ディレクトリに写した merge-pr.sh だけで行う
+# (.claude/rules/repository-workflow.md 3.1、repo-workflow:issue-pickup の「スクリプトの取得」)。次の gh のコマンドを拒否する。
 #   - gh pr merge(--auto、--admin などのオプションによらない)。
 #   - gh api の pulls/<n>/merge へのリクエストで、メソッドが GET 以外のもの(-X / --method の指定、または
 #     -f / -F / --field / --raw-field / --input があり既定のメソッドが POST になるもの)。
@@ -164,10 +165,10 @@ lock_glob_dst() {
   [[ "claude/active-work" == $dst || "refs/heads/claude/active-work" == $dst ]]
 }
 
-LOCK_REASON="claude/active-work への push は禁止です。ロックは \`.claude/routines/pickup.sh\` だけで操作する"
+LOCK_REASON="claude/active-work への push は禁止です。ロックは repo-workflow の \`pickup.sh\`(plugin_sha から一時ディレクトリに写したもの)だけで操作する"
 UPDATE_BRANCH_REASON="PR のブランチの更新(gh pr update-branch、pulls/<n>/update-branch)は行いません。develop への追随は作業ブランチで git merge origin/develop を実行して push します(.claude/rules/repository-workflow.md 3.1 の手順 3)"
 API_WRITE_REASON="gh api による main / develop / claude/active-work への書き込み(Contents API の PUT / DELETE、Git refs API の GET 以外)は禁止です。作業ブランチに git push し、develop 宛の PR を作成してください"
-MERGE_REASON="PR のマージは main から写した \`.claude/routines/merge-pr.sh\` だけで行います(.claude/rules/repository-workflow.md 3.1)。gh pr merge、gh api によるマージ、auto-merge の有効化は行いません"
+MERGE_REASON="PR のマージは plugin_sha から一時ディレクトリに写した repo-workflow の \`merge-pr.sh\` だけで行います(.claude/rules/repository-workflow.md 3.1)。gh pr merge、gh api によるマージ、auto-merge の有効化は行いません"
 
 current_branch() {
   local d="$CWD" x b

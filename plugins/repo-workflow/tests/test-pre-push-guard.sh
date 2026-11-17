@@ -4,7 +4,7 @@
 # 1 ケースの失敗で中断せず、最後に集計する。
 set -uo pipefail
 
-GUARD="$(cd "$(dirname "$0")/.." && pwd)/pre-push-guard.sh"
+GUARD="$(cd "$(dirname "$0")/.." && pwd)/scripts/pre-push-guard.sh"
 BASH_BIN="$(command -v bash)"
 PASS=0
 FAIL=0
@@ -463,7 +463,7 @@ for repo_case in "$REPO_DEV deny" "$REPO_MAIN deny" "$REPO_FEAT allow"; do
 done
 
 # --- 11. PR のマージ（gh pr merge、REST の merge と merges、GraphQL の mergePullRequest） ---
-# develop へのマージは main から写した merge-pr.sh だけで行う（.claude/rules/repository-workflow.md 3.1）。
+# develop へのマージは plugin_sha から写した merge-pr.sh だけで行う（.claude/rules/repository-workflow.md 3.1）。
 # hook はコマンド行だけを調べるため、bash <写したファイル> merge ... は許可される。
 run_case deny  'gh pr merge 7'
 run_case deny  'gh pr merge 7 --merge'

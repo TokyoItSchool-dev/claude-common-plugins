@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # 自動着手のロック（refs/heads/claude/active-work）とキューを操作する。
-# 手順書: .claude/routines/issue-pickup.md（1 章、2 章、3.1、3.3）。設計: docs/template/portfolio-integration-design.md 5.5。
+# 手順書: repo-workflow:issue-pickup（1 章、2 章、3.1、3.3）。設計: ベーステンプレート（TokyoItSchool-dev/claude-dev-template）の
+# docs/template/portfolio-integration-design.md 5.5。
+# 使うのは、consumer の main の .claude/repo-workflow.json の plugin_sha が指すコミットにあるこのファイルの写しである。
 #
 # 使い方（clone の作業ツリーで実行する。リモートは origin）:
 #   pickup.sh status
