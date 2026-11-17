@@ -551,6 +551,9 @@ tgit -C "${D}/seed" commit -q -am "decoy"
 tgit -C "${D}/seed" push -q "${ORIGIN}" HEAD:refs/heads/claude/1-x/refs/heads/main
 [ "$(git -C "${D}/a" ls-remote origin refs/heads/main | head -n 1 | cut -f 2)" = "refs/heads/claude/1-x/refs/heads/main" ] \
   || fail "setup: the decoy branch is not listed first"
+# 偽のブランチのコミットを手元に置く（PR のブランチを取得済みの状態を模す）。末尾一致で読むと、取得なしで
+# gated_paths が空の設定ファイルを読み、止まらずに result=ok になる。
+tgit -C "${D}/a" fetch -q origin refs/heads/claude/1-x/refs/heads/main
 fixture files-7 '[{"filename":"app/src/appsscript.json"}]'
 expect_stop "gated-path path=app/src/appsscript.json"; done_case
 

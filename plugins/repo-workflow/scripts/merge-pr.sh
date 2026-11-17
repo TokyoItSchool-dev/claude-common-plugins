@@ -29,9 +29,13 @@
 # .claude/repo-workflow.json の gated_paths から読む。作業ツリーと PR のブランチの設定ファイルは読まない。
 #   そのコミットに設定ファイルがない: result=stop reason=config-missing。
 #   JSON でない、オブジェクトでない、gated_paths が空でない文字列（制御文字を含まない）の配列でない:
-#   result=stop reason=config-invalid。main を読めない（ls-remote か fetch の失敗、main がない）: result=unknown step=config。
+#   result=stop reason=config-invalid。
+#   main を読めない（ls-remote の失敗、main がない、名前が refs/heads/main と完全に一致する行が 2 行以上、
+#   fetch の失敗）: result=unknown step=config。
 # ls-remote の結果は、ref の名前が refs/heads/main、refs/heads/develop と完全に一致する行だけを使う
 # （ls-remote のパターンは名前の末尾でも一致するため、claude/x/refs/heads/main のようなブランチを除く）。
+# develop がないときは result=stop reason=develop-moved actual=none、ls-remote の失敗と、完全に一致する行が
+# 2 行以上のときは result=unknown step=develop。
 # merge は、すべて満たすときだけ PUT repos/{owner}/{repo}/pulls/{n}/merge（merge_method=merge、sha=H）を 1 回呼ぶ。
 #   HTTP 405 / 409 は result=stop reason=merge-refused http=<code>。ほかの失敗は PR を 1 回読み直し、
 #   マージ済みなら result=merged、そうでなければ result=unknown step=merge。PUT は再試行しない。

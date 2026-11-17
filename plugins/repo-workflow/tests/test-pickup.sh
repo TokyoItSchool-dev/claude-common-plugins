@@ -193,6 +193,14 @@ set_free
 git --git-dir="${ORIGIN}" update-ref "${DECOY_LOCK_REF}" "$(lock_commit "$(held_msg 7 decoy)")"
 run "${D}/a" status; expect_rc 0; expect_out "state=free sha=$(lock_sha)"; done_case
 
+# 偽のロックを解放の形にし、本物のロックを保持にする。本物のロックを読む。
+new_case status-decoy-lock-held
+set_held 9 fix-lock
+git --git-dir="${ORIGIN}" update-ref "${DECOY_LOCK_REF}" "$(lock_commit "claude-active-work: released R-1 from $(lock_sha)")"
+run "${D}/a" status; expect_rc 0
+expect_out "state=held sha=$(lock_sha) time=$(git --git-dir="${ORIGIN}" log -1 --format=%cI "$(lock_sha)") issue=9 branch=claude/9-fix-lock session=${SESSION}/9"
+done_case
+
 new_case acquire-decoy-lock
 ready_issue 9
 git --git-dir="${ORIGIN}" update-ref "${DECOY_LOCK_REF}" "$(lock_commit "$(held_msg 7 decoy)")"

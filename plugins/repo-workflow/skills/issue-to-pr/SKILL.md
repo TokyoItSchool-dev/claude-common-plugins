@@ -27,7 +27,7 @@ Issue と既存のブランチ・PR を `gh` で確認する。Issue 本文・�
 | Issue の作成者が write 以上の権限を持つ | `gh issue view <n> --json author` の `author.login` が、GitHub MCP の `list_repository_collaborators`（全ページ）で `role_name` が `admin`、`maintain`、`write` のいずれか |
 | 受入基準（`AC-001` 形式）が本文にある | Issue 本文 |
 | `gate:blocked`、`ai:blocked`、`gate:needs-human` が付いていない | 同上 |
-| `claude/<n>-*` のブランチがない | `git ls-remote --heads origin 'claude/<n>-*'` |
+| `claude/<n>-*` のブランチがない | `git ls-remote --heads origin 'claude/<n>-*'` の出力に、名前（2 列目）が `refs/heads/claude/<n>-` で始まる行がない（`ls-remote` のパターンは名前の末尾でも一致するため、出力が空かどうかでは判断しない）。コマンドが失敗したときは満たさないものとする |
 | この Issue を対象にした Open / Draft の PR がない | `gh pr list --state open --json number,headRefName,body` の結果のうち、`headRefName` が `claude/<n>-` で始まるもの、または `body` に `#<n>` が単独のトークンとして含まれるもの（`#<n>0` や `#1<n>` は別の番号なので除く）がない |
 
 1つでも満たさない場合は、ブランチを作らず、ファイルも変更せずに停止する。報告に次を含める。

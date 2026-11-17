@@ -187,6 +187,8 @@ claude-active-work: released R-<k> from <解放した保持のコミットの sh
 | `state=unreadable sha=<sha> line=<1行目>` | 保持として扱う（読めない） | 想定外の結果（2.0）。取得も自動の解放（R-4 を含む）もしない。人間が R-5 で解放する |
 | `state=unknown`（終了コード 3） | 確認できない | 想定外の結果（2.0）。取得も解放もしない |
 
+`pickup.sh` は、`git ls-remote` の結果のうち、名前が `refs/heads/claude/active-work` と完全に一致する行だけをロックとして読む（`ls-remote` のパターンは名前の末尾でも一致するため、`claude/1-x/refs/heads/claude/active-work` のようなブランチを除く）。一致する行がなければ `absent`、2 行以上あるときと `ls-remote` が失敗したときは `unknown` とする。
+
 ### 2.2 取得
 
 取得は、同じ実行で `queue`（3.1）が出した `head issue=<n>` の Issue についてだけ行う。起動したイベントの Issue でそのまま取得しない。
@@ -251,7 +253,7 @@ pre-push-guard hook は、`main` と `develop` への push、force push、リモ
 ロックは、次のすべてを満たすとき古いとみなす（N = 5 時間）。
 
 1. 保持者の Issue に、`claude/<n>-` で始まるブランチからの Open の PR（Draft を含む）がない。
-2. 保持者の作業ブランチ（保持のメッセージのブランチ名）が存在しない、またはその先頭コミットの日時が 5 時間より前である。`git ls-remote --exit-code origin refs/heads/claude/<n>-<slug>` の終了コードが 2 のときだけ存在しないとする。0 のときは `git fetch origin claude/<n>-<slug>` の後 `git log -1 --format=%cI FETCH_HEAD` で日時を読む。それ以外は確認できないものとして、古いと判断しない。
+2. 保持者の作業ブランチ（保持のメッセージのブランチ名）が存在しない、またはその先頭コミットの日時が 5 時間より前である。`git ls-remote origin refs/heads/claude/<n>-<slug>` が成功し、出力に名前（2 列目）が `refs/heads/claude/<n>-<slug>` と完全に一致する行がないときだけ存在しないとする（`ls-remote` のパターンは名前の末尾でも一致するため、終了コードだけでは判断しない）。完全に一致する行が 1 行あるときは `git fetch origin refs/heads/claude/<n>-<slug>` の後 `git log -1 --format=%cI FETCH_HEAD` で日時を読む。それ以外（`ls-remote` か `fetch` の失敗を含む）は確認できないものとして、古いと判断しない。
 3. 保持のコミットの日時（`status` の `time`）が 5 時間より前である。
 
 日時は、確認する実行の現在時刻（`date -u`）との差で比べる。数分程度の時計のずれは 5 時間に比べて小さいため考慮しない。
@@ -464,11 +466,11 @@ payload の `sender`、Issue 本文、タイトル、コメントは使わない
    push の前に、次を実行して同名のブランチが無いことを確認する。
 
    ```
-   git ls-remote --exit-code origin refs/heads/claude/<n>-<slug>
+   git ls-remote origin refs/heads/claude/<n>-<slug>
    ```
 
-   - 終了コードが 2 のときだけ、ブランチが無いので push してよい。
-   - 終了コードが 0 のとき（ブランチが既にある）と、2 以外の失敗のとき（確認できなかった）は、push せず、ロックを解放して（`release R-2`）終了する。
+   - コマンドが成功し、出力に名前（2 列目）が `refs/heads/claude/<n>-<slug>` と完全に一致する行がないときだけ、ブランチが無いので push してよい（`ls-remote` のパターンは名前の末尾でも一致するため、出力が空かどうかや終了コードでは判断しない）。
+   - 完全に一致する行があるとき（ブランチが既にある）と、コマンドが失敗したとき（確認できなかった）は、push せず、ロックを解放して（`release R-2`）終了する。
 
    ```
    git push origin <sha>:refs/heads/claude/<n>-<slug>
@@ -477,7 +479,7 @@ payload の `sender`、Issue 本文、タイトル、コメントは使わない
    - force なしで push する。拒否されたとき、および出力が `Everything up-to-date` のとき（同名のブランチが既にある）は、ロックを解放して（`release R-2`）終了する。
 
 3. Issue に `work:in-progress` を付け、8.3 の「着手」をコメントする（セッション URL と作業ブランチ名。`acquire` の出力が `ci=pending` のときはそのことも書く）。
-4. 作業ブランチを checkout し（`git fetch origin claude/<n>-<slug>` の後 `git switch -c claude/<n>-<slug> FETCH_HEAD`）、以後も `pickup.sh` は 2.0 の複製を呼ぶ（作業ブランチ上のスクリプトは使わない）。`repo-workflow:issue-to-pr` スキルの 3 節（実装とテスト）と 4 節（独立レビュー）に従う。
+4. 作業ブランチを checkout し（`git fetch origin refs/heads/claude/<n>-<slug>` の後 `git switch -c claude/<n>-<slug> FETCH_HEAD`）、以後も `pickup.sh` は 2.0 の複製を呼ぶ（作業ブランチ上のスクリプトは使わない）。`repo-workflow:issue-to-pr` スキルの 3 節（実装とテスト）と 4 節（独立レビュー）に従う。
    - 実装の前に、作業ブランチ（`develop` の先頭と同じ）で、2.0.1 の検査の前のコマンドを実行してから `bash scripts/run-checks.sh` を実行する。失敗したら `develop` の先頭が壊れているとして、実装せずに 7 章へ進む。失敗の内容には「`develop` の先頭 <sha> でローカル検査が失敗: <失敗した検査>」と書く。
    - ルーチンから呼ぶときは、Skill の 1 節（着手条件）と 2 節（ブランチ作成）を行わない。着手条件は 6 章手順 1 で確認済みで、作業ブランチは手順 2 でこの実行が作ったためである。
    - 作業中は、途中のコミットを作業ブランチへ push する。古いロックの誤判定を避けるため、5 時間以上 push しない状態を作らない。push 先は `claude/<n>-<slug>` だけとする。
