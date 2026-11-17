@@ -85,7 +85,7 @@ M-1〜M-3 の状態の列に、テスト用リポジトリで確認した日付�
 
    ```
    d="$(mktemp -d)" && echo "$d"
-   git fetch --quiet origin main
+   git fetch --quiet origin +refs/heads/main:refs/remotes/origin/main
    git show origin/main:.claude/repo-workflow.json > "$d/repo-workflow.json"
    ```
 
@@ -97,12 +97,15 @@ M-1〜M-3 の状態の列に、テスト用リポジトリで確認した日付�
 
    出力が `^[0-9a-f]{40}$` に一致しなければ失敗とする（タグ、ブランチ名、短い sha は使わない）。
 
-3. `claude-common-plugins` のそのコミットだけを、一時ディレクトリの bare リポジトリへ取得する。
+3. `claude-common-plugins` の `main` を一時ディレクトリの bare リポジトリへ取得し、`plugin_sha` が `main` の履歴にあることを確かめる。
 
    ```
    git init --quiet --bare "$d/plugin.git"
-   git -C "$d/plugin.git" fetch --quiet --depth 1 https://github.com/TokyoItSchool-dev/claude-common-plugins <plugin_sha>
+   git -C "$d/plugin.git" fetch --quiet https://github.com/TokyoItSchool-dev/claude-common-plugins +refs/heads/main:refs/remotes/upstream/main
+   git -C "$d/plugin.git" merge-base --is-ancestor <plugin_sha> refs/remotes/upstream/main
    ```
+
+   `merge-base --is-ancestor` の終了コードが 0 のときだけ続ける。1（`main` の祖先でない）、128（そのコミットが取得した履歴にない）を含め、0 以外は失敗とする。GitHub は、フォークに push されたコミットも元のリポジトリの URL で sha を指定すれば渡すため、sha だけを取得すると `main` にないコミットのスクリプトを使うおそれがある。このため sha を直接取得せず、`main` を取得してその履歴にあることを確かめる。`main` は `--depth` を付けずにすべての履歴を取得する（深さを限ると、それより古い `plugin_sha` の祖先関係を確かめられないため。リポジトリは小さく、取得は数 MB 以下である）。
 
 4. スクリプトを取り出す。
 
@@ -115,7 +118,7 @@ M-1〜M-3 の状態の列に、テスト用リポジトリで確認した日付�
 
 取得に失敗したときの扱いは次のとおり。
 
-- 手順 1〜3 のどれか、または手順 4 の `pickup.sh` で失敗したとき（`main` に設定ファイルがない、`plugin_sha` の形が正しくない、取得できないときを含む）: 無人実行は、ロックにもキューにも触れずに終了する。失敗した手順とコマンドの出力を、実行の最後の報告に書く。
+- 手順 1〜3 のどれか、または手順 4 の `pickup.sh` で失敗したとき（`main` に設定ファイルがない、`plugin_sha` の形が正しくない、取得できない、`plugin_sha` が `claude-common-plugins` の `main` の履歴にないときを含む）: 無人実行は、ロックにもキューにも触れずに終了する。失敗した手順とコマンドの出力を、実行の最後の報告に書く。
 - 手順 4 の `merge-pr.sh` だけが失敗したとき: 無人実行は、そのまま続け、6 章手順 7 のマージを行わない。
 - 対話のセッション: マージせずに止まり、失敗した手順と出力を報告する。取得できないときに、作業ツリーや PR のブランチのスクリプトで代えない。取得できない環境で consumer の `main` の写しに戻すか（claude-common-plugins#8 の D1-C）は人間が決める。
 

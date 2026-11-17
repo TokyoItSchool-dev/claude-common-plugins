@@ -235,16 +235,17 @@ consumer のリポジトリのルートの `.claude/repo-workflow.json` に置�
 
 ```
 d="$(mktemp -d)"
-git fetch --quiet origin main
+git fetch --quiet origin +refs/heads/main:refs/remotes/origin/main
 git show origin/main:.claude/repo-workflow.json > "$d/repo-workflow.json"
 jq -r '.plugin_sha' "$d/repo-workflow.json"          # ^[0-9a-f]{40}$ であることを確かめる
 git init --quiet --bare "$d/plugin.git"
-git -C "$d/plugin.git" fetch --quiet --depth 1 https://github.com/TokyoItSchool-dev/claude-common-plugins <plugin_sha>
+git -C "$d/plugin.git" fetch --quiet https://github.com/TokyoItSchool-dev/claude-common-plugins +refs/heads/main:refs/remotes/upstream/main
+git -C "$d/plugin.git" merge-base --is-ancestor <plugin_sha> refs/remotes/upstream/main   # 終了コード 0 のときだけ続ける
 git -C "$d/plugin.git" show <plugin_sha>:plugins/repo-workflow/scripts/merge-pr.sh > "$d/merge-pr.sh"
 git -C "$d/plugin.git" show <plugin_sha>:plugins/repo-workflow/scripts/pickup.sh > "$d/pickup.sh"
 ```
 
-どれかの手順が失敗したときは、マージもロックの操作もせずに止まって報告する。Bash から `${CLAUDE_PLUGIN_ROOT}` でスクリプトを呼ばない（Bash ツールの環境にはこの変数が入らず、指す版もセッションの読み込みで決まるため）。
+どれかの手順が失敗したときは、マージもロックの操作もせずに止まって報告する。`plugin_sha` が claude-common-plugins の `main` の履歴にないとき（`merge-base --is-ancestor` の終了コードが 0 でないとき）も失敗とする。GitHub はフォークに push されたコミットも元のリポジトリの URL で渡すため、sha だけを取得せず、`main` を取得してその履歴にあることを確かめる。`main` は `--depth` を付けずに取得する（深さを限ると、それより古い `plugin_sha` の祖先関係を確かめられないため）。Bash から `${CLAUDE_PLUGIN_ROOT}` でスクリプトを呼ばない（Bash ツールの環境にはこの変数が入らず、指す版もセッションの読み込みで決まるため）。
 
 #8 D3-C により、consumer の `.claude/settings.json` のマーケットプレイスも同じ sha に固定する。
 
