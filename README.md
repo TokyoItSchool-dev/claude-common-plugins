@@ -6,7 +6,9 @@
 
 このリポジトリは、これまで各自の `~/.claude` に置かれていた開発規約・レビュー観点・文書作成規範を、Claude Code のプラグインとして再構成し、チームで共有できるようにしたものである。
 
-配布単位は 6 プラグイン。いずれも skills と agents だけで構成され、hooks・MCP サーバー・実行バイナリは同梱していない。したがってインストールしてもローカル環境で勝手にコマンドが走ることはなく、Windows 固有の実行系にも依存しない。
+配布単位は 7 プラグイン。`repo-workflow` を除く 6 プラグインは skills と agents だけで構成され、hooks・MCP サーバー・実行バイナリを同梱していない。これらはインストールしてもローカル環境でコマンドを実行せず、Windows 固有の実行系にも依存しない。
+
+`repo-workflow` だけは、フック（`hooks/hooks.json`）とシェルスクリプト（`scripts/`。bash、git、gh、jq を使う）を同梱する。フックは有効にすると PreToolUse で Bash と GitHub MCP の書き込みのツール呼び出しのたびに動き、`main`・`develop`・ロックのブランチへの push と書き込みを拒否する。`bin/` と MCP サーバーは同梱しない。詳細は [repo-workflow](#repo-workflow-1) の節を参照。
 
 移行の経緯・出典・既知の劣化については [MIGRATION.md](MIGRATION.md) を参照。
 
@@ -19,6 +21,7 @@
 | `dotnet-dev` | 4 | 1 | C# / .NET / ASP.NET Core / EF Core の規約・パターン・セキュリティ・テスト |
 | `web-dev` | 4 | 1 | TypeScript / React + Vite / Hono の規約・パターン、Vitest のテスト |
 | `python-dev` | 3 | 1 | Python / uv / FastAPI / Pydantic の規約・パターン、pytest のテスト |
+| `repo-workflow` | 4 | 0 | テンプレートから作ったリポジトリの Issue -> PR -> develop の手順（着手、PR の引き渡しと develop へのマージ、リリース準備、自動着手）、マージとロックのスクリプト、push のガードのフック |
 | `docs` | 8 | 1 | 技術文書作成（日本語ライティング、Markdown、HTML 設計書、Office 文書、HTML スライド） |
 
 プラグインは個別にインストールでき、必要なものだけを有効化してよい。
@@ -78,6 +81,15 @@
 | `python-dev:fastapi-patterns` | FastAPI のアプリのファクトリと lifespan、`Depends` と `Annotated` による依存、pydantic-settings による設定、ルーター、入力と出力で分けた Pydantic モデル、入力の検証、エラー応答、`def` と `async def` の使い分け、データベースへのアクセス |
 | `python-dev:pytest-testing` | pytest のテストの配置と pyproject.toml の設定、fixture と conftest.py、`TestClient` による FastAPI のテスト、`dependency_overrides` による依存の差し替え、parametrize、時刻と環境変数の固定、SQLite のテスト用データベース、uv によるテストの実行 |
 
+### repo-workflow
+
+| Skill | 用途 |
+| --- | --- |
+| `repo-workflow:issue-to-pr` | Issue の着手条件を確かめ、実装・テスト・独立レビューを行い、base が develop の Draft PR を作り、`repo-workflow:pr-handoff` へ進める |
+| `repo-workflow:pr-handoff` | PR の差分・テスト証跡・独立レビューを確かめ、本文を必須項目にそろえて Ready にし、条件を満たせば `merge-pr.sh` で develop へマージする |
+| `repo-workflow:release-prep` | リリースブランチ、CHANGELOG、受入テスト手順書、develop 宛てのリリース PR、develop -> main の PR 用の Closes 一覧と人間が確認する変更の一覧を作る |
+| `repo-workflow:issue-pickup` | `ai:ready` を起点とするスケジュールタスク（自動着手）の手順書。ロック、キュー、着手、develop へのマージと、`plugin_sha` からのスクリプトの取得（2.0）を定める |
+
 ### docs
 
 | Skill | 用途 |
@@ -129,8 +141,11 @@ claude plugin install java-dev@mori-claude-tools --scope project
 claude plugin install dotnet-dev@mori-claude-tools --scope project
 claude plugin install web-dev@mori-claude-tools --scope project
 claude plugin install python-dev@mori-claude-tools --scope project
+claude plugin install repo-workflow@mori-claude-tools --scope project
 claude plugin install docs@mori-claude-tools --scope project
 ```
+
+`repo-workflow` は、テンプレート（`TokyoItSchool-dev/claude-dev-template` とその派生）から作ったリポジトリだけで有効にする。使う前に、下の [repo-workflow](#repo-workflow-1) の節の設定ファイルと sha の固定を行う。
 
 ### 個人環境へのインストール（オプション）
 
@@ -163,9 +178,102 @@ cp ~/.claude/plugins/marketplaces/mori-claude-tools/templates/CLAUDE.md ./CLAUDE
 - 確認できている: クラウドセッションは、接続された GitHub アカウントが参照できるリポジトリにアクセスできる。
 - 確認できていない: Web セッションでプラグインが自動的にインストールされるかどうかは、ドキュメントに明示されていない。
 
-前提条件として、GitHub App / 連携アカウントがプライベートリポジトリ `TokyoItSchool-dev/claude-common-plugins` へのアクセス権を持っている必要がある。実際に動くかどうかは最初の Web セッションで確認すること。
+`TokyoItSchool-dev/claude-common-plugins` は公開リポジトリである。`repo-workflow:issue-pickup` の 2.0（スクリプトの取得）は、このリポジトリを認証なしの https で `git fetch` するため、公開であることを前提にしている。非公開に変えると、この取得が失敗し、2.0 の「取得に失敗したとき」のとおり、無人実行はロックにもキューにも触れずに終了し、対話のセッションはマージせずに止まる。プラグインのインストールが Web セッションで動くかどうかは、最初の Web セッションで確認すること。
 
-なお、このリポジトリは hooks を一切同梱していないため、Windows 固有のシェルやスクリプトが実行されることはない。
+`repo-workflow` を除くプラグインは hooks を同梱していないため、Windows 固有のシェルやスクリプトを実行しない。`repo-workflow` のフックとスクリプトは bash 4.2 以降、git、jq（`merge-pr.sh` と `pickup.sh` は gh も）を使う。
+
+## repo-workflow
+
+`repo-workflow` は、テンプレートから作ったリポジトリ（以下 consumer）が写しとして持っていたスキル、手順書、スクリプト、フックをまとめたプラグインである（#8、#9）。consumer のルールファイル（`.claude/rules/repository-workflow.md`、`dashboard-contract.md`）、`scripts/run-checks.sh`、`.claude/hooks/session-start.sh` は consumer に残す。
+
+| パス | 内容 |
+| --- | --- |
+| `skills/` | `issue-to-pr`、`pr-handoff`、`release-prep`、`issue-pickup` |
+| `scripts/merge-pr.sh` | develop へのマージの直前の条件を確かめてマージする |
+| `scripts/pickup.sh` | 自動着手のロック（`claude/active-work`）とキューを操作する |
+| `scripts/pre-push-guard.sh`、`scripts/mcp-branch-guard.sh` | PreToolUse のガード（`hooks/hooks.json` で登録する） |
+| `tests/` | 上のスクリプトのテスト。`bash plugins/repo-workflow/tests/run-all.sh` で全件を実行する |
+| `config/repo-workflow.example.json` | consumer の設定ファイルの例 |
+
+### consumer の設定ファイル（`.claude/repo-workflow.json`）
+
+consumer のリポジトリのルートの `.claude/repo-workflow.json` に置く。プラグインには置かない。
+
+```json
+{
+  "plugin_sha": "<claude-common-plugins の 40 桁のコミット sha>",
+  "gated_paths": ["app/src/appsscript.json"],
+  "pre_check_commands": ["npm ci"]
+}
+```
+
+| キー | 必須 | 形 | 意味 |
+| --- | --- | --- | --- |
+| `plugin_sha` | はい | 40 桁の小文字の 16 進数 | `merge-pr.sh` と `pickup.sh`（と手順書）を取得する claude-common-plugins のコミット。タグ、ブランチ名、短い sha は使わない |
+| `gated_paths` | はい | 空でない文字列の配列（空の配列も可） | `merge-pr.sh` が `reason=gated-path` で止める変更のパス。bash のパターンで、`*` は `/` にも一致する。PR の変更ファイルと、名前を変えたファイルの元の名前に当てる。旧 `merge-pr.sh` の `GATED_PATHS` と同じ書き方 |
+| `pre_check_commands` | いいえ（既定は空） | 文字列の配列 | `bash scripts/run-checks.sh` の前に、リポジトリのルートで順に実行するコマンド（例: `["npm ci"]`）。どれかが失敗すると検査の失敗として扱う |
+
+読み方の規則:
+
+- 設定はすべて consumer の `origin` の `main` の版を読む。作業ツリー、作業ブランチ、PR のブランチの設定ファイルは読まない。このため、PR が設定ファイルを変えても、人間がその変更を `main` へマージするまで判定は変わらない。
+- `merge-pr.sh` は、`origin` の `main` の先頭（`git ls-remote` で読み、手元になければ `git fetch` する）の設定ファイルから `gated_paths` を読む。`main` の先頭のコミットに設定ファイルがないときは `result=stop reason=config-missing`、JSON でない、オブジェクトでない、`gated_paths` が空でない文字列（制御文字を含まない）の配列でないときは `result=stop reason=config-invalid` で止める。`main` を読めないとき（`ls-remote` の失敗、`main` がない、名前が `refs/heads/main` と完全に一致する行が 2 行以上、`fetch` の失敗）は `result=unknown step=config`。
+- `gated_paths` が空でないとき、`merge-pr.sh` は PR の変更ファイルの一覧（`pulls/<n>/files`。GitHub は 3000 件までしか返さない）の件数を PR の `changed_files` と比べる。違うとき、または 3000 件以上のときは、一覧にないファイルを確かめられないため `result=stop reason=files-incomplete listed=<k> changed_files=<n>` で止める。`changed_files` が数でないときは `result=unknown step=files`。
+- `ls-remote` のパターンは ref の名前の末尾でも一致する（`claude/1-x/refs/heads/main` というブランチも `refs/heads/main` に当たる）。`merge-pr.sh` と `pickup.sh` は、名前が `refs/heads/main`、`refs/heads/develop`、`refs/heads/claude/active-work` と完全に一致する行だけを使う。
+- #8 D1 の付随の決定により、`.claude/repo-workflow.json` と `.claude/settings.json` を既定の `gated_paths` に入れない（D-07 のまま）。必要なリポジトリは自分の `gated_paths` に書く。
+
+リポジトリごとの値の例（#8 の差分の表から）:
+
+| リポジトリ | `gated_paths` | `pre_check_commands` |
+| --- | --- | --- |
+| claude-dev-template、claude-dev-template-test | `[]` | `[]` |
+| claude-dev-template-gas | `["app/src/appsscript.json"]` | `[]` |
+| kintone-ai-dev-template | 今の `GATED_PATHS` の 28 個のパターン（`tests/test-merge-pr.sh` の `GATED_KINTONE`）と `.claude/repo-workflow.json`（今の `GATED_PATHS` が持つ `.claude/routines/merge-pr.sh` に代わり、`plugin_sha` と `gated_paths` の変更を止める） | `["npm ci"]` |
+| claude-portfolio-dashboard | `[]` | `["npm ci"]` |
+
+### スクリプトの取得と sha の固定
+
+スキルと手順書は、`merge-pr.sh` と `pickup.sh` を、セッションが読み込んだプラグインからではなく、consumer の `main` の `plugin_sha` のコミットから一時ディレクトリへ取得して使う（#8 D1-B）。手順は `repo-workflow:issue-pickup` の 2.0 に書いてある。要点は次のとおり。
+
+```
+d="$(mktemp -d)"
+git fetch --quiet origin +refs/heads/main:refs/remotes/origin/main
+m="$(git rev-parse --verify 'refs/remotes/origin/main^{commit}')"   # 短い名前 origin/main はタグ refs/tags/origin/main が先に当たるため使わない
+git show "$m":.claude/repo-workflow.json > "$d/repo-workflow.json"
+jq -r '.plugin_sha' "$d/repo-workflow.json"          # ^[0-9a-f]{40}$ であることを確かめる
+git init --quiet --bare "$d/plugin.git"
+git -C "$d/plugin.git" fetch --quiet https://github.com/TokyoItSchool-dev/claude-common-plugins +refs/heads/main:refs/remotes/upstream/main
+git -C "$d/plugin.git" merge-base --is-ancestor <plugin_sha> refs/remotes/upstream/main   # 終了コード 0 のときだけ続ける
+git -C "$d/plugin.git" show <plugin_sha>:plugins/repo-workflow/scripts/merge-pr.sh > "$d/merge-pr.sh"
+git -C "$d/plugin.git" show <plugin_sha>:plugins/repo-workflow/scripts/pickup.sh > "$d/pickup.sh"
+```
+
+どれかの手順が失敗したときは、マージもロックの操作もせずに止まって報告する。`plugin_sha` が claude-common-plugins の `main` の履歴にないとき（`merge-base --is-ancestor` の終了コードが 0 でないとき）も失敗とする。GitHub はフォークに push されたコミットも元のリポジトリの URL で渡すため、sha だけを取得せず、`main` を取得してその履歴にあることを確かめる。`main` は `--depth` を付けずに取得する（深さを限ると、それより古い `plugin_sha` の祖先関係を確かめられないため）。Bash から `${CLAUDE_PLUGIN_ROOT}` でスクリプトを呼ばない（Bash ツールの環境にはこの変数が入らず、指す版もセッションの読み込みで決まるため）。
+
+#8 D3-C により、consumer の `.claude/settings.json` のマーケットプレイスも同じ sha に固定する。
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "mori-claude-tools": {
+      "source": { "source": "github", "repo": "TokyoItSchool-dev/claude-common-plugins", "ref": "<plugin_sha と同じ sha>" }
+    }
+  },
+  "enabledPlugins": { "core-dev@mori-claude-tools": true, "repo-workflow@mori-claude-tools": true }
+}
+```
+
+- `source.ref` に commit sha を書くには Claude Code v2.1.324 以降が要る。
+- `ref` を固定すると、同じマーケットプレイスの全プラグイン（core-dev、docs など）が同じ sha に固定される。
+- 上げるときは、consumer への 1 つの PR で `plugin_sha` と `ref` を同時に変える。claude-common-plugins の `main` が変わっても、consumer の `main` の固定値を変える PR を人間が `main` へマージするまで、consumer の判定は変わらない。
+- `plugins/repo-workflow/` を変える claude-common-plugins の PR は、人間がマージする（#8 D1）。
+
+### フック
+
+`hooks/hooks.json` は、`pre-push-guard.sh`（matcher `Bash`）と `mcp-branch-guard.sh`（matcher `mcp__github__push_files|mcp__github__create_or_update_file|mcp__github__delete_file`）を `"${CLAUDE_PLUGIN_ROOT}"/scripts/...` で登録する。
+
+#8 D2-B により、consumer は、プラグインのフックがスケジュールタスクの実行で最初のツール呼び出しから動くと確かめるまで、自分の `.claude/hooks/` のガードの写しを `.claude/settings.json` から呼び続ける。その間は、プラグインを有効にしたセッションで同じガードが 2 回動く。2 つは同じ操作を拒否するため、重複してもよい。
+
+プラグインは `permissions` を持てない。`mcp__github__merge_pull_request`、`mcp__github__enable_pr_auto_merge`、`mcp__github__update_pull_request_branch` の拒否は、consumer の `.claude/settings.json` の `permissions.deny` に残す。
 
 ## Development
 
@@ -180,7 +288,7 @@ claude --plugin-dir ./plugins/core-dev --plugin-dir ./plugins/docs
 
 ## Validation
 
-以下 19 コマンドがすべて終了コード 0 であることを確認する。
+以下 21 コマンドがすべて終了コード 0 であることを確認する。
 
 ```
 claude plugin validate ./plugins/core-dev --strict
@@ -188,6 +296,7 @@ claude plugin validate ./plugins/java-dev --strict
 claude plugin validate ./plugins/dotnet-dev --strict
 claude plugin validate ./plugins/web-dev --strict
 claude plugin validate ./plugins/python-dev --strict
+claude plugin validate ./plugins/repo-workflow --strict
 claude plugin validate ./plugins/docs --strict
 claude plugin validate . --strict
 claude plugin validate ./plugins/core-dev/skills --strict
@@ -200,11 +309,14 @@ claude plugin validate ./plugins/web-dev/skills --strict
 claude plugin validate ./plugins/web-dev/agents --strict
 claude plugin validate ./plugins/python-dev/skills --strict
 claude plugin validate ./plugins/python-dev/agents --strict
+claude plugin validate ./plugins/repo-workflow/skills --strict
 claude plugin validate ./plugins/docs/skills --strict
 claude plugin validate ./plugins/docs/agents --strict
 ```
 
-重要な注意点として、プラグインディレクトリを指定した `claude plugin validate ./plugins/core-dev --strict` は **`plugin.json` マニフェストしか検証しない**（出力も `Validating plugin manifest:` となる）。skills と agents の内容を検証するには、`skills` / `agents` サブディレクトリを明示的に指定する必要がある（出力は `Validating components in:`）。CI を組む際は、上記 19 コマンドをすべて回すこと。
+重要な注意点として、プラグインディレクトリを指定した `claude plugin validate ./plugins/core-dev --strict` は **`plugin.json` マニフェストしか検証しない**（出力も `Validating plugin manifest:` となる）。skills と agents の内容を検証するには、`skills` / `agents` サブディレクトリを明示的に指定する必要がある（出力は `Validating components in:`）。CI を組む際は、上記 21 コマンドをすべて回すこと。`repo-workflow` はエージェントを持たないため、`agents` の検証はない。
+
+`repo-workflow` のスクリプトのテストは `bash plugins/repo-workflow/tests/run-all.sh` で実行する（bash 4.2 以降、git、jq が必要。ネットワークは使わない）。1 件でも失敗すれば終了コードが 0 以外になる。
 
 JSON の構文チェックは次のようにする。
 
@@ -212,7 +324,7 @@ JSON の構文チェックは次のようにする。
 python -c "import json,os; fs=[os.path.join(r,n) for r,d,f in os.walk('.') if '.git' not in r.split(os.sep) for n in f if n.endswith('.json')]; [json.load(open(p,encoding='utf-8')) for p in fs]; print('OK',len(fs))"
 ```
 
-`glob.glob('**/*.json', recursive=True)` は使わないこと。glob は既定で先頭がドットのパスにマッチしないため、`.claude-plugin/` 配下のマニフェスト 7 件を 1 つも拾わず、検査対象 0 件のまま成功してしまう。Python 3.11 以降であれば `glob.glob(..., include_hidden=True)` でも代替できる。
+`glob.glob('**/*.json', recursive=True)` は使わないこと。glob は既定で先頭がドットのパスにマッチしないため、`.claude-plugin/` 配下のマニフェスト 8 件を 1 つも拾わず、検査対象 0 件のまま成功してしまう。Python 3.11 以降であれば `glob.glob(..., include_hidden=True)` でも代替できる。
 
 ## Update policy
 
