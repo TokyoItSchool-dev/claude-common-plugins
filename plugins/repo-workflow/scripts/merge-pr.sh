@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # base が develop の PR を、マージの直前の条件を確かめてからマージする（マージコミット）。
-# 規則: .claude/rules/repository-workflow.md 3.1。手順書: .claude/routines/issue-pickup.md 6 章。
+# 規則: consumer リポジトリの .claude/rules/repository-workflow.md 3.1。手順書: repo-workflow:issue-pickup 6 章。
 # このスクリプトは run-checks.sh の実行とレビューをしない。それらの証跡が、マージの時点の PR の先頭（H）と
 # develop の先頭（D）に対するものであることと、PR の状態がマージしてよい形であることだけを確かめる。
-# 使うのは main にあるこのファイルの写しである（PR のブランチにあるものは使わない）。
+# 使うのは、consumer の main の .claude/repo-workflow.json の plugin_sha が指す claude-common-plugins の
+# コミットにあるこのファイルの写しである（PR のブランチやセッションが読み込んだプラグインのものは使わない）。
+# 取得の手順は repo-workflow:issue-pickup の「スクリプトの取得」。
 #
 # 使い方（clone の作業ツリーで実行する。リモートは origin）:
 #   merge-pr.sh check --pr <n> --head <H> --develop <D>
@@ -22,7 +24,12 @@
 #   develop-moved actual=<sha|none>、not-up-to-date behind_by=<k>、draft（merge のときだけ）、
 #   label-gate-blocked on=<pr|issue-N>、label-ai-blocked on=...、label-needs-human on=...、
 #   review-requested、changes-requested reviewer=<login>、check-failed name=<name>、check-pending name=<name>、
-#   mergeable-false、evidence-missing、gated-path path=<path>。
+#   mergeable-false、evidence-missing、config-missing、config-invalid、gated-path path=<path>。
+# 止める変更のパスは、origin の main の先頭（git ls-remote で読み、手元になければ git fetch する）の
+# .claude/repo-workflow.json の gated_paths から読む。作業ツリーと PR のブランチの設定ファイルは読まない。
+#   main がない、またはそのコミットに設定ファイルがない: result=stop reason=config-missing。
+#   JSON でない、オブジェクトでない、gated_paths が空でない文字列（制御文字を含まない）の配列でない:
+#   result=stop reason=config-invalid。main を読めない（ls-remote か fetch の失敗）: result=unknown step=config。
 # merge は、すべて満たすときだけ PUT repos/{owner}/{repo}/pulls/{n}/merge（merge_method=merge、sha=H）を 1 回呼ぶ。
 #   HTTP 405 / 409 は result=stop reason=merge-refused http=<code>。ほかの失敗は PR を 1 回読み直し、
 #   マージ済みなら result=merged、そうでなければ result=unknown step=merge。PUT は再試行しない。
@@ -44,8 +51,10 @@ readonly LOCK_BRANCH="claude/active-work"
 readonly RE_SHA='^[0-9a-f]{40}([0-9a-f]{24})?$'
 export GIT_TERMINAL_PROMPT=0 GH_PROMPT_DISABLED=1
 
-# マージを止める変更のパス（bash のパターン。* は / にも一致する）。ベースでは空で、派生テンプレートが埋める。
-# PR の変更ファイル（名前を変えたファイルは元の名前も）のどれかが当てはまれば gated-path で止める。
+# consumer の設定ファイル（origin の main から読む）。
+readonly CONFIG_PATH=".claude/repo-workflow.json"
+# マージを止める変更のパス（bash のパターン。* は / にも一致する）。load_gated_paths が設定ファイルの
+# gated_paths で埋める。PR の変更ファイル（名前を変えたファイルは元の名前も）のどれかが当てはまれば gated-path で止める。
 GATED_PATHS=()
 
 # jq の出力から CR を除く（pickup.sh と同じ。Windows の jq.exe は改行を CRLF で出力する）。jq の終了コードを返す。
@@ -122,6 +131,30 @@ readonly JQ_PR_LINKS='[ ((.head.ref // "") | capture("^claude/(?<n>[0-9]+)-") | 
 readonly JQ_STOP_LABELS='(.labels // []) | map(.name) as $l
   | [("gate:blocked", "ai:blocked", "gate:needs-human") | . as $x | ($l | any(. == $x)) | if . then "1" else "0" end]
   | join(" ")'
+
+# load_gated_paths: origin の main の先頭のコミットから設定ファイルを読み、GATED_PATHS を埋める。
+# 読めなければ stop（config-missing、config-invalid）か unknown（config）で終わる。
+load_gated_paths() {
+  local main json list p
+  main=$(git ls-remote "${REMOTE}" refs/heads/main 2>/dev/null) || unknown "config"
+  main="${main%%[[:space:]]*}"
+  [ -n "${main}" ] || stop "config-missing"
+  [[ "${main}" =~ ${RE_SHA} ]] || unknown "config"
+  if ! git cat-file -e "${main}^{commit}" 2>/dev/null; then
+    git fetch --quiet --no-tags "${REMOTE}" "+refs/heads/main:refs/remotes/${REMOTE}/main" >/dev/null 2>&1 \
+      || unknown "config"
+    git cat-file -e "${main}^{commit}" 2>/dev/null || unknown "config"
+  fi
+  git cat-file -e "${main}:${CONFIG_PATH}" 2>/dev/null || stop "config-missing"
+  json=$(git show "${main}:${CONFIG_PATH}" 2>/dev/null) || stop "config-invalid"
+  list=$(jq -rs 'if length == 1 and (.[0] | type == "object") and (.[0].gated_paths | type == "array")
+      and (.[0].gated_paths | all(type == "string" and length > 0 and (test("[[:cntrl:]]") | not)))
+    then .[0].gated_paths[] else error("invalid config") end' <<< "${json}" 2>/dev/null) || stop "config-invalid"
+  GATED_PATHS=()
+  while IFS= read -r p; do
+    [ -z "${p}" ] || GATED_PATHS+=("${p}")
+  done <<< "${list}"
+}
 
 run_checks() {
   local mode="$1" json line
@@ -224,7 +257,8 @@ run_checks() {
   # 8. 証跡の行（H と D がこの実行の値と一致する行）
   [ "${evidence}" = "true" ] || stop "evidence-missing"
 
-  # 9. 止める変更のパス
+  # 9. 止める変更のパス（origin の main の設定ファイルから読む）
+  load_gated_paths
   if [ "${#GATED_PATHS[@]}" -gt 0 ]; then
     local files p pat
     json=$(gh_list "repos/${REPO}/pulls/${PR}/files?per_page=100") || unknown "files"

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # merge-pr.sh のテスト（オフライン）。ローカルの bare リポジトリを origin にし、gh は PATH 上の偽物（fake-gh-merge.sh）にする。
-# 実行: bash .claude/routines/tests/test-merge-pr.sh（git と jq が必要）
+# 止める変更のパス（gated_paths）は、origin の main の .claude/repo-workflow.json に置く（main_config）。
+# 実行: bash plugins/repo-workflow/tests/test-merge-pr.sh（git と jq が必要）
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-script="${here}/../merge-pr.sh"
+script="${here}/../scripts/merge-pr.sh"
 work="$(mktemp -d)"
 trap 'rm -rf "${work}"' EXIT
 
@@ -25,10 +26,22 @@ export GH_REPO="owner/repo"
 : > "${work}/gitconfig"
 export GIT_CONFIG_GLOBAL="${work}/gitconfig" GIT_CONFIG_NOSYSTEM=1
 
-# GATED_PATHS を埋めた写し（派生テンプレートの設定を模す）。
-gated_script="${work}/merge-pr-gated.sh"
-sed "s|^GATED_PATHS=()$|GATED_PATHS=('.github/*' 'package.json')|" "${script}" > "${gated_script}"
-grep -q "^GATED_PATHS=('.github/\*' 'package.json')$" "${gated_script}" || { echo "FAIL setup: GATED_PATHS=() not found in merge-pr.sh"; exit 1; }
+# 設定ファイルの例（派生テンプレートの gated_paths を模す）。
+readonly PLUGIN_SHA="0123456789abcdef0123456789abcdef01234567"
+config_json() { jq -cn --arg s "${PLUGIN_SHA}" --argjson g "$1" '{plugin_sha: $s, gated_paths: $g, pre_check_commands: []}'; }
+readonly GATED_EXAMPLE='[".github/*", "package.json"]'
+# gas の gated_paths（claude-dev-template-gas の GATED_PATHS）。
+readonly GATED_GAS='["app/src/appsscript.json"]'
+# kintone の gated_paths（kintone-ai-dev-template の GATED_PATHS）。
+readonly GATED_KINTONE='[".mcp.json", "config/policy.json", "config/project.json", "config/schema/*", "approvals/*",
+  ".github/workflows/deploy-*.yml", ".github/workflows/plan-staging.yml", ".github/workflows/e2e-staging.yml",
+  ".github/workflows/security.yml", ".claude/settings.json", ".claude/routines/merge-pr.sh",
+  ".claude/rules/kintone-deployment.md", ".claude/rules/kintone-security.md",
+  "packages/kintone-core/src/auth.ts", "packages/kintone-core/src/write-client.ts",
+  "packages/kintone-settings/src/guard.ts", "packages/kintone-settings/src/apply.ts",
+  "packages/kintone-settings/src/plan.ts", "packages/kintone-settings/src/approval.ts",
+  "packages/kintone-settings/src/git.ts", ".npmrc", "*/.npmrc", "npm-shrinkwrap.json", "*/npm-shrinkwrap.json",
+  "package.json", "*/package.json", "package-lock.json", "*/package-lock.json"]'
 
 H="1111111111111111111111111111111111111111"
 H2="2222222222222222222222222222222222222222"
@@ -51,6 +64,7 @@ evidence() { echo "develop-merge-evidence: head=${1:-${H}} develop=${2:-${DEVELO
 set_body() { pr_set ".body = $(jq -Rs . <<< "$1")"; }
 
 # new_case <name>: origin（bare、main と develop を持つ）、clone a、条件をすべて満たす fixture を用意する。
+# main と develop は、gated_paths が空の設定ファイル（.claude/repo-workflow.json）を持つ。
 new_case() {
   CASE="$1"
   CASE_FAILED=0
@@ -63,7 +77,10 @@ new_case() {
   mkdir -p "${D}/owner"
   git init -q --bare "${ORIGIN}"
   tgit init -q "${D}/seed"
-  tgit -C "${D}/seed" commit -q --allow-empty -m "initial"
+  mkdir -p "${D}/seed/.claude"
+  config_json '[]' > "${D}/seed/.claude/repo-workflow.json"
+  tgit -C "${D}/seed" add .claude/repo-workflow.json
+  tgit -C "${D}/seed" commit -q -m "initial"
   tgit -C "${D}/seed" push -q "${ORIGIN}" HEAD:refs/heads/main HEAD:refs/heads/develop
   DEVELOP="$(git --git-dir="${ORIGIN}" rev-parse refs/heads/develop)"
   git clone -q "${ORIGIN}" "${D}/a" 2>/dev/null
@@ -76,6 +93,17 @@ new_case() {
   fixture issue-12 '{"number":12,"state":"open","labels":[{"name":"ai:ready"},{"name":"work:in-progress"}]}'
   fixture compare '{"status":"ahead","ahead_by":1,"behind_by":0}'
 }
+
+# main_raw <content>: origin の main に、設定ファイルをこの内容にしたコミットを足す（develop は動かさない）。
+# clone a の origin/main は古いままになる（merge-pr.sh が main の先頭を読むことを確かめる）。
+main_raw() {
+  printf '%s\n' "$1" > "${D}/seed/.claude/repo-workflow.json"
+  tgit -C "${D}/seed" add .claude/repo-workflow.json
+  tgit -C "${D}/seed" commit -q --allow-empty -m "config"
+  tgit -C "${D}/seed" push -q "${ORIGIN}" HEAD:refs/heads/main
+}
+# main_config <gated_paths の JSON>: origin の main の gated_paths を変える。
+main_config() { main_raw "$(config_json "$1")"; }
 
 # run <args...>: merge-pr.sh を clone a で実行し、OUT と RC を設定する。
 run() {
@@ -187,12 +215,13 @@ new_case check-mergeable-null
 pr_set '.mergeable = null'
 check; expect_rc 0; expect_out "result=ok"; done_case
 
-# GATED_PATHS に当てはまらない変更は止めない。
+# gated_paths に当てはまらない変更は止めない。
 new_case check-gated-other-path
+main_config "${GATED_EXAMPLE}"
 fixture files-7 '[{"filename":"src/a.sh"},{"filename":"docs/package.json"}]'
-SCRIPT_UNDER_TEST="${gated_script}" check; expect_rc 0; expect_out "result=ok"; done_case
+check; expect_rc 0; expect_out "result=ok"; done_case
 
-# GATED_PATHS が空（ベース）のときは、ファイルの一覧を読まない。
+# gated_paths が空（ベース）のときは、ファイルの一覧を読まない。
 new_case check-gated-empty
 fixture files-7 '[{"filename":".github/workflows/ci.yml"}]'
 check; expect_rc 0; expect_out "result=ok"
@@ -379,18 +408,150 @@ set_body "Closes #12"$'\n'"note: $(evidence)"
 expect_stop "evidence-missing"; done_case
 
 new_case stop-gated-path
+main_config "${GATED_EXAMPLE}"
 fixture files-7 '[{"filename":"src/a.sh"},{"filename":".github/workflows/ci.yml"}]'
-SCRIPT_UNDER_TEST="${gated_script}" expect_stop "gated-path path=.github/workflows/ci.yml"; done_case
+expect_stop "gated-path path=.github/workflows/ci.yml"; done_case
 
 # 名前を変えたファイルは、元の名前も確かめる。
 new_case stop-gated-path-renamed
+main_config "${GATED_EXAMPLE}"
 fixture files-7 '[{"filename":"pkg.json","previous_filename":"package.json","status":"renamed"}]'
-SCRIPT_UNDER_TEST="${gated_script}" expect_stop "gated-path path=package.json"; done_case
+expect_stop "gated-path path=package.json"; done_case
 
 # 順序: 先の理由が出る（ラベルとレビューと証跡がすべて欠けていても base-not-develop）。
 new_case stop-order-first-wins
 pr_set '.base.ref = "main" | .labels += [{name: "gate:blocked"}] | .mergeable = false | .body = ""'
 expect_stop "base-not-develop base=main"; done_case
+
+# ---------------------------------------------------------------- 設定ファイル（gated_paths）
+
+# gated_paths が空の設定（ベース）は、ほかの止める変更のパスを持たない（.github/ と package.json も止めない）。
+new_case check-config-empty-gated
+fixture files-7 '[{"filename":".github/workflows/ci.yml"},{"filename":"package.json"},{"filename":".claude/repo-workflow.json"}]'
+check; expect_rc 0; expect_out "result=ok"
+merge; expect_rc 0; expect_out "result=merged pr=7 merge_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; done_case
+
+# gas の gated_paths（Apps Script のマニフェスト。gas の .claude/rules/repository-workflow.md 8.1）。
+new_case stop-gas-appsscript
+main_config "${GATED_GAS}"
+fixture files-7 '[{"filename":"app/src/core/a.js"},{"filename":"app/src/appsscript.json"}]'
+expect_stop "gated-path path=app/src/appsscript.json"; done_case
+
+# マニフェストから名前を変えたファイルも止める。
+new_case stop-gas-appsscript-renamed
+main_config "${GATED_GAS}"
+fixture files-7 '[{"filename":"app/src/appsscript.old.json","previous_filename":"app/src/appsscript.json","status":"renamed"}]'
+expect_stop "gated-path path=app/src/appsscript.json"; done_case
+
+# マニフェストに当たらない変更は止めない（似た名前を含む）。
+new_case check-gas-other-paths
+main_config "${GATED_GAS}"
+fixture files-7 '[{"filename":"app/src/web.js"},{"filename":"app/src/core/appsscript.json"},
+  {"filename":"appsscript.json"},{"filename":"docs/app/src/appsscript.json"},{"filename":"app/src/appsscript.json.bak"},
+  {"filename":".github/workflows/ci.yml"},{"filename":"package.json"}]'
+check; expect_rc 0; expect_out "result=ok"
+grep -q '/files' "${FIXTURE_DIR}/calls.log" || fail "files were not read with the gas gated_paths"
+done_case
+
+# kintone の gated_paths（kintone の人間ゲート。kintone の .claude/rules/repository-workflow.md 8.1）。
+for p in .mcp.json config/policy.json config/project.json config/schema/policy.schema.json \
+  config/schema/settings/fields.schema.json approvals/staging/abc.json .github/workflows/deploy-staging.yml \
+  .github/workflows/deploy-production.yml .github/workflows/plan-staging.yml .github/workflows/e2e-staging.yml \
+  .github/workflows/security.yml .claude/settings.json .claude/routines/merge-pr.sh .claude/rules/kintone-deployment.md \
+  .claude/rules/kintone-security.md package.json package-lock.json packages/kintone-core/package.json \
+  packages/kintone-settings/package-lock.json packages/kintone-core/src/auth.ts \
+  packages/kintone-core/src/write-client.ts packages/kintone-settings/src/guard.ts \
+  packages/kintone-settings/src/apply.ts packages/kintone-settings/src/plan.ts \
+  packages/kintone-settings/src/approval.ts packages/kintone-settings/src/git.ts .npmrc packages/kintone-core/.npmrc \
+  npm-shrinkwrap.json packages/kintone-core/npm-shrinkwrap.json; do
+  kintone_no=$((${kintone_no:-0} + 1))
+  new_case "stop-kintone-gated-${kintone_no}"
+  main_config "${GATED_KINTONE}"
+  fixture files-7 "$(jq -cn --arg p "${p}" '[{"filename":"src/a.ts"},{"filename":$p}]')"
+  expect_stop "gated-path path=${p}"; done_case
+done
+
+# kintone のゲートのパスから名前を変えたファイルも止める。
+new_case stop-kintone-gated-renamed
+main_config "${GATED_KINTONE}"
+fixture files-7 '[{"filename":"config/policy.old.json","previous_filename":"config/policy.json","status":"renamed"}]'
+expect_stop "gated-path path=config/policy.json"; done_case
+
+# kintone のゲートに当たらない変更は止めない（ゲートのパスと似た名前を含む）。
+new_case check-kintone-other-paths
+main_config "${GATED_KINTONE}"
+fixture files-7 '[{"filename":"apps/sample/src/desktop/index.ts"},{"filename":".github/workflows/ci.yml"},
+  {"filename":".claude/rules/kintone-events.md"},{"filename":"config/environments/staging.example.json"},
+  {"filename":"tests/fixtures/project/.mcp.json"},{"filename":"docs/config/policy.json"},
+  {"filename":".claude/settings.local.json"},{"filename":"CLAUDE.md"},
+  {"filename":"packages/kintone-settings/src/diff.ts"},{"filename":"packages/kintone-settings/tests/plan.test.ts"}]'
+check; expect_rc 0; expect_out "result=ok"
+grep -q '/files' "${FIXTURE_DIR}/calls.log" || fail "files were not read with the kintone gated_paths"
+done_case
+
+# PR のブランチ（と作業ツリー）の設定ファイルは読まない。main が gated_paths を持てば、PR が設定ファイルで
+# gated_paths を空にしても止まる。
+new_case stop-config-pr-branch-ignored
+main_config "${GATED_GAS}"
+git -C "${D}/a" fetch -q origin
+tgit -C "${D}/a" checkout -q -b claude/12-fix-x origin/main
+config_json '[]' > "${D}/a/.claude/repo-workflow.json"
+tgit -C "${D}/a" commit -q -am "empty gated_paths"
+tgit -C "${D}/a" push -q origin HEAD:refs/heads/claude/12-fix-x
+fixture files-7 '[{"filename":".claude/repo-workflow.json"},{"filename":"app/src/appsscript.json"}]'
+expect_stop "gated-path path=app/src/appsscript.json"; done_case
+
+# 逆に、PR のブランチが gated_paths を足しても、main が空なら止めない。
+new_case check-config-pr-branch-added-ignored
+tgit -C "${D}/a" checkout -q -b claude/12-fix-x origin/main
+config_json "${GATED_GAS}" > "${D}/a/.claude/repo-workflow.json"
+tgit -C "${D}/a" commit -q -am "add gated_paths"
+fixture files-7 '[{"filename":".claude/repo-workflow.json"},{"filename":"app/src/appsscript.json"}]'
+check; expect_rc 0; expect_out "result=ok"; done_case
+
+# 手元の origin/main が古くても、origin の main の先頭の設定を読む。
+new_case stop-config-stale-local-main
+old_main="$(git -C "${D}/a" rev-parse origin/main)"
+main_config "${GATED_GAS}"
+fixture files-7 '[{"filename":"app/src/appsscript.json"}]'
+expect_stop "gated-path path=app/src/appsscript.json"
+[ "$(git -C "${D}/a" rev-parse origin/main)" != "${old_main}" ] || fail "origin/main was not fetched"
+done_case
+
+# main の設定ファイルがない（作業ツリーにあっても読まない）。
+new_case stop-config-missing
+git -C "${D}/seed" rm -q .claude/repo-workflow.json
+tgit -C "${D}/seed" commit -q -m "remove config"
+tgit -C "${D}/seed" push -q "${ORIGIN}" HEAD:refs/heads/main
+mkdir -p "${D}/a/.claude"
+config_json '[]' > "${D}/a/.claude/repo-workflow.json"
+expect_stop "config-missing"; done_case
+
+# origin に main がない。
+new_case stop-config-no-main
+git --git-dir="${ORIGIN}" update-ref -d refs/heads/main
+expect_stop "config-missing"; done_case
+
+# 形が正しくない設定ファイル。
+for bad in 'not json' '' '[]' '{"plugin_sha":"0123456789abcdef0123456789abcdef01234567"}' \
+  '{"gated_paths":"app/src/appsscript.json"}' '{"gated_paths":[1]}' '{"gated_paths":[null]}' \
+  '{"gated_paths":[""]}' '{"gated_paths":["a\nb"]}' '{"gated_paths":[]} {"gated_paths":[]}' '{"gated_paths":null}'; do
+  bad_no=$((${bad_no:-0} + 1))
+  new_case "stop-config-invalid-${bad_no}"
+  main_raw "${bad}"
+  expect_stop "config-invalid"; done_case
+done
+
+# 設定ファイルが正しくないときは、gated_paths に当たる変更がなくても止める（先の理由があればそれが出る）。
+new_case stop-config-invalid-before-ok
+main_raw '{"gated_paths":{}}'
+fixture files-7 '[{"filename":"src/a.sh"}]'
+expect_stop "config-invalid"; done_case
+
+new_case stop-config-invalid-after-evidence
+main_raw 'not json'
+set_body "Closes #12"
+expect_stop "evidence-missing"; done_case
 
 # ---------------------------------------------------------------- マージの結果
 
@@ -454,9 +615,10 @@ for name in pr-7 issue-12 compare reviews-7 check-runs status; do
 done
 
 new_case unknown-files
+main_config "${GATED_EXAMPLE}"
 fixture files-7 '[]'
 : > "${FIXTURE_DIR}/files-7.fail"
-SCRIPT_UNDER_TEST="${gated_script}" check; expect_rc 3; expect_out "result=unknown step=files"; done_case
+check; expect_rc 3; expect_out "result=unknown step=files"; done_case
 
 # 紐付く Issue が見つからない（404）ときも判定できないとする。
 new_case unknown-issue-missing
