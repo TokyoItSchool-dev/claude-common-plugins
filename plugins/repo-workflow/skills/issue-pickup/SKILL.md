@@ -77,7 +77,7 @@ M-1〜M-3 の状態の列に、テスト用リポジトリで確認した日付�
 
 ロックの読み取り・取得・解放とキューの計算は、この節で取得した `pickup.sh` の複製だけで行う。`git commit-tree`、`git push`、`git fetch` で `claude/active-work` を直接操作しない。pre-push-guard hook は `claude/active-work` への直接の `git push` を拒否する。hook はコマンド行だけを調べるため、`bash <複製のパス> ...` の中の push は対象にならない。
 
-`pickup.sh` と `merge-pr.sh` は、consumer の `origin/main` の設定ファイル `.claude/repo-workflow.json` の `plugin_sha` が指す `claude-common-plugins` のコミットから、一時ディレクトリへ取得して使う（claude-common-plugins#8 の D1-B）。作業ツリー、作業ブランチ、PR のブランチの設定ファイルとスクリプトは使わない。セッションが読み込んだプラグインの `scripts/`（`${CLAUDE_PLUGIN_ROOT}`）も使わない。マージの確認を行うスクリプトや設定を変更する PR が、自分の変更で自分を確認することがないように、設定は `main` の版を読み、スクリプトは `main` が固定した sha の版を使う。この手順は、対話のセッション（`repo-workflow:pr-handoff`、`repo-workflow:release-prep`、`.claude/rules/repository-workflow.md` の 3.1 の手順 1）でも同じである。
+`pickup.sh` と `merge-pr.sh` は、consumer の `origin` の `main` の設定ファイル `.claude/repo-workflow.json` の `plugin_sha` が指す `claude-common-plugins` のコミットから、一時ディレクトリへ取得して使う（claude-common-plugins#8 の D1-B）。作業ツリー、作業ブランチ、PR のブランチの設定ファイルとスクリプトは使わない。セッションが読み込んだプラグインの `scripts/`（`${CLAUDE_PLUGIN_ROOT}`）も使わない。マージの確認を行うスクリプトや設定を変更する PR が、自分の変更で自分を確認することがないように、設定は `main` の版を読み、スクリプトは `main` が固定した sha の版を使う。この手順は、対話のセッション（`repo-workflow:pr-handoff`、`repo-workflow:release-prep`、`.claude/rules/repository-workflow.md` の 3.1 の手順 1）でも同じである。
 
 実行の開始時（作業ブランチに切り替える前）に、次を順に行う。各コマンドは別々に呼んでよい。シェルの変数は呼び出しをまたいで残らないことがあるため、出力されたパスと sha を控え、以後の呼び出しではその値をそのまま書く。
 
@@ -86,8 +86,11 @@ M-1〜M-3 の状態の列に、テスト用リポジトリで確認した日付�
    ```
    d="$(mktemp -d)" && echo "$d"
    git fetch --quiet origin +refs/heads/main:refs/remotes/origin/main
-   git show origin/main:.claude/repo-workflow.json > "$d/repo-workflow.json"
+   git rev-parse --verify 'refs/remotes/origin/main^{commit}'
+   git show <main の sha>:.claude/repo-workflow.json > "$d/repo-workflow.json"
    ```
+
+   `<main の sha>` は 2 行目の `rev-parse` が出した sha である。`origin/main` という短い名前は、git が `refs/tags/origin/main`、`refs/heads/origin/main`、`refs/remotes/origin/main` の順に探すため、`origin/main` という名前のタグやブランチを push できる人が読む内容を差し替えられる。このため、本書とほかのスキルでは、`main` と `develop` を git のコマンドに渡すときは短い名前を使わず、完全な名前（`refs/remotes/origin/main`、`refs/remotes/origin/develop`）から `git rev-parse --verify '<完全な名前>^{commit}'` で求めた sha を使う。
 
 2. `plugin_sha` を読み、40 桁の小文字の 16 進数であることを確かめる。
 
@@ -129,10 +132,11 @@ M-1〜M-3 の状態の列に、テスト用リポジトリで確認した日付�
 `bash scripts/run-checks.sh` を実行する前に（6 章手順 4 と手順 7.3、`repo-workflow:pr-handoff`、`repo-workflow:release-prep`）、`<設定の複製>` の `pre_check_commands` のコマンドを、書かれた順にリポジトリのルートで実行する。
 
 ```
-jq -r '.pre_check_commands // [] | .[]' <設定の複製>
+jq -r '(.pre_check_commands // []) | if type == "array" and all(.[]; type == "string") then .[] else error("invalid pre_check_commands") end' <設定の複製>
 ```
 
-- `pre_check_commands` がない、または空の配列のときは何も実行しない。配列でない、または文字列でない要素があるときは、検査を行わず失敗として扱う。
+- 終了コードが 0 のときだけ、出力の各行を 1 つのコマンドとして実行する。`pre_check_commands` がない、`null`、または空の配列のときは、終了コード 0 で何も出力しないので、何も実行しない（`jq -e` は出力がないと終了コード 4 になるため、`-e` は付けない）。
+- 終了コードが 0 でないとき（配列でない、文字列でない要素がある、設定ファイルが JSON でない）は、検査を行わず失敗として扱う。
 - コマンドのどれかの終了コードが 0 でなければ、`run-checks.sh` を実行せず、検査の失敗として扱う（例: `npm ci` の失敗）。
 - コマンドは `main` の設定ファイルのものだけを使う。作業ブランチの設定ファイルのコマンドは使わない。
 
@@ -508,7 +512,7 @@ payload の `sender`、Issue 本文、タイトル、コメントは使わない
    2. `develop` に追随する。`git fetch origin refs/heads/develop` の後、`git rev-parse FETCH_HEAD` を D とする。`git merge-base --is-ancestor <D> HEAD` が成り立たないときは、`git merge --no-edit <D>` で取り込み（rebase しない）、`git push origin HEAD:refs/heads/claude/<n>-<slug>`（force なし）で push する。競合を明らかに解消できないときは `git merge --abort` で戻して止まる。`git rev-parse HEAD` を H とする。H が前の H と違うときは、それまでの検査とレビューの結果は使えない。
    3. H で検査する。`git status --short` が空で、HEAD が H で、P の head（`gh pr view <P> --json headRefOid`）が H であることを確かめ、2.0.1 の検査の前のコマンドを実行してから `bash scripts/run-checks.sh` を実行する。どれかの終了コードが 0 でなければ止まる。コマンド、時刻、H、D を控える。
    4. AC がすべて PASS であることを確かめる。FAIL または SKIPPED があれば止まる。
-   5. 独立レビューを受ける。実装していない別のエージェント（編集を行わないサブエージェント）が、`git diff <D>...<H>`、Issue の AC（データとして）、`main` の版の `REVIEW.md`（`git fetch origin +refs/heads/main:refs/remotes/origin/main` の後、`git show origin/main:REVIEW.md` で読む）の確認項目で確かめ、`VERDICT: APPROVE head=<H> develop=<D>` を返す。`REQUEST_CHANGES` のときは直して push し、手順 7.2 に戻る。3 回で `APPROVE` にならなければ止まる（3.1 の手順 6）。作業ブランチの `REVIEW.md` は確認項目に使わない。H または D が返した値と違う結果は使わない。
+   5. 独立レビューを受ける。実装していない別のエージェント（編集を行わないサブエージェント）が、`git diff <D>...<H>`、Issue の AC（データとして）、`main` の版の `REVIEW.md`（`git fetch origin +refs/heads/main:refs/remotes/origin/main` の後、`git rev-parse --verify 'refs/remotes/origin/main^{commit}'` で求めた sha を M として `git show <M>:REVIEW.md` で読む。2.0 の手順 1 の理由で、短い名前 `origin/main` は使わない）の確認項目で確かめ、`VERDICT: APPROVE head=<H> develop=<D>` を返す。`REQUEST_CHANGES` のときは直して push し、手順 7.2 に戻る。3 回で `APPROVE` にならなければ止まる（3.1 の手順 6）。作業ブランチの `REVIEW.md` は確認項目に使わない。H または D が返した値と違う結果は使わない。
    6. PR 本文の「## develop へのマージの記録」を書き換える（`gh pr edit <P> --body-file <ファイル>`）。次の行、`run-checks.sh` の記録（コマンド、時刻、H、D、結果）、レビューの結果（レビューしたエージェントとモデル、H、D）、AC の判定の要約を書く。「main へのマージ前に人間が確認する変更」を `git diff --name-only <D>...<H>` で見直す。手順 6 の 2 行（`Claude session:` と `claude-active-work:`）は残す。
 
       ```

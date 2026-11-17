@@ -20,10 +20,10 @@ argument-hint: "<X.Y.Z またはバンプ種別>"
 
 1. **前提の確認**
    - 人間から `X.Y.Z` またはバンプ種別（major / minor / build）を受け取る。バンプ種別だけの場合は、`docs/CHANGELOG.md` の先頭見出しのバージョンから `X.Y.Z` を計算し、人間に確認する。指定がなければ報告して止まる。
-   - `git fetch origin` の後、`git rev-parse origin/develop` で `develop` の先頭コミットを取得する。
-   - `develop` の先頭のツリーで `bash scripts/run-checks.sh` を実行する。別の作業ツリー（`git worktree add --detach <ディレクトリ> origin/develop`）で実行するか、`git switch --detach origin/develop` の後で実行する。実行の前に `git status --short` が空である（未コミットの変更と未追跡のファイルがない）ことを確認し、空でなければ報告して止まる。`run-checks.sh` の前に、同じ作業ツリーで、`origin/main` の `.claude/repo-workflow.json` の `pre_check_commands` を順に実行する（`repo-workflow:issue-pickup` の 2.0.1）。どれかが失敗したら報告して止まる。終了コード 0 のときだけ `PASS`。失敗なら報告して止まる。
+   - `git fetch origin +refs/heads/main:refs/remotes/origin/main +refs/heads/develop:refs/remotes/origin/develop` の後、`git rev-parse --verify 'refs/remotes/origin/develop^{commit}'` で `develop` の先頭コミット（以下 D）を取得する。この節では、`main` と `develop` を git のコマンドに渡すときは短い名前（`origin/main`、`origin/develop`）を使わず、完全な名前か sha を使う（理由は `repo-workflow:issue-pickup` の 2.0 の手順 1）。
+   - `develop` の先頭のツリーで `bash scripts/run-checks.sh` を実行する。別の作業ツリー（`git worktree add --detach <ディレクトリ> <D>`）で実行するか、`git switch --detach <D>` の後で実行する。実行の前に `git status --short` が空である（未コミットの変更と未追跡のファイルがない）ことを確認し、空でなければ報告して止まる。`run-checks.sh` の前に、同じ作業ツリーで、`origin` の `main` の `.claude/repo-workflow.json`（`repo-workflow:issue-pickup` の 2.0 の手順 1 のとおり、`refs/remotes/origin/main` から求めた sha で読む）の `pre_check_commands` を順に実行する（同じく 2.0.1）。どれかが失敗したら報告して止まる。終了コード 0 のときだけ `PASS`。失敗なら報告して止まる。
    - 続けて `gh run list --workflow ci.yml --commit <先頭の sha> --json databaseId,status,conclusion,createdAt,url` を読み、実行ごとに `gh run view <id> --json jobs` で OS ごとの結論を読む。その sha に対する実行のうち、ある OS のジョブの結論が `failure` または `timed_out` で、同じ OS についてそれより後に成功した実行がないものがあれば、手動実行が失敗しているとして報告して止まる。実行がなければ `NOT_CONFIGURED` と記録する。判定できないとき（実行中、結論を読めない、どの OS のジョブか分からないなど）は、報告して止まる。
-2. **リリースブランチ**: 同名のブランチが既にないことを `git ls-remote --heads origin claude/release-vX.Y.Z` で確認し（出力に名前（2 列目）が `refs/heads/claude/release-vX.Y.Z` と完全に一致する行がないこと。`ls-remote` のパターンは名前の末尾でも一致するため、出力が空かどうかでは判断しない。コマンドが失敗したときは確認できないものとして止まる）、同じバージョンの Open の PR がないことを `gh pr list --state open --json number,headRefName` で確認する。どちらかがあれば、作らずに報告して止まる。なければ `git switch -c claude/release-vX.Y.Z origin/develop` で作る。
+2. **リリースブランチ**: 同名のブランチが既にないことを `git ls-remote --heads origin claude/release-vX.Y.Z` で確認し（出力に名前（2 列目）が `refs/heads/claude/release-vX.Y.Z` と完全に一致する行がないこと。`ls-remote` のパターンは名前の末尾でも一致するため、出力が空かどうかでは判断しない。コマンドが失敗したときは確認できないものとして止まる）、同じバージョンの Open の PR がないことを `gh pr list --state open --json number,headRefName` で確認する。どちらかがあれば、作らずに報告して止まる。なければ `git switch -c claude/release-vX.Y.Z <D>` で作る。
 3. **CHANGELOG エントリ**: `docs/CHANGELOG.md` のアンカー行（`<!-- 新しいエントリはこの行の直下に追加 -->`）の直下に、`## [X.Y.Z] - YYYY-MM-DD` の見出しで直接追記する。既存エントリの書式（`### 追加` / `### 変更` / `### 修正`）に従い、`core-dev:changelog-commit` の記載ルールに沿って機能単位で簡潔に書く。内容は、前回のリリース以降に `develop` へマージされた PR（下の Closes 一覧の手順 1〜2 で集めたもの）から作る。`package.json` やその他のバージョンファイルは作らない。
 4. **受入テスト手順書**: `docs/acceptance/vX.Y.Z.md` を `docs/acceptance/README.md` の書式で作る。`X.Y.Z` は CHANGELOG に追記した見出しのバージョンと一致させる。このリリースに含まれる Issue の AC ごとに、手順・期待結果・判定欄（未実施）を持つブロックを置く。実施は人間がテスト環境で行う。Claude は実施しない。
 5. **コミットと push**: CHANGELOG と受入テスト手順書を意味のある単位でコミットし（メッセージは `<type>: <description>`）、`git push -u origin claude/release-vX.Y.Z` で push する。
@@ -34,7 +34,7 @@ argument-hint: "<X.Y.Z またはバンプ種別>"
 
 GitHub は `Closes` を `main` に届いたときだけ働かせるため、`develop` -> `main` の PR 本文に全 Issue を列挙する必要がある。その一覧を作る。あわせて、人間が `main` へのマージの前に確認する変更の一覧を作る（`repository-workflow.md` 第4節）。
 
-1. 直近の `main` へのマージ日時を求める。`gh pr list --base main --state merged --json number,mergedAt --limit 20` の結果から `mergedAt` が最大のものを取る。結果が空（初回リリース）の場合は日時を使わず、`git log origin/main..origin/develop` の範囲を対象とする。
+1. 直近の `main` へのマージ日時を求める。`gh pr list --base main --state merged --json number,mergedAt --limit 20` の結果から `mergedAt` が最大のものを取る。結果が空（初回リリース）の場合は日時を使わず、`git log refs/remotes/origin/main..refs/remotes/origin/develop` の範囲を対象とする（手順 1 で両方を取得済み）。
 2. その日時より後に `develop` へマージされた PR を集める。`gh pr list --base develop --state merged --search "merged:>=<日時>" --json number,title,body,headRefName,mergedAt,closingIssuesReferences --limit 200`。`merged:>=` は境界を含むため、`mergedAt` で再確認し、`main` へのマージ日時以前のものは除く。
 3. Issue 番号は主に、各 PR 本文の `Closes` / `Fixes` / `Resolves` `#N` の行と、`headRefName` の `claude/<n>-` から集める。`closingIssuesReferences` は補助とする（デフォルトブランチ以外が base の PR では通常空になる）。重複を除き、リリース PR 自身は対象に含めない。
 4. 次の形式で出力する。PR 本文に貼れる形にし、Issue 番号ごとに由来の PR 番号を併記する。

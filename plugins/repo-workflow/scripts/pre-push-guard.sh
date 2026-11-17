@@ -65,7 +65,7 @@
 #   - gh api の repos/<owner>/<repo>/merges(ブランチを base へ直接マージする API)。メソッドによらない。
 #   - gh api graphql で、引数に mergePullRequest、enablePullRequestAutoMerge、mergeBranch を含むもの。
 #   - gh pr update-branch と、gh api の pulls/<n>/update-branch へのメソッドが GET 以外のリクエスト
-#     (develop への追随は作業ブランチで git merge origin/develop を実行して push する)。
+#     (develop への追随は作業ブランチで git merge refs/remotes/origin/develop を実行して push する)。
 #
 # API による main / develop への書き込み: git push を通らない書き込みも拒否する。メソッドの決め方は上と同じ。
 #   - gh api の repos/<owner>/<repo>/git/refs と git/ref 以下へのリクエストで、メソッドが GET 以外のもの
@@ -166,7 +166,7 @@ lock_glob_dst() {
 }
 
 LOCK_REASON="claude/active-work への push は禁止です。ロックは repo-workflow の \`pickup.sh\`(plugin_sha から一時ディレクトリに写したもの)だけで操作する"
-UPDATE_BRANCH_REASON="PR のブランチの更新(gh pr update-branch、pulls/<n>/update-branch)は行いません。develop への追随は作業ブランチで git merge origin/develop を実行して push します(.claude/rules/repository-workflow.md 3.1 の手順 3)"
+UPDATE_BRANCH_REASON="PR のブランチの更新(gh pr update-branch、pulls/<n>/update-branch)は行いません。develop への追随は作業ブランチで git merge refs/remotes/origin/develop を実行して push します(.claude/rules/repository-workflow.md 3.1 の手順 3)"
 API_WRITE_REASON="gh api による main / develop / claude/active-work への書き込み(Contents API の PUT / DELETE、Git refs API の GET 以外)は禁止です。作業ブランチに git push し、develop 宛の PR を作成してください"
 MERGE_REASON="PR のマージは plugin_sha から一時ディレクトリに写した repo-workflow の \`merge-pr.sh\` だけで行います(.claude/rules/repository-workflow.md 3.1)。gh pr merge、gh api によるマージ、auto-merge の有効化は行いません"
 

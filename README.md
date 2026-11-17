@@ -236,7 +236,8 @@ consumer のリポジトリのルートの `.claude/repo-workflow.json` に置�
 ```
 d="$(mktemp -d)"
 git fetch --quiet origin +refs/heads/main:refs/remotes/origin/main
-git show origin/main:.claude/repo-workflow.json > "$d/repo-workflow.json"
+m="$(git rev-parse --verify 'refs/remotes/origin/main^{commit}')"   # 短い名前 origin/main はタグ refs/tags/origin/main が先に当たるため使わない
+git show "$m":.claude/repo-workflow.json > "$d/repo-workflow.json"
 jq -r '.plugin_sha' "$d/repo-workflow.json"          # ^[0-9a-f]{40}$ であることを確かめる
 git init --quiet --bare "$d/plugin.git"
 git -C "$d/plugin.git" fetch --quiet https://github.com/TokyoItSchool-dev/claude-common-plugins +refs/heads/main:refs/remotes/upstream/main
