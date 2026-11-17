@@ -1,7 +1,7 @@
 {
   "name": "repo-workflow",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Repository Workflow",
-  "description": "Issue-to-PR workflow for template-derived repositories: issue-to-pr, pr-handoff, release-prep and issue-pickup skills, merge and lock scripts fetched by pinned commit, and push guard hooks",
+  "description": "Issue-to-PR workflow for template-derived repositories: issue-to-pr, pr-handoff, release-prep and issue-launch skills (issue-pickup and pickup.sh are frozen), merge script fetched by pinned commit, and push guard hooks",
   "author": { "name": "Mori" }
 }

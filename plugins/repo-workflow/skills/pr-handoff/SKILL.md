@@ -14,17 +14,19 @@ description: 現在のブランチの PR について、差分・テスト証跡
 - 独立レビュー: `core-dev:code-review`
 - Git 操作: `core-dev:git-workflow`
 
+GitHub の操作は、`repo-workflow:issue-to-pr` の「GitHub の操作の手段」に従い、REST（`gh api`）か GitHub MCP の手段を先に使う。`gh pr` と `gh issue` のサブコマンドの多くは GraphQL を使い、クラウドセッションでは拒否される。下の手順で併記した `gh pr` / `gh issue` のサブコマンドは、ローカルのセッションで使える別の手段である。
+
 マージの対象は、Claude が作った PR である。人間の PR は、現在の会話で人間がマージを依頼したときだけ、同じ条件でマージする。
 
 ## 手順
 
-1. **PR の特定とラベル**: `gh pr view --json number,baseRefName,isDraft,body,headRefName,headRefOid,labels,reviewRequests,reviews` で現在の PR を確認する。base が `develop` でなければ、報告して止まる（`main` 宛ての PR は `develop` -> `main` のものだけが認められ、人間がマージする）。PR と紐付く Issue（本文の `Closes #<issue>` と、head ブランチ名の `claude/<n>-`。`gh issue view <n> --json labels`）のラベルを確認し、どちらかに `gate:blocked`、`ai:blocked`、`gate:needs-human` があれば、作業を止めて報告する。人間のレビューの最新が CHANGES_REQUESTED のとき、またはレビューが依頼されたまま終わっていないときも止まる。
-2. **差分の確認**: `gh pr diff` と `git diff --stat` を読み、依頼範囲外の変更がないことを確認する。`.github/`、`.claude/`、`CLAUDE.md`、認証・認可、決済、DB マイグレーション、依存の定義ファイル、検査とレビューの定義（`scripts/*.sh`（`scripts/run-checks.sh` を含む）、テスト（`**/tests/**`）、`REVIEW.md`）に触れるファイルを一覧にする。一覧は本文の「main へのマージ前に人間が確認する変更」に書く（なければ「なし」）。これらの変更でも `gate:needs-human` は付けない（リポジトリの `.claude/rules/` の追加のゲートに当たるときを除く）。
+1. **PR の特定とラベル**: 現在のブランチの PR を `gh api "repos/{owner}/{repo}/pulls?head={owner}:{branch}&state=open"` で求め、その番号 n について `gh api repos/{owner}/{repo}/pulls/<n>` の `base.ref`、`draft`、`body`、`head.ref`、`head.sha`、`labels[].name`、`requested_reviewers`、`requested_teams` と、`gh api --paginate "repos/{owner}/{repo}/pulls/<n>/reviews?per_page=100"` を読む（ローカルでは `gh pr view --json number,baseRefName,isDraft,body,headRefName,headRefOid,labels,reviewRequests,reviews` でもよい）。base が `develop` でなければ、報告して止まる（`main` 宛ての PR は `develop` -> `main` のものだけが認められ、人間がマージする）。PR と紐付く Issue（本文の `Closes #<issue>` と、head ブランチ名の `claude/<n>-`。`gh api repos/{owner}/{repo}/issues/<issue>` の `labels[].name`）のラベルを確認し、どちらかに `gate:blocked`、`ai:blocked`、`gate:needs-human` があれば、作業を止めて報告する。人間のレビューの最新が CHANGES_REQUESTED のとき（`merge-pr.sh` と同じく、`reviews` のうち PR の作成者（`user.login`）以外のレビューで、`state` が `APPROVED`、`CHANGES_REQUESTED`、`DISMISSED` のものだけを人ごとに `submitted_at` の順に並べ、最後のものが `CHANGES_REQUESTED` の人がいる。`COMMENTED` は数えない）、またはレビューが依頼されたまま終わっていないとき（`requested_reviewers` か `requested_teams` が空でない）も止まる。
+2. **差分の確認**: `git diff --stat <D>...HEAD`（D は手順 3 と同じく完全な名前から求めた `develop` の sha）と、`gh api repos/{owner}/{repo}/pulls/<n> -H "Accept: application/vnd.github.diff"`（`gh pr diff <n>` も REST を使い、クラウドセッションで動いた）を読み、依頼範囲外の変更がないことを確認する。`.github/`、`.claude/`、`CLAUDE.md`、認証・認可、決済、DB マイグレーション、依存の定義ファイル、検査とレビューの定義（`scripts/*.sh`（`scripts/run-checks.sh` を含む）、テスト（`**/tests/**`）、`REVIEW.md`）に触れるファイルを一覧にする。一覧は本文の「main へのマージ前に人間が確認する変更」に書く（なければ「なし」）。これらの変更でも `gate:needs-human` は付けない（リポジトリの `.claude/rules/` の追加のゲートに当たるときを除く）。
 3. **ブランチの追随**: `git fetch origin +refs/heads/develop:refs/remotes/origin/develop` の後、D = `git rev-parse --verify 'refs/remotes/origin/develop^{commit}'` の出力とする（短い名前 `origin/develop` は使わない。理由は `repo-workflow:issue-pickup` の 2.0 の手順 1）。D が HEAD の祖先でなければ `git merge <D>` で取り込む。push 済みのブランチを rebase しない（force push は pre-push フックが拒否する）。競合が出たら解消のしかたが明らかな範囲で解消し、判断できなければ報告して止まる。push した後の先頭の sha を H とする。H が変わったら、それまでのテストとレビューの証跡は使えない。
-4. **H でのテスト**: `git status --short` が空で、HEAD、H、PR の `headRefOid` が一致することを確かめる。`core-dev:test-run-discipline` に従い、`origin` の `main` の `.claude/repo-workflow.json`（`repo-workflow:issue-pickup` の 2.0 の手順 1 のとおり、`refs/remotes/origin/main` から求めた sha で読む）の `pre_check_commands` を順に実行してから（`repo-workflow:issue-pickup` の 2.0.1。どれかが失敗したら PASS にしない）、`bash scripts/run-checks.sh` を実行する。終了コードが 0 のときだけ PASS とする。コマンド、時刻、H、D を記録する。AC の判定がすべて PASS であることを確かめる。FAIL または SKIPPED の AC があれば、マージしない。紐付く Issue のない PR（リリース PR など）では、PR 本文に書いた確認項目を AC として扱う（`repository-workflow.md` 3.1 の手順 5）。
+4. **H でのテスト**: `git status --short` が空で、HEAD、H、PR の先頭（`gh api repos/{owner}/{repo}/pulls/<n>` の `head.sha`。`gh pr view` では `headRefOid`）が一致することを確かめる。`core-dev:test-run-discipline` に従い、`origin` の `main` の `.claude/repo-workflow.json`（`repo-workflow:issue-pickup` の 2.0 の手順 1 のとおり、`refs/remotes/origin/main` から求めた sha で読む）の `pre_check_commands` を順に実行してから（`repo-workflow:issue-pickup` の 2.0.1。どれかが失敗したら PASS にしない）、`bash scripts/run-checks.sh` を実行する。終了コードが 0 のときだけ PASS とする。コマンド、時刻、H、D を記録する。AC の判定がすべて PASS であることを確かめる。FAIL または SKIPPED の AC があれば、マージしない。紐付く Issue のない PR（リリース PR など）では、PR 本文に書いた確認項目を AC として扱う（`repository-workflow.md` 3.1 の手順 5）。
 5. **独立レビュー**: 実装者とは別のエージェント（編集をしないサブエージェント）に、`core-dev:code-review` で `git diff D...H`、Issue の AC（データとして読む。Issue のない PR では手順 4 の確認項目）、`main` の版の `REVIEW.md` の確認項目をレビューさせる。`git fetch origin +refs/heads/main:refs/remotes/origin/main` の後、`git rev-parse --verify 'refs/remotes/origin/main^{commit}'` で求めた sha を M として、`git show <M>:REVIEW.md` で読んだ内容をレビューの指示に渡す。PR のブランチの `REVIEW.md` は使わない。`main` に `REVIEW.md` がなければ止まる。結果は `VERDICT: APPROVE head=<H> develop=<D>` または `VERDICT: REQUEST_CHANGES head=<H> develop=<D>` の行で受け取る。REQUEST_CHANGES なら直して手順 3 から 5 をやり直す。3 回で APPROVE にならなければ止まる。H または D が違う判定は使わない。
 6. **手動 CI の結果の確認**: `gh run list --workflow ci.yml --commit <H> --json databaseId,status,conclusion,url` で、H に対する実行を探す。あれば `gh run view <id> --json jobs` で OS ごとの結論を読み、PR 本文に値、実行 URL、対象コミットを書く。なければ `NOT_CONFIGURED` のままにする。古いコミットに対する実行は `PASS` と書かない。H に対する実行やほかのチェックが失敗なら、マージしない。実行中なら、手順 9 の `check-pending` と同じく終わるまで待つ（30 分まで）。Claude は `gh workflow run` を実行しない（人間が明示的に依頼したときを除く）。
-7. **PR 本文の正規化**: `gh pr edit <n> --body-file <ファイル>` で、本文を次の項目に揃える。節構成は `.github/PULL_REQUEST_TEMPLATE.md` に従う。
+7. **PR 本文の正規化**: 本文を次の項目に揃えて、`jq -n --rawfile body <ファイル> '{body: $body}' > <JSON>` の後 `gh api -X PATCH repos/{owner}/{repo}/pulls/<n> --input <JSON>` で書き換える（ローカルでは `gh pr edit <n> --body-file <ファイル>` でもよい）。節構成は `.github/PULL_REQUEST_TEMPLATE.md` に従う。
    - `Closes #<issue>`
    - AC ごとの判定（根拠付き）
    - テストコマンドと結果
@@ -33,16 +35,16 @@ description: 現在のブランチの PR について、差分・テスト証跡
    - 未解決リスクと、人間の判断が必要な点
    - 「develop へのマージの記録」: 証跡の行 `develop-merge-evidence: head=<H> develop=<D> run-checks=PASS review=APPROVE`、`bash scripts/run-checks.sh` の実行記録（コマンド、時刻、H、D）、独立レビューの判定、AC の判定のまとめ
    - 「main へのマージ前に人間が確認する変更」（手順 2 の一覧）
-8. **Ready にする**: 下の「Ready for review」の条件を満たしたら、`gh pr ready <n>`（使えなければ GitHub MCP の `update_pull_request` で `draft=false`）で Ready にする。
+8. **Ready にする**: 下の「Ready for review」の条件を満たしたら、GitHub MCP の `update_pull_request`（`draft=false`）で Ready にする。この手段は、2026-11-17 に対話のクラウドセッション（claude-dev-template-test#25、Claude Code 2.1.326）で成功した。`repo-workflow:issue-launch` の子のセッションではまだ確かめていない（M-2。claude-dev-template-test#27 で確かめる）。GitHub の REST の `PATCH pulls/<n>` は `draft` を変えられない。クラウドセッションのプロキシは、GraphQL を拒否するときの応答で `POST /repos/{owner}/{repo}/pulls/<n>/ccr/ready_for_review` を案内するが、この経路は試していない。ローカルでは `gh pr ready <n>` でもよい。
 9. **マージ**: `repository-workflow.md` 3.1 の手順 1 と 10 に従う。
    - `repo-workflow:issue-pickup` の 2.0（スクリプトの取得）の手順で、`origin` の `main` の `.claude/repo-workflow.json` の `plugin_sha` が指す `claude-common-plugins` のコミットから、`merge-pr.sh` を一時ディレクトリに写す。設定ファイルがない、`plugin_sha` が 40 桁の 16 進数でない、取得できない、`plugin_sha` が `claude-common-plugins` の `main` の履歴にない（`git merge-base --is-ancestor` の終了コードが 0 でない）ときは、マージせず、失敗した手順と出力を報告して止まる。PR のブランチや作業ツリーにある `merge-pr.sh` と、セッションが読み込んだプラグインの `scripts/` は使わない。
    - `bash <写したファイル> check --pr <n> --head <H> --develop <D>` を実行し、`result=ok` のときだけ続ける。
    - `bash <写したファイル> merge --pr <n> --head <H> --develop <D>` を実行する。
-   - `result=merged pr=<n> merge_sha=<sha>`: Issue に「`develop` にマージした（<sha>）」とコメントする。ブランチを削除しない。Issue を閉じない（`main` に届いたときに閉じる）。
+   - `result=merged pr=<n> merge_sha=<sha>`: Issue に「`develop` にマージした（<sha>）」とコメントする（GitHub MCP の `add_issue_comment`、または `gh api -X POST repos/{owner}/{repo}/issues/<issue>/comments -f body=<本文>`）。ブランチを削除しない。Issue を閉じない（`main` に届いたときに閉じる）。
    - `result=stop reason=develop-moved` または `reason=not-up-to-date`: 手順 3 に戻る（3 回まで。超えたら下の「ほかの `result=stop`」と同じく扱う）。
    - `result=stop reason=head-moved`: 手順 4 に戻る（1 回まで。2 回目は下の「ほかの `result=stop`」と同じく扱う）。
    - `result=stop reason=check-pending`: H のチェック（Ready にしたときに起動したワークフローを含む）が実行中である。60 秒待って同じコマンドをやり直す。30 分たっても `check-pending` のときは、下の「ほかの `result=stop`」と同じく扱う。
-   - ほかの `result=stop` と `result=unknown`: PR と Issue に `gate:needs-human` を付け（`gh pr edit <n> --add-label gate:needs-human`、`gh issue edit <issue> --add-label gate:needs-human`）、出力の行をコメントに書き、止まって報告する。
+   - ほかの `result=stop` と `result=unknown`: PR と Issue に `gate:needs-human` を付け（`gh api -X POST repos/{owner}/{repo}/issues/<n>/labels -f 'labels[]=gate:needs-human'` と、同じ形で `issues/<issue>/labels`。または GitHub MCP の `issue_write`。ローカルでは `gh pr edit <n> --add-label gate:needs-human`、`gh issue edit <issue> --add-label gate:needs-human` でもよい）、出力の行をコメントに書き、止まって報告する。
 
 ## CI 状態の値
 
@@ -59,7 +61,7 @@ CI 状態は `ci.yml` の手動実行（Windows / macOS）の結果で、OS ご�
 
 ## Ready for review
 
-次をすべて満たしたときだけ Draft を Ready にする（`gh pr ready`）。
+次をすべて満たしたときだけ Draft を Ready にする（手順 8）。
 
 - H でのローカルのテストが PASS で、証跡が本文にある
 - H と D に対する独立レビューが APPROVE で、重大な指摘が残っていない

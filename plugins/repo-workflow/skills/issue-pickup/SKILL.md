@@ -1,9 +1,17 @@
 ---
 name: issue-pickup
-description: ai:ready を起点とするスケジュールタスク（自動着手）の無人実行が従う手順。ロック（claude/active-work）の取得と解放、キューの選択、選んだ Issue への着手、Draft PR の作成、develop へのマージ（merge-pr.sh）を、consumer の main の .claude/repo-workflow.json の plugin_sha から取得した pickup.sh と merge-pr.sh で行う。スケジュールタスクの保存プロンプトから「自動着手の手順に従って」と呼ばれた時に使用する。対話で 1 件の Issue を実装するときには使用不可 — repo-workflow:issue-to-pr を使用すること。
+description: 【凍結】新しい作業には使わない。ワーカープールへの移行で削除する（claude-common-plugins#8 の決定 D4）。Issue への着手は repo-workflow:issue-launch（親セッションが子のクラウドセッションを 1 件ずつ起動する）か、対話の repo-workflow:issue-to-pr と repo-workflow:pr-handoff で行う。scripts/pickup.sh も凍結し、使ってよいのは親セッションが次の Issue を選ぶための pickup.sh queue（読み取りだけ）に限る。2.0（plugin_sha からの merge-pr.sh と pickup.sh の取得）と 2.0.1（pre_check_commands）は、ほかのスキルが参照する手順として引き続き有効である。以前の内容: ai:ready を起点とするスケジュールタスク（自動着手）の無人実行が従う手順（ロック、キュー、着手、Draft PR、develop へのマージ）。対話で 1 件の Issue を実装するときには使用不可 — repo-workflow:issue-to-pr を使用すること。
 ---
 
 # 自動着手の手順書（issue-pickup）
+
+> **凍結（claude-common-plugins#8 の決定 D4、2026-11-17）**
+>
+> - スケジュールタスク（旧称 Routines）は使わない。本書と `scripts/pickup.sh` は凍結し、新しい作業には使わない。ワーカープールへの移行で削除する。
+> - Issue への着手は、`repo-workflow:issue-launch`（人間が起動した親セッションが、Issue ごとに子のクラウドセッションを固定の指示で 1 件ずつ起動する）か、人間が監督する対話のセッションでの `repo-workflow:issue-to-pr` と `repo-workflow:pr-handoff` で行う。どちらもロック `claude/active-work` を使わない。
+> - `pickup.sh` で使ってよいのは、親セッションが次の Issue を選ぶための `pickup.sh queue`（読み取りだけ）に限る。`acquire` と `release` は使わない。
+> - 2.0（`plugin_sha` からの `merge-pr.sh` と `pickup.sh` の取得）と 2.0.1（検査の前のコマンド `pre_check_commands`）は、`repo-workflow:issue-launch`、`repo-workflow:issue-to-pr`、`repo-workflow:pr-handoff`、`repo-workflow:release-prep` と consumer の `.claude/rules/repository-workflow.md` が参照する手順として、引き続き有効である。この 2 つの節は凍結の対象外で、節の番号も変えない。
+> - 以下の本文は凍結した時点の内容のままである。スケジュールタスク、ロック、キューの記述は、新しい作業の手順としては読まない。
 
 `ai:ready` を起点とするスケジュールタスク（旧称 Routines）の無人実行が従う手順。設計の正は、ベーステンプレート（`TokyoItSchool-dev/claude-dev-template`）の `docs/template/portfolio-integration-design.md` の 5.5 節と `docs/template/decisions.md` の D-05、D-07。本書と設計が食い違うときは設計に従い、食い違いを Issue にコメントして `gate:needs-human` を付ける。本書の「このリポジトリ」は、実行が clone した consumer のリポジトリを指す。
 
