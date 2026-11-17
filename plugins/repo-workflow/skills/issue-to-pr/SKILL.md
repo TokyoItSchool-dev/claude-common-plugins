@@ -42,11 +42,35 @@ Issue と既存のブランチ・PR を、上の「GitHub の操作の手段」�
 | Issue が Open である | `gh api repos/{owner}/{repo}/issues/<n>` の `state` が `open` で、`pull_request` がない |
 | `ai:ready` ラベルが付いている | 同上の `labels[].name` |
 | Issue の作成者が write 以上の権限を持つ | 同上の `user.login` が、GitHub MCP の `list_repository_collaborators`（全ページ）で `role_name` が `admin`、`maintain`、`write` のいずれか |
-| 最後に `ai:ready` を付けた人が write 以上の権限を持つ | `gh api --paginate "repos/{owner}/{repo}/issues/<n>/events?per_page=100" --jq '.[] \| select(.event=="labeled" and .label.name=="ai:ready") \| .actor.login'` の最後の行が、同じ一覧で `admin`、`maintain`、`write` のいずれか |
+| 最後に `ai:ready` を付けた人が write 以上の権限を持つ | 表の下の「最後に `ai:ready` を付けた人」のコマンドの出力（空なら満たさない）が、GitHub MCP の `list_repository_collaborators`（全ページ）で `role_name` が `admin`、`maintain`、`write` のいずれか |
 | 受入基準（`AC-001` 形式）が本文にある | Issue 本文 |
 | `gate:blocked`、`ai:blocked`、`gate:needs-human` が付いていない | 同上 |
 | `claude/<n>-*` のブランチがない | `git ls-remote --heads origin 'claude/<n>-*'` の出力に、名前（2 列目）が `refs/heads/claude/<n>-` で始まる行がない（`ls-remote` のパターンは名前の末尾でも一致するため、出力が空かどうかでは判断しない）。コマンドが失敗したときは満たさないものとする |
-| この Issue を対象にした Open / Draft の PR がない | `gh api --paginate "repos/{owner}/{repo}/pulls?state=open&per_page=100"` の結果のうち、`head.ref` が `claude/<n>-` で始まるもの、または `body` に `#<n>` が単独のトークンとして含まれるもの（`#<n>0` や `#1<n>` は別の番号なので除く）がない |
+| この Issue を対象にした Open / Draft の PR がない | 表の下の「Open の PR」のコマンドの結果が `[]`。`head.ref` が `claude/<n>-` で始まるもの、または `body` に `#<n>` が単独のトークンとして含まれるもの（`#<n>0` や `#1<n>` は別の番号なので除く）を数える |
+| この Issue を対象にした `develop` にマージ済みの PR がない | 表の下の「マージ済みの PR」のコマンドの結果が `[]`。`head.ref` が `claude/<n>-` で始まるもの、または本文にクローズキーワード（大文字小文字を区別しない `close`、`closes`、`closed`、`fix`、`fixes`、`fixed`、`resolve`、`resolves`、`resolved` の後に空白と `#<n>`）を含むもの（`pickup.sh` の `merged_links` と同じ規則）を数える。`develop` にマージ済みで `main` に未到達の Issue は、Open で `ai:ready` も残るため、これで除く |
+
+コマンド（`repo-workflow:issue-launch` の 1 章と同じ。`gh` の `--jq` ではなく `jq` に渡す。`gh` か `jq` が失敗したときは満たさないものとする）:
+
+最後に `ai:ready` を付けた人:
+
+```
+gh api --paginate "repos/{owner}/{repo}/issues/<n>/events?per_page=100" \
+  | jq -rs '[add // [] | .[] | select(.event=="labeled" and .label.name=="ai:ready")] | sort_by(.created_at) | last | .actor.login // empty'
+```
+
+Open の PR:
+
+```
+gh api --paginate "repos/{owner}/{repo}/pulls?state=open&per_page=100" \
+  | jq -s --arg n <n> '[add // [] | .[] | select(((.head.ref // "") | startswith("claude/\($n)-")) or ((.body // "") | test("#\($n)([^0-9]|$)"))) | .number]'
+```
+
+マージ済みの PR:
+
+```
+gh api --paginate "repos/{owner}/{repo}/pulls?state=closed&base=develop&per_page=100" \
+  | jq -s --arg n <n> '[add // [] | .[] | select(.merged_at != null) | select(((.head.ref // "") | startswith("claude/\($n)-")) or ([(.body // "") | scan("(?i)\\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?[ \\t]+#([0-9]+)\\b") | .[0]] | index($n) != null)) | .number]'
+```
 
 1つでも満たさない場合は、ブランチを作らず、ファイルも変更せずに停止する。報告に次を含める。
 
