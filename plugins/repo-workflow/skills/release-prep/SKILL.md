@@ -14,6 +14,8 @@ argument-hint: "<X.Y.Z またはバンプ種別>"
 - 委譲と受入判定: `core-dev:orchestration-core`
 - Git 操作: `core-dev:git-workflow`
 
+GitHub の操作は、`repo-workflow:issue-to-pr` の「GitHub の操作の手段」に従い、REST（`gh api`）か GitHub MCP の手段を先に使う。`gh pr` のサブコマンドの多くは GraphQL を使い、クラウドセッションでは拒否される。下の手順で併記した `gh pr` のサブコマンドは、ローカルのセッションで使える別の手段である。`gh run list` と `gh run view` は REST を使い、クラウドセッションでも動いた（2026-11-17）。
+
 バージョンは `docs/CHANGELOG.md` の `## [X.Y.Z] - YYYY-MM-DD` 見出しにだけ持つ。`package.json` があっても、その `version` は使わず、更新もしない。`changelog-commit` のバージョン検出（`package.json` の参照）には頼らない。
 
 ## 手順
@@ -23,20 +25,20 @@ argument-hint: "<X.Y.Z またはバンプ種別>"
    - `git fetch origin +refs/heads/main:refs/remotes/origin/main +refs/heads/develop:refs/remotes/origin/develop` の後、`git rev-parse --verify 'refs/remotes/origin/develop^{commit}'` で `develop` の先頭コミット（以下 D）を取得する。この節では、`main` と `develop` を git のコマンドに渡すときは短い名前（`origin/main`、`origin/develop`）を使わず、完全な名前か sha を使う（理由は `repo-workflow:issue-pickup` の 2.0 の手順 1）。
    - `develop` の先頭のツリーで `bash scripts/run-checks.sh` を実行する。別の作業ツリー（`git worktree add --detach <ディレクトリ> <D>`）で実行するか、`git switch --detach <D>` の後で実行する。実行の前に `git status --short` が空である（未コミットの変更と未追跡のファイルがない）ことを確認し、空でなければ報告して止まる。`run-checks.sh` の前に、同じ作業ツリーで、`origin` の `main` の `.claude/repo-workflow.json`（`repo-workflow:issue-pickup` の 2.0 の手順 1 のとおり、`refs/remotes/origin/main` から求めた sha で読む）の `pre_check_commands` を順に実行する（同じく 2.0.1）。どれかが失敗したら報告して止まる。終了コード 0 のときだけ `PASS`。失敗なら報告して止まる。
    - 続けて `gh run list --workflow ci.yml --commit <先頭の sha> --json databaseId,status,conclusion,createdAt,url` を読み、実行ごとに `gh run view <id> --json jobs` で OS ごとの結論を読む。その sha に対する実行のうち、ある OS のジョブの結論が `failure` または `timed_out` で、同じ OS についてそれより後に成功した実行がないものがあれば、手動実行が失敗しているとして報告して止まる。実行がなければ `NOT_CONFIGURED` と記録する。判定できないとき（実行中、結論を読めない、どの OS のジョブか分からないなど）は、報告して止まる。
-2. **リリースブランチ**: 同名のブランチが既にないことを `git ls-remote --heads origin claude/release-vX.Y.Z` で確認し（出力に名前（2 列目）が `refs/heads/claude/release-vX.Y.Z` と完全に一致する行がないこと。`ls-remote` のパターンは名前の末尾でも一致するため、出力が空かどうかでは判断しない。コマンドが失敗したときは確認できないものとして止まる）、同じバージョンの Open の PR がないことを `gh pr list --state open --json number,headRefName` で確認する。どちらかがあれば、作らずに報告して止まる。なければ `git switch -c claude/release-vX.Y.Z <D>` で作る。
+2. **リリースブランチ**: 同名のブランチが既にないことを `git ls-remote --heads origin claude/release-vX.Y.Z` で確認し（出力に名前（2 列目）が `refs/heads/claude/release-vX.Y.Z` と完全に一致する行がないこと。`ls-remote` のパターンは名前の末尾でも一致するため、出力が空かどうかでは判断しない。コマンドが失敗したときは確認できないものとして止まる）、同じバージョンの Open の PR がないことを `gh api --paginate "repos/{owner}/{repo}/pulls?state=open&per_page=100" --jq '.[] | [.number, .head.ref] | @tsv'`（ローカルでは `gh pr list --state open --json number,headRefName` でもよい）で確認する。どちらかがあれば、作らずに報告して止まる。なければ `git switch -c claude/release-vX.Y.Z <D>` で作る。
 3. **CHANGELOG エントリ**: `docs/CHANGELOG.md` のアンカー行（`<!-- 新しいエントリはこの行の直下に追加 -->`）の直下に、`## [X.Y.Z] - YYYY-MM-DD` の見出しで直接追記する。既存エントリの書式（`### 追加` / `### 変更` / `### 修正`）に従い、`core-dev:changelog-commit` の記載ルールに沿って機能単位で簡潔に書く。内容は、前回のリリース以降に `develop` へマージされた PR（下の Closes 一覧の手順 1〜2 で集めたもの）から作る。`package.json` やその他のバージョンファイルは作らない。
 4. **受入テスト手順書**: `docs/acceptance/vX.Y.Z.md` を `docs/acceptance/README.md` の書式で作る。`X.Y.Z` は CHANGELOG に追記した見出しのバージョンと一致させる。このリリースに含まれる Issue の AC ごとに、手順・期待結果・判定欄（未実施）を持つブロックを置く。実施は人間がテスト環境で行う。Claude は実施しない。
 5. **コミットと push**: CHANGELOG と受入テスト手順書を意味のある単位でコミットし（メッセージは `<type>: <description>`）、`git push -u origin claude/release-vX.Y.Z` で push する。
-6. **リリース PR**: 手順書をコミットした後に、`gh pr create --draft --base develop` で PR を作る。PR 本文の「受入テスト手順書」節に `docs/acceptance/vX.Y.Z.md` へのリンクを書く。CI 状態の書き方は `repo-workflow:pr-handoff` と同じ。PR 本文で Windows / macOS での確認を「必要」とし、`develop` -> `main` の前に手動実行するよう依頼する。
+6. **リリース PR**: 手順書をコミットした後に、base が `develop` の Draft PR を、GitHub MCP の `create_pull_request`（`draft=true`）、または `gh api -X POST repos/{owner}/{repo}/pulls --input <JSON>` で作る（ローカルでは `gh pr create --draft --base develop` でもよい）。PR 本文の「受入テスト手順書」節に `docs/acceptance/vX.Y.Z.md` へのリンクを書く。CI 状態の書き方は `repo-workflow:pr-handoff` と同じ。PR 本文で Windows / macOS での確認を「必要」とし、`develop` -> `main` の前に手動実行するよう依頼する。
 7. **`develop` へのマージ**: `repo-workflow:pr-handoff` の手順（`repository-workflow.md` 3.1）でリリース PR を `develop` へマージする。条件を満たさなければマージせずに止まる。受入テストは、`develop` -> `main` の前に人間が実施する。Claude は受入テストを実施しない。
 
 ## Closes 一覧と人間が確認する変更の一覧（後続の `develop` -> `main` PR 用）
 
 GitHub は `Closes` を `main` に届いたときだけ働かせるため、`develop` -> `main` の PR 本文に全 Issue を列挙する必要がある。その一覧を作る。あわせて、人間が `main` へのマージの前に確認する変更の一覧を作る（`repository-workflow.md` 第4節）。
 
-1. 直近の `main` へのマージ日時を求める。`gh pr list --base main --state merged --json number,mergedAt --limit 20` の結果から `mergedAt` が最大のものを取る。結果が空（初回リリース）の場合は日時を使わず、`git log refs/remotes/origin/main..refs/remotes/origin/develop` の範囲を対象とする（手順 1 で両方を取得済み）。
-2. その日時より後に `develop` へマージされた PR を集める。`gh pr list --base develop --state merged --search "merged:>=<日時>" --json number,title,body,headRefName,mergedAt,closingIssuesReferences --limit 200`。`merged:>=` は境界を含むため、`mergedAt` で再確認し、`main` へのマージ日時以前のものは除く。
-3. Issue 番号は主に、各 PR 本文の `Closes` / `Fixes` / `Resolves` `#N` の行と、`headRefName` の `claude/<n>-` から集める。`closingIssuesReferences` は補助とする（デフォルトブランチ以外が base の PR では通常空になる）。重複を除き、リリース PR 自身は対象に含めない。
+1. 直近の `main` へのマージ日時を求める。`gh api --paginate "repos/{owner}/{repo}/pulls?state=closed&base=main&per_page=100" --jq '.[] | select(.merged_at != null) | [.number, .merged_at] | @tsv'`（ローカルでは `gh pr list --base main --state merged --json number,mergedAt --limit 20` でもよい）の結果から `merged_at` が最大のものを取る。結果が空（初回リリース）の場合は日時を使わず、`git log refs/remotes/origin/main..refs/remotes/origin/develop` の範囲を対象とする（手順 1 で両方を取得済み）。
+2. その日時より後に `develop` へマージされた PR を集める。`gh api --paginate "repos/{owner}/{repo}/pulls?state=closed&base=develop&per_page=100" --jq '.[] | select(.merged_at != null) | {number, title, body, head: .head.ref, merged_at}'` の結果のうち、`merged_at` が `main` へのマージ日時より後のものを使う（ローカルでは `gh pr list --base develop --state merged --search "merged:>=<日時>" --json number,title,body,headRefName,mergedAt,closingIssuesReferences --limit 200` でもよい。`merged:>=` は境界を含むため、`mergedAt` で再確認し、`main` へのマージ日時以前のものは除く）。
+3. Issue 番号は主に、各 PR 本文の `Closes` / `Fixes` / `Resolves` `#N` の行と、`headRefName` の `claude/<n>-` から集める。ローカルの `gh pr list` で取得したときの `closingIssuesReferences` は補助とする（GraphQL だけの項目で、デフォルトブランチ以外が base の PR では通常空になる）。重複を除き、リリース PR 自身は対象に含めない。
 4. 次の形式で出力する。PR 本文に貼れる形にし、Issue 番号ごとに由来の PR 番号を併記する。
 
 ```
@@ -45,7 +47,7 @@ Closes #15
 ```
 
 5. Issue 番号を持たない PR があれば、一覧とは別に「Issue 未紐付けの PR」として報告する。推測で Issue 番号を補わない。
-6. 「main へのマージ前に人間が確認する変更」の一覧を作る。手順 2 の PR ごとに、本文の同名の節を読み、`gh pr view <n> --json files` のファイル一覧と突き合わせる。`.github/`、`.claude/`、`CLAUDE.md`、認証・認可、決済、DB マイグレーション、依存の定義ファイル、検査とレビューの定義（`scripts/*.sh`（`scripts/run-checks.sh` を含む）、テスト（`**/tests/**`）、`REVIEW.md`）に当たるファイルを、PR 番号ごとに次の形式で出力する。本文の節にない、または食い違うファイルは、そのことを併記する。どの PR にもなければ「なし」と書く。
+6. 「main へのマージ前に人間が確認する変更」の一覧を作る。手順 2 の PR ごとに、本文の同名の節を読み、`gh api --paginate "repos/{owner}/{repo}/pulls/<n>/files?per_page=100" --jq '.[] | [.filename, (.previous_filename // "")] | @tsv'`（ローカルでは `gh pr view <n> --json files` でもよい）のファイル一覧と突き合わせる（名前を変えたファイルは元の名前も見る）。`.github/`、`.claude/`、`CLAUDE.md`、認証・認可、決済、DB マイグレーション、依存の定義ファイル、検査とレビューの定義（`scripts/*.sh`（`scripts/run-checks.sh` を含む）、テスト（`**/tests/**`）、`REVIEW.md`）に当たるファイルを、PR 番号ごとに次の形式で出力する。本文の節にない、または食い違うファイルは、そのことを併記する。どの PR にもなければ「なし」と書く。
 
 ```
 #21: .claude/rules/repository-workflow.md, CLAUDE.md
