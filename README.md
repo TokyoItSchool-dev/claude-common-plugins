@@ -217,6 +217,7 @@ consumer のリポジトリのルートの `.claude/repo-workflow.json` に置�
 
 - 設定はすべて consumer の `origin` の `main` の版を読む。作業ツリー、作業ブランチ、PR のブランチの設定ファイルは読まない。このため、PR が設定ファイルを変えても、人間がその変更を `main` へマージするまで判定は変わらない。
 - `merge-pr.sh` は、`origin` の `main` の先頭（`git ls-remote` で読み、手元になければ `git fetch` する）の設定ファイルから `gated_paths` を読む。`main` の先頭のコミットに設定ファイルがないときは `result=stop reason=config-missing`、JSON でない、オブジェクトでない、`gated_paths` が空でない文字列（制御文字を含まない）の配列でないときは `result=stop reason=config-invalid` で止める。`main` を読めないとき（`ls-remote` の失敗、`main` がない、名前が `refs/heads/main` と完全に一致する行が 2 行以上、`fetch` の失敗）は `result=unknown step=config`。
+- `gated_paths` が空でないとき、`merge-pr.sh` は PR の変更ファイルの一覧（`pulls/<n>/files`。GitHub は 3000 件までしか返さない）の件数を PR の `changed_files` と比べる。違うとき、または 3000 件以上のときは、一覧にないファイルを確かめられないため `result=stop reason=files-incomplete listed=<k> changed_files=<n>` で止める。`changed_files` が数でないときは `result=unknown step=files`。
 - `ls-remote` のパターンは ref の名前の末尾でも一致する（`claude/1-x/refs/heads/main` というブランチも `refs/heads/main` に当たる）。`merge-pr.sh` と `pickup.sh` は、名前が `refs/heads/main`、`refs/heads/develop`、`refs/heads/claude/active-work` と完全に一致する行だけを使う。
 - #8 D1 の付随の決定により、`.claude/repo-workflow.json` と `.claude/settings.json` を既定の `gated_paths` に入れない（D-07 のまま）。必要なリポジトリは自分の `gated_paths` に書く。
 

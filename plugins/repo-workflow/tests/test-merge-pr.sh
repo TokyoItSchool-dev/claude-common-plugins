@@ -53,7 +53,22 @@ tgit() {
     GIT_COMMITTER_NAME=tester GIT_COMMITTER_EMAIL=tester@example.invalid git "$@"
 }
 
-fixture() { printf '%s\n' "$2" > "${FIXTURE_DIR}/$1.json"; }
+# fixture <name> <json>: fixture を書く。files-7（と files-7.p2）を書いたときは、PR の changed_files を
+# その件数の合計に合わせる（merge-pr.sh は一覧の件数と changed_files を比べる）。
+fixture() {
+  printf '%s\n' "$2" > "${FIXTURE_DIR}/$1.json"
+  case "$1" in
+    files-7|files-7.p2) [ ! -f "${FIXTURE_DIR}/pr-7.json" ] || sync_changed_files ;;
+  esac
+}
+# sync_changed_files: pr-7.json の changed_files を files-7 と files-7.p2 の件数の合計にする。
+sync_changed_files() {
+  local n=0 f
+  for f in "${FIXTURE_DIR}/files-7.json" "${FIXTURE_DIR}/files-7.p2.json"; do
+    [ ! -f "${f}" ] || n=$((n + $(jq 'length' "${f}")))
+  done
+  pr_set ".changed_files = ${n}"
+}
 # pr_set <jq filter>: pr-7.json を書き換える。
 pr_set() {
   jq "$1" "${FIXTURE_DIR}/pr-7.json" > "${FIXTURE_DIR}/tmp.json"
@@ -89,7 +104,7 @@ new_case() {
     user: {login: "owner1"},
     base: {ref: "develop"}, head: {ref: "claude/12-fix-x", sha: $h, repo: {full_name: "owner/repo"}},
     labels: [{name: "work:in-progress"}], requested_reviewers: [], requested_teams: [],
-    body: $body}' > "${FIXTURE_DIR}/pr-7.json"
+    changed_files: 0, body: $body}' > "${FIXTURE_DIR}/pr-7.json"
   fixture issue-12 '{"number":12,"state":"open","labels":[{"name":"ai:ready"},{"name":"work:in-progress"}]}'
   fixture compare '{"status":"ahead","ahead_by":1,"behind_by":0}'
 }
@@ -638,6 +653,39 @@ for name in pr-7 issue-12 compare reviews-7 check-runs status; do
   merge; expect_rc 3; expect_out "result=unknown step=${step}"; expect_no_put
   done_case
 done
+
+# files API は 3000 件までしか返さない。一覧の件数が changed_files と違うときは、一覧にないファイルを
+# 確かめられないため止める（一覧に止める変更のパスがなくても）。
+new_case stop-files-incomplete-mismatch
+main_config "${GATED_EXAMPLE}"
+fixture files-7 '[{"filename":"src/a.sh"},{"filename":"src/b.sh"}]'
+pr_set '.changed_files = 3500'
+expect_stop "files-incomplete listed=2 changed_files=3500"; done_case
+
+# 件数が一致しても、3000 件以上のときは止める。
+new_case stop-files-incomplete-limit
+main_config "${GATED_EXAMPLE}"
+fixture files-7 "$(jq -cn '[range(3000) | {filename: "src/f\(.).sh"}]')"
+expect_stop "files-incomplete listed=3000 changed_files=3000"; done_case
+
+# 2 ページ目まで読んだ件数で比べる。
+new_case check-files-two-pages
+main_config "${GATED_EXAMPLE}"
+fixture files-7 "$(jq -cn '[range(100) | {filename: "src/f\(.).sh"}]')"
+fixture files-7.p2 '[{"filename":"src/last.sh"}]'
+check; expect_rc 0; expect_out "result=ok"; done_case
+
+# changed_files が数でない。
+new_case unknown-files-no-changed-files
+main_config "${GATED_EXAMPLE}"
+fixture files-7 '[{"filename":"src/a.sh"}]'
+pr_set 'del(.changed_files)'
+check; expect_rc 3; expect_out "result=unknown step=files"; done_case
+
+# gated_paths が空のときは一覧を読まないので、件数が違っても止めない。
+new_case check-files-mismatch-no-gated-paths
+pr_set '.changed_files = 3500'
+check; expect_rc 0; expect_out "result=ok"; done_case
 
 new_case unknown-files
 main_config "${GATED_EXAMPLE}"

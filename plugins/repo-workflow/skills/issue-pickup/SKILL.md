@@ -576,7 +576,7 @@ Draft PR の作成まで終えられないとき（テスト失敗を解消で�
 
 実装が `.github/`、`.claude/`、`CLAUDE.md`、認証・認可、決済、DB マイグレーション、依存の定義、検査とレビューの定義（`scripts/*.sh`（`scripts/run-checks.sh` を含む）、テスト（`**/tests/**`）、`REVIEW.md`）に触れるときは、変更したファイルを PR 本文の「## main へのマージ前に人間が確認する変更」に書く。検査とレビューの定義を入れるのは、作業ブランチの版がその PR 自身の検査（6 章手順 7.3）に使われるためである。なければ「なし」と書く。これらの変更でも `gate:needs-human` は付けず、6 章手順 7 の条件を満たせば `develop` へマージする。人間の確認は `develop` から `main` へのマージの前に行う（`.claude/rules/repository-workflow.md` の 4 節、8 節）。PR または Issue に `gate:blocked`、`ai:blocked`、`gate:needs-human` が付いているときは、`merge-pr.sh` が止まり、マージしない。
 
-リポジトリの `.claude/rules/` に追加のゲート（例: 8.1）があれば、それにも従う。設定ファイルの `gated_paths` に当たる変更は、`merge-pr.sh` が `reason=gated-path` で止める（6 章手順 7 の「止まったとき」）。
+リポジトリの `.claude/rules/` に追加のゲート（例: 8.1）があれば、それにも従う。設定ファイルの `gated_paths` に当たる変更は、`merge-pr.sh` が `reason=gated-path` で止める（6 章手順 7 の「止まったとき」）。`gated_paths` が空でないとき、PR の変更ファイルの一覧（GitHub の API は 3000 件まで返す）の件数が PR の `changed_files` と違う、または 3000 件以上なら、一覧にないファイルを確かめられないため `reason=files-incomplete` で止める（同じく「止まったとき」）。
 
 ### 8.3 コメントの文面
 

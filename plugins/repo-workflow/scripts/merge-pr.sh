@@ -24,7 +24,8 @@
 #   develop-moved actual=<sha|none>、not-up-to-date behind_by=<k>、draft（merge のときだけ）、
 #   label-gate-blocked on=<pr|issue-N>、label-ai-blocked on=...、label-needs-human on=...、
 #   review-requested、changes-requested reviewer=<login>、check-failed name=<name>、check-pending name=<name>、
-#   mergeable-false、evidence-missing、config-missing、config-invalid、gated-path path=<path>。
+#   mergeable-false、evidence-missing、config-missing、config-invalid、
+#   files-incomplete listed=<k> changed_files=<n>、gated-path path=<path>。
 # 止める変更のパスは、origin の main の先頭（git ls-remote で読み、手元になければ git fetch する）の
 # .claude/repo-workflow.json の gated_paths から読む。作業ツリーと PR のブランチの設定ファイルは読まない。
 #   そのコミットに設定ファイルがない: result=stop reason=config-missing。
@@ -36,6 +37,9 @@
 # （ls-remote のパターンは名前の末尾でも一致するため、claude/x/refs/heads/main のようなブランチを除く）。
 # develop がないときは result=stop reason=develop-moved actual=none、ls-remote の失敗と、完全に一致する行が
 # 2 行以上のときは result=unknown step=develop。
+# gated_paths が空でないときは、PR の files API（3000 件まで）の一覧の件数を PR の changed_files と比べる。
+#   違うとき、または changed_files が 3000 以上のとき: result=stop reason=files-incomplete（一覧にないファイルを
+#   確かめられないため）。changed_files が数でないとき: result=unknown step=files。
 # merge は、すべて満たすときだけ PUT repos/{owner}/{repo}/pulls/{n}/merge（merge_method=merge、sha=H）を 1 回呼ぶ。
 #   HTTP 405 / 409 は result=stop reason=merge-refused http=<code>。ほかの失敗は PR を 1 回読み直し、
 #   マージ済みなら result=merged、そうでなければ result=unknown step=merge。PUT は再試行しない。
@@ -153,6 +157,9 @@ remote_ref_sha() {
   printf '%s' "${found}"
 }
 
+# PR の files API が返すファイルの数の上限。
+readonly FILES_LIMIT=3000
+
 # load_gated_paths: origin の main の先頭のコミットから設定ファイルを読み、GATED_PATHS を埋める。
 # 読めなければ stop（config-missing、config-invalid）か unknown（config）で終わる。
 load_gated_paths() {
@@ -188,7 +195,10 @@ run_checks() {
   local state merged base head_ref head_sha draft mergeable author nreq head_repo
   read -r state merged base head_ref head_sha draft mergeable author nreq head_repo <<< "${line}"
   [ -n "${head_repo:-}" ] || unknown "pr"
-  local pr_labels issues evidence
+  local pr_labels issues evidence changed_files
+  # 変更ファイルの数（9. で files API の一覧が全件か確かめる）。数でなければ空にする。
+  changed_files=$(jq -r '.changed_files | if type == "number" then tostring else "" end' <<< "${json}" 2>/dev/null) \
+    || unknown "pr"
   pr_labels=$(jq -r "${JQ_STOP_LABELS}" <<< "${json}") || unknown "pr"
   issues=$(jq -r "${JQ_PR_LINKS}" <<< "${json}") || unknown "pr"
   evidence=$(jq -r --arg e "develop-merge-evidence: head=${HEAD_SHA} develop=${DEVELOP_SHA} run-checks=PASS review=APPROVE" \
@@ -278,8 +288,15 @@ run_checks() {
   # 9. 止める変更のパス（origin の main の設定ファイルから読む）
   load_gated_paths
   if [ "${#GATED_PATHS[@]}" -gt 0 ]; then
-    local files p pat
+    local files p pat listed
     json=$(gh_list "repos/${REPO}/pulls/${PR}/files?per_page=100") || unknown "files"
+    # files API は 3000 件までしか返さない。一覧の件数が PR の changed_files と違うとき、または 3000 件以上の
+    # ときは、一覧に入らなかったファイルを確かめられないため止める。changed_files が数でなければ unknown。
+    [[ "${changed_files}" =~ ^[0-9]+$ ]] || unknown "files"
+    listed=$(jq -r 'length' <<< "${json}" 2>/dev/null) || unknown "files"
+    if [ "${listed}" != "${changed_files}" ] || [ "${changed_files}" -ge "${FILES_LIMIT}" ]; then
+      stop "files-incomplete listed=${listed} changed_files=${changed_files}"
+    fi
     files=$(jq -r '.[] | (.filename // empty), (.previous_filename // empty) | gsub("[[:cntrl:]]"; "?")' \
       <<< "${json}" 2>/dev/null) || unknown "files"
     while IFS= read -r p; do
