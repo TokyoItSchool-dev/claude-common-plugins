@@ -13,7 +13,7 @@ description: 【凍結】新しい作業には使わない。ワーカープー�
 > - 2.0（`plugin_sha` からの `merge-pr.sh` と `pickup.sh` の取得）と 2.0.1（検査の前のコマンド `pre_check_commands`）は、`repo-workflow:issue-launch`、`repo-workflow:issue-to-pr`、`repo-workflow:pr-handoff`、`repo-workflow:release-prep` と consumer の `.claude/rules/repository-workflow.md` が参照する手順として、引き続き有効である。この 2 つの節は凍結の対象外で、節の番号も変えない。
 > - 以下の本文は凍結した時点の内容のままである。スケジュールタスク、ロック、キューの記述は、新しい作業の手順としては読まない。
 
-`ai:ready` を起点とするスケジュールタスク（旧称 Routines）の無人実行が従う手順。設計の正は、ベーステンプレート（`TokyoItSchool-dev/claude-dev-template`）の `docs/template/portfolio-integration-design.md` の 5.5 節と `docs/template/decisions.md` の D-05、D-07。本書と設計が食い違うときは設計に従い、食い違いを Issue にコメントして `gate:needs-human` を付ける。本書の「このリポジトリ」は、実行が clone した consumer のリポジトリを指す。
+`ai:ready` を起点とするスケジュールタスク（旧称 Routines）の無人実行が従う手順。設計の正は、ベーステンプレート（`systemshared-ai-advance/claude-dev-template`）の `docs/template/portfolio-integration-design.md` の 5.5 節と `docs/template/decisions.md` の D-05、D-07。本書と設計が食い違うときは設計に従い、食い違いを Issue にコメントして `gate:needs-human` を付ける。本書の「このリポジトリ」は、実行が clone した consumer のリポジトリを指す。
 
 この手順書は `claude-common-plugins` の `plugins/repo-workflow/skills/issue-pickup/SKILL.md` で、consumer の `main` の設定ファイル `.claude/repo-workflow.json` の `plugin_sha` が指すコミットの版を使う。consumer の `.claude/settings.json` の `extraKnownMarketplaces.mori-claude-tools.source.ref` を `plugin_sha` と同じ sha にして、セッションが読み込む版をそろえる。読み込まれた本書が使えないときは、2.0 と同じ方法で、同じ sha の `plugins/repo-workflow/skills/issue-pickup/SKILL.md` を一時ディレクトリに取得して読む。本書とスクリプトの変更は、consumer の `plugin_sha` を上げる PR が `develop` から `main` へマージされた後に有効になる（`main` へは人間がマージする）。
 
@@ -44,7 +44,7 @@ description: 【凍結】新しい作業には使わない。ワーカープー�
 | 権限の回答待ちで止まった実行を人間が気づく方法（実行履歴はセッション終了で判定するため、待ちの状態は Issue から見えない） | 未検証 | 気づく方法が決まるまでは、タスクの詳細ページを人間が定期的に確認する。待っている間もロックは残り、5 時間後以降に古いロックとして解放される（2.4） |
 | PreToolUse hook の現在の入力 / 拒否 JSON 仕様と、クラウド環境でのコマンド権限（`jq` が使えることを含む） | 未検証 | 確認できなければ有効にしない。`jq` がないと `pre-push-guard.sh` はすべてを許可する |
 | `pre-push-guard.sh`（C-2）が実装・検証済みで、実行の最初のツール呼び出しから動く。プラグインのフック（`hooks/hooks.json`）が動くと確かめるまでは、consumer の `.claude/hooks/` の写しを `.claude/settings.json` から呼ぶ（claude-common-plugins#8 の D2-B） | 前提。プラグインのフックが動くかは未検証 | 有効にしない |
-| 実行が `https://github.com/TokyoItSchool-dev/claude-common-plugins` から `plugin_sha` のコミットを `git fetch` できる（2.0） | 未検証 | 2.0 のとおり、ロックにもキューにも触れずに終了する |
+| 実行が `https://github.com/systemshared-ai-advance/claude-common-plugins` から `plugin_sha` のコミットを `git fetch` できる（2.0） | 未検証 | 2.0 のとおり、ロックにもキューにも触れずに終了する |
 | M-1: `PUT repos/{owner}/{repo}/pulls/{n}/merge`（`sha` と `merge_method=merge` を付ける）がセッションのプロキシを通る（`merge-pr.sh merge` が使う） | 未検証 | 6 章手順 7 のマージを行わない（下の段落）。GitHub MCP の `merge_pull_request` に切り替えない（`sha` を渡せず、マージの直前に head が動いたときに拒否できないため） |
 | M-2: PR を Ready にできる（`gh pr ready <n>` は GraphQL を使う。代わりは GitHub MCP の `update_pull_request` の `draft=false`） | 未検証 | 6 章手順 7 のマージを行わない |
 | M-3: 読み取り API（`GET pulls/{n}/reviews`、`GET pulls/{n}/files`、`GET compare/{D}...{H}`、`GET commits/{H}/check-runs`、`GET commits/{H}/status`）が使える（`merge-pr.sh` が使う） | 未検証 | 6 章手順 7 のマージを行わない |
@@ -112,7 +112,7 @@ M-1〜M-3 の状態の列に、テスト用リポジトリで確認した日付�
 
    ```
    git init --quiet --bare "$d/plugin.git"
-   git -C "$d/plugin.git" fetch --quiet https://github.com/TokyoItSchool-dev/claude-common-plugins +refs/heads/main:refs/remotes/upstream/main
+   git -C "$d/plugin.git" fetch --quiet https://github.com/systemshared-ai-advance/claude-common-plugins +refs/heads/main:refs/remotes/upstream/main
    git -C "$d/plugin.git" merge-base --is-ancestor <plugin_sha> refs/remotes/upstream/main
    ```
 
