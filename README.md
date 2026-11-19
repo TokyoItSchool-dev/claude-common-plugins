@@ -126,7 +126,7 @@
 導入方法は、プロジェクトのルートに `CLAUDE.md` としてコピーするか、個人設定として `~/.claude/CLAUDE.md` にマージするかのいずれか。すでに `CLAUDE.md` がある場合は上書きせず、既存のルールと内容をマージすること。
 
 ```
-claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins --scope project
+claude plugin marketplace add systemshared-ai-advance/claude-common-plugins --scope project
 claude plugin install core-dev@mori-claude-tools --scope project
 cp templates/CLAUDE.md ./CLAUDE.md
 ```
@@ -136,7 +136,7 @@ cp templates/CLAUDE.md ./CLAUDE.md
 マーケットプレイスを登録し、必要なプラグインを個別にインストールする。既定は `--scope project` である。これにより、マーケットプレイスとプラグインがリポジトリの `.claude/settings.json` に記録され、git 経由でチームメンバーと共有される。
 
 ```
-claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins --scope project
+claude plugin marketplace add systemshared-ai-advance/claude-common-plugins --scope project
 claude plugin install core-dev@mori-claude-tools --scope project
 claude plugin install java-dev@mori-claude-tools --scope project
 claude plugin install dotnet-dev@mori-claude-tools --scope project
@@ -146,14 +146,14 @@ claude plugin install repo-workflow@mori-claude-tools --scope project
 claude plugin install docs@mori-claude-tools --scope project
 ```
 
-`repo-workflow` は、テンプレート（`TokyoItSchool-dev/claude-dev-template` とその派生）から作ったリポジトリだけで有効にする。使う前に、下の [repo-workflow](#repo-workflow-1) の節の設定ファイルと sha の固定を行う。
+`repo-workflow` は、テンプレート（`systemshared-ai-advance/claude-dev-template` とその派生）から作ったリポジトリだけで有効にする。使う前に、下の [repo-workflow](#repo-workflow-1) の節の設定ファイルと sha の固定を行う。
 
 ### 個人環境へのインストール（オプション）
 
 プロジェクト単位ではなく、個人環境として全プロジェクト共通でインストールしたい場合は、CLI の既定値である `--scope user` を使う。
 
 ```
-claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins --scope user
+claude plugin marketplace add systemshared-ai-advance/claude-common-plugins --scope user
 claude plugin install core-dev@mori-claude-tools --scope user
 cp ~/.claude/plugins/marketplaces/mori-claude-tools/templates/CLAUDE.md ./CLAUDE.md
 ```
@@ -165,7 +165,7 @@ cp ~/.claude/plugins/marketplaces/mori-claude-tools/templates/CLAUDE.md ./CLAUDE
 ```json
 {
   "extraKnownMarketplaces": {
-    "mori-claude-tools": { "source": { "source": "github", "repo": "TokyoItSchool-dev/claude-common-plugins" } }
+    "mori-claude-tools": { "source": { "source": "github", "repo": "systemshared-ai-advance/claude-common-plugins" } }
   },
   "enabledPlugins": { "core-dev@mori-claude-tools": true, "docs@mori-claude-tools": true }
 }
@@ -179,7 +179,7 @@ cp ~/.claude/plugins/marketplaces/mori-claude-tools/templates/CLAUDE.md ./CLAUDE
 - 確認できている: クラウドセッションは、接続された GitHub アカウントが参照できるリポジトリにアクセスできる。
 - 確認できていない: Web セッションでプラグインが自動的にインストールされるかどうかは、ドキュメントに明示されていない。
 
-`TokyoItSchool-dev/claude-common-plugins` は公開リポジトリである。`repo-workflow:issue-pickup` の 2.0（スクリプトの取得）は、このリポジトリを認証なしの https で `git fetch` するため、公開であることを前提にしている。非公開に変えると、この取得が失敗し、2.0 の「取得に失敗したとき」のとおり、セッション（対話のセッションと `repo-workflow:issue-launch` の子のセッション）はマージせずに止まる。プラグインのインストールが Web セッションで動くかどうかは、最初の Web セッションで確認すること。
+`systemshared-ai-advance/claude-common-plugins` は公開リポジトリである。`repo-workflow:issue-pickup` の 2.0（スクリプトの取得）は、このリポジトリを認証なしの https で `git fetch` するため、公開であることを前提にしている。非公開に変えると、この取得が失敗し、2.0 の「取得に失敗したとき」のとおり、セッション（対話のセッションと `repo-workflow:issue-launch` の子のセッション）はマージせずに止まる。プラグインのインストールが Web セッションで動くかどうかは、最初の Web セッションで確認すること。
 
 `repo-workflow` を除くプラグインは hooks を同梱していないため、Windows 固有のシェルやスクリプトを実行しない。`repo-workflow` のフックとスクリプトは bash 4.2 以降、git、jq（`merge-pr.sh` と `pickup.sh` は gh も）を使う。
 
@@ -242,7 +242,7 @@ m="$(git rev-parse --verify 'refs/remotes/origin/main^{commit}')"   # 短い名�
 git show "$m":.claude/repo-workflow.json > "$d/repo-workflow.json"
 jq -r '.plugin_sha' "$d/repo-workflow.json"          # ^[0-9a-f]{40}$ であることを確かめる
 git init --quiet --bare "$d/plugin.git"
-git -C "$d/plugin.git" fetch --quiet https://github.com/TokyoItSchool-dev/claude-common-plugins +refs/heads/main:refs/remotes/upstream/main
+git -C "$d/plugin.git" fetch --quiet https://github.com/systemshared-ai-advance/claude-common-plugins +refs/heads/main:refs/remotes/upstream/main
 git -C "$d/plugin.git" merge-base --is-ancestor <plugin_sha> refs/remotes/upstream/main   # 終了コード 0 のときだけ続ける
 git -C "$d/plugin.git" show <plugin_sha>:plugins/repo-workflow/scripts/merge-pr.sh > "$d/merge-pr.sh"
 git -C "$d/plugin.git" show <plugin_sha>:plugins/repo-workflow/scripts/pickup.sh > "$d/pickup.sh"
@@ -256,7 +256,7 @@ git -C "$d/plugin.git" show <plugin_sha>:plugins/repo-workflow/scripts/pickup.sh
 {
   "extraKnownMarketplaces": {
     "mori-claude-tools": {
-      "source": { "source": "github", "repo": "TokyoItSchool-dev/claude-common-plugins", "ref": "<plugin_sha と同じ sha>" }
+      "source": { "source": "github", "repo": "systemshared-ai-advance/claude-common-plugins", "ref": "<plugin_sha と同じ sha>" }
     }
   },
   "enabledPlugins": { "core-dev@mori-claude-tools": true, "repo-workflow@mori-claude-tools": true }

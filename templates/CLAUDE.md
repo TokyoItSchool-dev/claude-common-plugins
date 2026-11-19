@@ -16,7 +16,7 @@
 - **メインは原則 Edit/Write で成果物を作らない**: 軽微な修正でも委譲する。メインが直接書いてよいのは委譲文・todo 等のオーケストレーション用ファイルに限る。
 - **受入判定のための読み取り専用操作は例外**: `git status` / `git diff --stat` / `ls` / 生成物先頭数行の Read など、検収に必要な証跡確認はメインが直接行ってよい。
 - **詳細は orchestration-core スキル**: タスク分解・モデル選択・委譲文作成・受入判定の前に `core-dev:orchestration-core` スキルを読む。モデル階層と割り当て、委譲の実行規律、エスカレーション、結果の検証の正は同スキル（references/ を含む）である。
-- **orchestration-core が未導入の場合**: `core-dev:orchestration-core` スキルが利用できない場合は、作業を始める前に `core-dev` プラグインをインストールする。マーケットプレイスが未登録なら `claude plugin marketplace add TokyoItSchool-dev/claude-common-plugins --scope project` を実行し、続けて `claude plugin install core-dev@mori-claude-tools --scope project` を実行する。インストール後もスキルが読み込まれない場合は、Claude Code の再起動をユーザーに依頼する。
+- **orchestration-core が未導入の場合**: `core-dev:orchestration-core` スキルが利用できない場合は、作業を始める前に `core-dev` プラグインをインストールする。マーケットプレイスが未登録なら `claude plugin marketplace add systemshared-ai-advance/claude-common-plugins --scope project` を実行し、続けて `claude plugin install core-dev@mori-claude-tools --scope project` を実行する。インストール後もスキルが読み込まれない場合は、Claude Code の再起動をユーザーに依頼する。
 
 ### Agent Teams
 

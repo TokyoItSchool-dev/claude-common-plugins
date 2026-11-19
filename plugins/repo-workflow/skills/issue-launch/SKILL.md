@@ -91,7 +91,7 @@ claude-code-remote のツールがない環境では、この方式を使わず�
 
 ## 3. 子の固定の指示
 
-次の文面をそのまま使う。差し込むのは `<owner/name>`（例: `TokyoItSchool-dev/claude-dev-template-test`）と `<issue-number>`（数字だけ）の 2 か所だけである。大文字の語（`SLUG`、`BRANCH`、`PR`、`H`、`D`）は子が埋める値で、親は差し込まない。
+次の文面をそのまま使う。差し込むのは `<owner/name>`（例: `systemshared-ai-advance/claude-dev-template-test`）と `<issue-number>`（数字だけ）の 2 か所だけである。大文字の語（`SLUG`、`BRANCH`、`PR`、`H`、`D`）は子が埋める値で、親は差し込まない。
 
 ```
 あなたは repo-workflow:issue-launch で起動された子のセッションである。対象は <owner/name> の Issue #<issue-number> の 1 件だけである。
